@@ -25,7 +25,7 @@ public abstract class Aproot extends Application {
         public Subject fulfil(Subject subject) {
             Broker broker = subject.get(Client.source);
             Subject result = Aproot.this.fulfill(broker, subject);
-            return result.forge(Aproot.this.fulfil(subject));
+            return result.met(Aproot.this.fulfil(subject));
         }
     };
     protected Subject suite;
@@ -129,8 +129,8 @@ public abstract class Aproot extends Application {
     }
 
     public final Subject showView(Broker broker, Subject subject) {
-        if(!subject.is(Controller.class) || subject.get(Controller.class).parent() == null) {
-            subject.forge(loadView(broker, subject));
+        if(!subject.is(Controller.class) || subject.gac(Controller.class).parent() == null) {
+            subject.met(loadView(broker, subject));
         }
         Controller controller = subject.get(Controller.class);
         Scene scene = subject.god(Scene.class, controller.scene());

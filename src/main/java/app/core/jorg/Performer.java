@@ -8,5 +8,6 @@ import app.modules.graph.HashDupleGraph;
 
 public interface Performer {
     Subject subjectively(Object object);
-    Object objectively(Object object, Subject subject);
+    boolean objectively(Object object, Subject subject);
+    Object construct(Class<?> type);
 }

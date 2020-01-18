@@ -2,6 +2,7 @@ package app.core.suite;
 
 import app.core.flow.FlowArrayList;
 import app.core.flow.FlowCollection;
+import app.core.suite.transition.Transition;
 
 import java.util.function.Supplier;
 
@@ -26,15 +27,6 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject set(Class<?> classKey, Object value) {
-        if(classKey.isInstance(value)) {
-            return new PrimeSubject().set(classKey, value);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + classKey);
-        }
-    }
-
-    @Override
     public Subject set(Coupon<?> coupon, Object value) {
         if(coupon.getGlass().isInstance(value)) {
             return new PrimeSubject().set(coupon, value);
@@ -44,18 +36,8 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject set(Object key, Fun fun) {
-        return new PrimeSubject().set(key, fun);
-    }
-
-    @Override
-    public Subject set(Object key, Tun tun) {
-        return new PrimeSubject().set(key, tun);
-    }
-
-    @Override
-    public Subject set(Object key, Statement statement) {
-        return new PrimeSubject().set(key, Fun.make(statement));
+    public Subject set(Object key, Transition transition) {
+        return new PrimeSubject().set(key, transition);
     }
 
     @Override
@@ -69,63 +51,33 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject sor(Class<?> classKey, Object value) {
-        return set(classKey, value);
-    }
-
-    @Override
     public Subject sor(Coupon<?> coupon, Object value) {
         return set(coupon, value);
     }
 
     @Override
-    public Subject sor(Object key, Fun fun) {
-        return set(key, fun);
+    public Subject sor(Object key, Transition transition) {
+        return set(key, transition);
     }
 
     @Override
-    public Subject sor(Object key, Tun tun) {
-        return set(key, tun);
-    }
-
-    @Override
-    public Subject sor(Object key, Statement statement) {
-        return set(key, statement);
-    }
-
-    @Override
-    public Subject sok(Object value) {
+    public Subject sos(Object value) {
         return set(value);
     }
 
     @Override
-    public Subject sok(Object key, Object value) {
+    public Subject sos(Object key, Object value) {
         return set(key, value);
     }
 
     @Override
-    public Subject sok(Class<?> classKey, Object value) {
-        return set(classKey, value);
-    }
-
-    @Override
-    public Subject sok(Coupon<?> coupon, Object value) {
+    public Subject sos(Coupon<?> coupon, Object value) {
         return set(coupon, value);
     }
 
     @Override
-    public Subject sok(Object key, Fun fun) {
-        return set(key, fun);
-    }
-
-    @Override
-    public Subject sok(Object key, Tun tun) {
-        return set(key, tun);
-    }
-
-    @Override
-    public Subject sok(Object key, Statement statement) {
-        return set(key, statement);
+    public Subject sos(Object key, Transition transition) {
+        return set(key, transition);
     }
 
     @Override
@@ -144,7 +96,12 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B get(Class<? super B> classKey) {
+    public<B> B getAs(Class<B> requestedType) {
+        throw new NullPointerException("ZeroSubject contains no values");
+    }
+
+    @Override
+    public <B> B getAs(Glass<? super B, B> requestedType) {
         throw new NullPointerException("ZeroSubject contains no values");
     }
 
@@ -154,12 +111,12 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B get(Object key, Class<B> classFilter) {
+    public<B> B getAs(Object key, Class<B> requestedType) {
         throw new NullPointerException("ZeroSubject contains no values");
     }
 
     @Override
-    public<B> B get(Object key, Glass<? super B, B> glassFilter) {
+    public<B> B getAs(Object key, Glass<? super B, B> requestedType) {
         throw new NullPointerException("ZeroSubject contains no values");
     }
 
@@ -174,12 +131,12 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B god(Object key, Class<B> classFilter, B substitute) {
+    public<B> B godAs(Object key, B substitute, Class<B> requestedType) {
         return substitute;
     }
 
     @Override
-    public<B> B god(Object key, Glass<? super B, B> glassFilter, B substitute) {
+    public<B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
         return substitute;
     }
 
@@ -194,21 +151,26 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B gos(B substitute) {
+    public<B> B goc(B substitute) {
         throw new UnsupportedOperationException("Self upgrade in gos method is not supported for ZeroSubject");
     }
 
     @Override
-    public<B> B gos(Object key, B substitute) {
+    public<B> B goc(Object key, B substitute) {
         throw new UnsupportedOperationException("Self upgrade in gos method is not supported for ZeroSubject");
     }
 
     @Override
-    public<B> B gon(Class<B> classKey) {
+    public <B> B gac(Class<B> key) {
+        throw new NullPointerException("ZeroSubject contains no values");
+    }
+
+    @Override
+    public<B> B gon(Class<B> key) {
         try {
-            return classKey.getConstructor().newInstance();
+            return key.getConstructor().newInstance();
         } catch (Exception e) {
-            throw new NullPointerException("Failed instance creation of " + classKey);
+            throw new NullPointerException("Failed instance creation of " + key);
         }
     }
 
@@ -218,12 +180,17 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
+    public <B> boolean iso(Class<B> checkedType) {
+        return false;
+    }
+
+    @Override
     public boolean is(Object key) {
         return false;
     }
 
     @Override
-    public <B>boolean is(Object key, Class<B> classFilter){
+    public <B>boolean iso(Object key, Class<B> classFilter){
         return false;
     }
 

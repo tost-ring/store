@@ -1,6 +1,6 @@
 package app.core.agent;
 
-import app.core.suite.Fun;
+import app.core.suite.transition.Function;
 import app.core.suite.Subject;
 
 public abstract class Agent extends Broker {
@@ -26,7 +26,7 @@ public abstract class Agent extends Broker {
         return order(boss, subject);
     }
 
-    protected final void order(Subject subject, Fun callback) {
+    protected final void order(Subject subject, Function callback) {
         order(boss, subject, callback);
     }
 
@@ -34,7 +34,7 @@ public abstract class Agent extends Broker {
         return order(boss, object);
     }
 
-    protected final void order(Object object, Fun callback) {
+    protected final void order(Object object, Function callback) {
         order(boss, object, callback);
     }
 

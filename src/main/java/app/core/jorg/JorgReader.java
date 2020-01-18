@@ -1,26 +1,40 @@
 package app.core.jorg;
 
 import app.core.suite.Subject;
+import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
 import app.modules.graph.Graphs;
 import app.modules.graph.ReferenceHashGraph;
+import org.apache.commons.text.StringEscapeUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JorgReader {
 
     private final static Pattern idPattern = Pattern.compile("^\\s*#([\\p{Alpha}_]\\w*(?:\\.[\\p{Alpha}_]\\w*)*)(\\[])?@(\\w+)\\s*$");
-    private final static Pattern fieldPattern = Pattern.compile("^\\s*(\\w+)\\s*=\\s*(.*)");
+    private final static Pattern fieldPattern = Pattern.compile("^\\s*\\[\\s*(.*)\\s*]\\s*(.*)");
     private final static Pattern stringPattern = Pattern.compile("^\\s*\"(.*)\"\\s*$");
     private final static Pattern intPattern = Pattern.compile("^\\s*(\\d+)\\s*$");
-    
+
+    public static<T> T read(String filePath) {
+        JorgReader reader = new JorgReader();
+        try {
+            reader.read(new FileInputStream(filePath));
+            return reader.getObjects().god("o", null);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
     private GeneralPerformer performer;
     private Subject objects;
+
+    public JorgReader() {
+        this(new GeneralPerformer(Suite.
+                set("Subject", Subject.class)));
+    }
 
     public JorgReader(GeneralPerformer performer) {
         this.performer = performer;
@@ -28,47 +42,25 @@ public class JorgReader {
     }
 
     public void read(InputStream inputStream) {
-        ReferenceHashGraph<Xkey, String> referenceGraph = new ReferenceHashGraph<>();
+        ReferenceHashGraph<Xkey, Xkey> referenceGraph = new ReferenceHashGraph<>();
         try {
-            Xkey xkey = null;
+            Xkey quill = null;
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String line = reader.readLine();
             while(line != null) {
-                Matcher matcher = idPattern.matcher(line);
-                if(matcher.matches()) {
-                    String type = matcher.group(1);
-                    boolean arrayType = matcher.group(2) != null;
-                    String id = matcher.group(3);
-                    xkey = referenceGraph.putNode(new Xkey(type, id, arrayType));
-                } else if(xkey != null){
-                    matcher = fieldPattern.matcher(line);
-                    if(matcher.matches()) {
-                        String fieldName = matcher.group(1);
-                        String fieldData = matcher.group(2);
-                        matcher = idPattern.matcher(fieldData);
-                        if(matcher.matches()) {
-                            String type = matcher.group(1);
-                            boolean arrayType = matcher.group(2) != null;
-                            String id = matcher.group(3);
-                            referenceGraph.link(xkey, fieldName, new Xkey(type, id, arrayType));
-                        } else {
-                            matcher = stringPattern.matcher(fieldData);
-                            if(matcher.matches()) {
-                                String string = matcher.group(1);
-                                referenceGraph.link(xkey, fieldName, new Xkey(string, "", null));
-                            } else {
-                                matcher = intPattern.matcher(fieldData);
-                                if(matcher.matches()) {
-                                    Integer integer = Integer.parseInt(matcher.group(1));
-                                    referenceGraph.link(xkey, fieldName, new Xkey(integer, "", null));
-                                }
-                            }
-                        }
+                Xkey id = parseId(line);
+                if(id != null) {
+                    quill = referenceGraph.putNode(id);
+                } else if(quill != null) {
+                    Subject parseResult = parseField(line);
+                    if(parseResult.are("pipe", "dart")) {
+                        Xkey pipe = referenceGraph.putNode(parseResult.get("pipe"));
+                        Xkey dart = referenceGraph.putNode(parseResult.get("dart"));
+                        referenceGraph.link(quill, pipe, dart);
                     }
                 }
                 line = reader.readLine();
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -100,10 +92,55 @@ public class JorgReader {
         }
     }
 
-    private Subject nodeAdjacentAsSubject(ReferenceHashGraph<Xkey, String> referenceGraph, Xkey node) {
-        Subject subject = new WrapSubject();
-        for(String link : referenceGraph.getLinks(node)) {
-            subject.set(link, referenceGraph.getNode(node, link).getObject());
+    private Xkey parse(String string) {
+        Xkey xkey = parseId(string);
+        if(xkey != null)return xkey;
+        xkey = parseString(string);
+        if(xkey != null)return xkey;
+        xkey = parseInteger(string);
+        return xkey;
+    }
+
+    private Xkey parseId(String string) {
+        Matcher matcher = idPattern.matcher(string);
+        if(matcher.matches()) {
+            String type = matcher.group(1);
+            boolean arrayType = matcher.group(2) != null;
+            String id = matcher.group(3);
+            return new Xkey(type, id, arrayType);
+        } else return null;
+    }
+
+    private Xkey parseString(String string) {
+        Matcher matcher = stringPattern.matcher(string);
+        if (matcher.matches()) {
+            String str = StringEscapeUtils.unescapeJava(matcher.group(1));
+            return new Xkey(str, "", null);
+        } else return null;
+    }
+
+    private Xkey parseInteger(String string) {
+        Matcher matcher = intPattern.matcher(string);
+        if (matcher.matches()) {
+            Integer integer = Integer.parseInt(matcher.group(1));
+            return new Xkey(integer, "", null);
+        } else return null;
+    }
+
+     private Subject parseField(String line) {
+         Matcher matcher = fieldPattern.matcher(line);
+         if (matcher.matches()) {
+             Xkey pipe = parse(matcher.group(1));
+             Xkey dart = parse(matcher.group(2));
+             return Suite.set("pipe", pipe).set("dart", dart);
+         }
+         return Suite.set();
+     }
+
+    private Subject nodeAdjacentAsSubject(ReferenceHashGraph<Xkey, Xkey> referenceGraph, Xkey node) {
+        Subject subject = Suite.set();
+        for(Xkey pipe : referenceGraph.getLinks(node)) {
+            subject.sos(pipe.getObject(), referenceGraph.getNode(node, pipe).getObject());
         }
         return subject;
     }

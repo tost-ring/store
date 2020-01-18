@@ -2,20 +2,17 @@ package app.core.suite;
 
 import app.core.flow.FlowArrayList;
 import app.core.flow.FlowCollection;
+import app.core.suite.transition.Transition;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class HashSubject implements Subject, Serializable {
+public class HashSubject implements Subject {
 
+    enum SetMode {SET_ELSE_THROW, SET_OR_REPLACE, SET_OR_KEEP}
     private Map<Object, Object> fields;
     private Object lastRequested = null;
-
-    HashSubject(Map<Object, Object> fields) {
-        this.fields = fields;
-    }
 
     public HashSubject() {
         this.fields = new HashMap<>();
@@ -62,16 +59,6 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public Subject set(Class<?> classKey, Object value) {
-        if(classKey.isInstance(value)) {
-            internalSet(classKey, value, SetMode.SET_ELSE_THROW);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + classKey);
-        }
-        return this;
-    }
-
-    @Override
     public Subject set(Coupon<?> coupon, Object value) {
         if(coupon.getGlass().isInstance(value)) {
             internalSet(coupon, value, SetMode.SET_ELSE_THROW);
@@ -82,20 +69,9 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public Subject set(Object key, Fun fun) {
-        internalSet(key, fun, SetMode.SET_ELSE_THROW);
-        return this;
-    }
-
-    @Override
-    public Subject set(Object key, Tun tun) {
-        internalSet(key, tun, SetMode.SET_ELSE_THROW);
-        return this;
-    }
-
-    @Override
-    public Subject set(Object key, Statement statement) {
-        internalSet(key, Fun.make(statement), SetMode.SET_ELSE_THROW);
+    public Subject set(Object key, Transition transition) {
+        System.out.println("hs set transition");
+        internalSet(key, transition, SetMode.SET_ELSE_THROW);
         return this;
     }
 
@@ -112,16 +88,6 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public Subject sor(Class<?> classKey, Object value) {
-        if(classKey.isInstance(value)) {
-            internalSet(classKey, value, SetMode.SET_OR_REPLACE);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + classKey);
-        }
-        return this;
-    }
-
-    @Override
     public Subject sor(Coupon<?> coupon, Object value) {
         if(coupon.getGlass().isInstance(value)) {
             internalSet(coupon, value, SetMode.SET_OR_REPLACE);
@@ -132,47 +98,25 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public Subject sor(Object key, Fun fun) {
-        internalSet(key, fun, SetMode.SET_OR_REPLACE);
+    public Subject sor(Object key, Transition transition) {
+        internalSet(key, transition, SetMode.SET_OR_REPLACE);
         return this;
     }
 
     @Override
-    public Subject sor(Object key, Tun tun) {
-        internalSet(key, tun, SetMode.SET_OR_REPLACE);
-        return this;
-    }
-
-    @Override
-    public Subject sor(Object key, Statement statement) {
-        internalSet(key, Fun.make(statement), SetMode.SET_OR_REPLACE);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Object value) {
+    public Subject sos(Object value) {
         internalSet(value, value, SetMode.SET_OR_KEEP);
         return this;
     }
 
     @Override
-    public Subject sok(Object key, Object value) {
+    public Subject sos(Object key, Object value) {
         internalSet(key, value, SetMode.SET_OR_KEEP);
         return this;
     }
 
     @Override
-    public Subject sok(Class<?> classKey, Object value) {
-        if(classKey.isInstance(value)) {
-            internalSet(classKey, value, SetMode.SET_OR_KEEP);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + classKey);
-        }
-        return this;
-    }
-
-    @Override
-    public Subject sok(Coupon<?> coupon, Object value) {
+    public Subject sos(Coupon<?> coupon, Object value) {
         if(coupon.getGlass().isInstance(value)) {
             internalSet(coupon, value, SetMode.SET_OR_KEEP);
         } else {
@@ -182,20 +126,8 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public Subject sok(Object key, Fun fun) {
-        internalSet(key, fun, SetMode.SET_OR_KEEP);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Object key, Tun tun) {
-        internalSet(key, tun, SetMode.SET_OR_KEEP);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Object key, Statement statement) {
-        internalSet(key, Fun.make(statement), SetMode.SET_OR_KEEP);
+    public Subject sos(Object key, Transition transition) {
+        internalSet(key, transition, SetMode.SET_OR_KEEP);
         return this;
     }
 
@@ -221,8 +153,13 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public<B> B get(Class<? super B> classKey) {
-        return get((Object)classKey);
+    public<B> B getAs(Class<B> requestedType) {
+        return get();
+    }
+
+    @Override
+    public <B> B getAs(Glass<? super B, B> requestedType) {
+        return get();
     }
 
     @Override
@@ -231,12 +168,12 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public<B> B get(Object key, Class<B> classFilter) {
+    public<B> B getAs(Object key, Class<B> requestedType) {
         return get(key);
     }
 
     @Override
-    public<B> B get(Object key, Glass<? super B, B> glassFilter) {
+    public<B> B getAs(Object key, Glass<? super B, B> requestedType) {
         return get(key);
     }
 
@@ -253,15 +190,15 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
-    public<B> B god(Object key, Class<B> classFilter, B substitute) {
+    public<B> B godAs(Object key, B substitute, Class<B> requestedType) {
         Object o = internalGet(key);
-        return classFilter.isInstance(o) ? classFilter.cast(o) : substitute;
+        return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
     }
 
     @Override
-    public<B> B god(Object key, Glass<? super B, B> glassFilter, B substitute) {
+    public<B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
         Object o = internalGet(key);
-        return glassFilter.isInstance(o) ? glassFilter.cast(o) : substitute;
+        return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
     }
 
     @Override
@@ -278,29 +215,34 @@ public class HashSubject implements Subject, Serializable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public<B> B gos(B substitute) {
+    public<B> B goc(B substitute) {
         Object nullOnPutted = internalSet(lastRequested, substitute, SetMode.SET_OR_KEEP);
         return nullOnPutted == null ? substitute : (B)nullOnPutted;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public<B> B gos(Object key, B substitute) {
+    public<B> B goc(Object key, B substitute) {
         Object nullOnPutted = internalSet(key, substitute, SetMode.SET_OR_KEEP);
         return nullOnPutted == null ? substitute : (B)nullOnPutted;
     }
 
     @Override
-    public<B> B gon(Class<B> classKey) {
-        Object b = internalGet(classKey);
+    public <B> B gac(Class<B> key) {
+        return get(key);
+    }
+
+    @Override
+    public<B> B gon(Class<B> key) {
+        Object b = internalGet(key);
         if(b == null) {
             try {
-                return classKey.getConstructor().newInstance();
+                return key.getConstructor().newInstance();
             } catch (Exception e) {
-                throw new NullPointerException("Failed instance creation of " + classKey);
+                throw new NullPointerException("Failed instance creation of " + key);
             }
         } else {
-            return classKey.cast(b);
+            return key.cast(b);
         }
     }
 
@@ -310,13 +252,18 @@ public class HashSubject implements Subject, Serializable {
     }
 
     @Override
+    public <B> boolean iso(Class<B> checkedType) {
+        return checkedType.isInstance(lastRequested);
+    }
+
+    @Override
     public boolean is(Object key) {
         return internalGet(key) != null;
     }
 
     @Override
-    public <B>boolean is(Object key, Class<B> classFilter){
-        return classFilter.isInstance(internalGet(key));
+    public <B>boolean iso(Object key, Class<B> checkedType){
+        return checkedType.isInstance(internalGet(key));
     }
 
     @Override
@@ -339,6 +286,6 @@ public class HashSubject implements Subject, Serializable {
 
     @Override
     public String toString() {
-        return is(toString) ? get(toString, Fun.class).play(this).get(String.class) : ("Subject" + fields);
+        return iso(toString, Transition.class) ? act().get() : ("Subject" + fields);
     }
 }

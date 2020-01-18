@@ -4,21 +4,34 @@ import app.core.flow.FlowHashSet;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
-import app.modules.graph.Graphs;
 import app.modules.graph.ReferenceHashGraph;
 import org.apache.commons.text.StringEscapeUtils;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
 public class JorgWriter {
 
     private static final Xray nullObject = new Xray(null);
+
+    public static boolean write(Object object, String filePath) {
+        JorgWriter writer = new JorgWriter();
+        writer.addObject(object, "o");
+        try {
+            return writer.write(new FileOutputStream(filePath));
+        } catch (FileNotFoundException e) {
+            return false;
+        }
+    }
+
     private Subject objects;
     private GeneralPerformer performer;
+
+    public JorgWriter() {
+        this(new GeneralPerformer(Suite.
+                set(WrapSubject.class, "Subject")));
+    }
 
     public JorgWriter(GeneralPerformer performer) {
         this.performer = performer;
@@ -36,8 +49,8 @@ public class JorgWriter {
         }
     }
 
-    private ReferenceHashGraph<Xray, String> formReferenceGraph() {
-        ReferenceHashGraph<Xray, String> referenceGraph = new ReferenceHashGraph<>();
+    private ReferenceHashGraph<Xray, Xray> formReferenceGraph() {
+        ReferenceHashGraph<Xray, Xray> referenceGraph = new ReferenceHashGraph<>();
         referenceGraph.putNode(nullObject);
         Set<Xray> examined = new FlowHashSet<>();
         Set<Xray> toExamine = new HashSet<>(Suite.keys(objects));
@@ -52,12 +65,18 @@ public class JorgWriter {
             for(Xray it : examining) {
                 if(performer.isComplex(it.getObject())) {
                     Subject subject = performer.subjectively(it.getObject());
-                    for (String pipe : Suite.keys(subject, String.class)) {
-                        Xray dart = referenceGraph.putNode(new Xray(subject.god(pipe, null)));
+                    for (Object key : Suite.keys(subject, String.class)) {
+                        Xray pipe = referenceGraph.putNode(new Xray(key));
+                        referenceGraph.putNode(pipe);
+                        if (performer.isComplex(pipe.getObject()) && !examined.contains(pipe)) {
+                            toExamine.add(pipe);
+                        }
+                        Xray dart = referenceGraph.putNode(new Xray(subject.god(key, null)));
                         referenceGraph.link(it, pipe, dart);
                         if (performer.isComplex(dart.getObject()) && !examined.contains(dart)) {
                             toExamine.add(dart);
                         }
+
                     }
                 }
             }
@@ -66,7 +85,7 @@ public class JorgWriter {
     }
 
     public boolean write(OutputStream output) {
-        ReferenceHashGraph<Xray, String> referenceGraph = formReferenceGraph();
+        ReferenceHashGraph<Xray, Xray> referenceGraph = formReferenceGraph();
 
         int id = 1;
         for(Xray it : referenceGraph.getNodes()) {
@@ -79,9 +98,10 @@ public class JorgWriter {
         for(Xray it : referenceGraph.getNodes()) {
             if(it.getTrace() != null) {
                 printStream.println(encodeHeader(it));
-                for(String pipe : referenceGraph.getLinks(it)) {
+                for(Xray pipe : referenceGraph.getLinks(it)) {
                     printStream.println(encodeField(pipe, referenceGraph.getNode(it, pipe)));
                 }
+                printStream.println();
             }
         }
         try {
@@ -95,20 +115,23 @@ public class JorgWriter {
 
     private String encodeHeader(Xray xray) {
 
-        String type = performer.getType(xray.getObject());
+        String type = performer.getTypeName(xray.getObject());
         if(performer.isComplex(xray.getObject())) {
-            return "#" + type + "@" + xray.getTrace();
+            return stringify(xray);
         } else {
-            return "#" + type + "@" + xray.getTrace() + " = " + stringify(xray.getObject());
+            return stringify(xray) + " = " + stringify(xray.getObject());
         }
     }
 
-    public String encodeField(String pipe, Xray dart) {
-        String type = performer.getType(dart.getObject());
-        if(dart.getTrace() != null) {
-            return "\t" + pipe + " = #" + type + "@" + dart.getTrace();
+    public String encodeField(Xray pipe, Xray dart) {
+        return "\t[ " + stringify(pipe) + " ] " + stringify(dart);
+    }
+
+    private String stringify(Xray xray) {
+        if(xray.getTrace() != null) {
+            return "#" + performer.getTypeName(xray.getObject()) + "@" + xray.getTrace();
         } else {
-            return "\t" + pipe + " = " + stringify(dart.getObject());
+            return stringify(xray.getObject());
         }
     }
 

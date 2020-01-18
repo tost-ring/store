@@ -37,7 +37,7 @@ public class Encoder {
     public Reference put(Object o) {
 
         Reference reference = new Reference(o);
-        reference = refs.gos(reference, reference);
+        reference = refs.goc(reference, reference);
         if(reference.index < 0) {
             reference.index = Suite.size(refs) - 1;
             reference.header = header(o);
@@ -78,7 +78,7 @@ public class Encoder {
     private String encodeSubject(Subject subject) {
         StringBuilder stringBuilder = new StringBuilder("{");
         for(Object o : Suite.keys(subject, Object.class)) {
-            stringBuilder.append("\n\t").append(o).append(" = ").append(subject.get(o, Object.class));
+            stringBuilder.append("\n\t").append(o).append(" = ").append(subject.getAs(o, Object.class));
         }
         stringBuilder.append(Suite.size(subject) > 0 ? "\n\t}" : "}");
         return stringBuilder.toString();

@@ -1,9 +1,9 @@
 package app.core.suite;
 
 import app.core.flow.FlowCollection;
+import app.core.suite.transition.*;
 
 public final class Suite {
-
 
     public static Subject set() {
         return new WrapSubject();
@@ -14,27 +14,59 @@ public final class Suite {
     public static Subject set(Object key, Object value) {
         return new WrapSubject(new HashSubject().set(key, value));
     }
-    public static Subject set(Glass<?, ?> glassKey, Object value) {
-        return new WrapSubject(new HashSubject().set(glassKey, value));
-    }
-    public static Subject set(Class<?> classKey, Object value) {
-        return new WrapSubject(new HashSubject().set(classKey, value));
-    }
     public static Subject set(Coupon<?> coupon, Object value) {
         return new WrapSubject(new HashSubject().set(coupon, value));
     }
-    public static Subject set(Object key, Fun fun) {
-        return new WrapSubject(new HashSubject().set(key, fun));
+    public static Subject set(Object key, Transition transition) {
+        System.out.println("transition");
+        return new WrapSubject(new HashSubject().set(key, transition));
     }
-    public static Subject set(Object key, Tun tun) {
-        return new WrapSubject(new HashSubject().set(key, tun));
+    public static Subject set(Object key, Impression impression) {
+        System.out.println("impression");
+        return new WrapSubject(new HashSubject().set(key, impression));
+    }
+    public static Subject set(Object key, Statement statement) {
+        System.out.println("statement");
+        return new WrapSubject(new HashSubject().set(key, statement));
+    }
+    public static Subject set(Object key, Action action) {
+        System.out.println("action");
+        return new WrapSubject(new HashSubject().set(key, action));
+    }
+    public static Subject set(Object key, Function function) {
+        System.out.println("function");
+        return new WrapSubject(new HashSubject().set(key, function));
+    }
+    public static Subject set(Object key, Expression expression) {
+        System.out.println("expression");
+        return new WrapSubject(new HashSubject().set(key, expression));
+    }
+    public static Subject set(Object key, HazardousTransition transition) {
+        System.out.println("hazard transition");
+        return new WrapSubject(new HashSubject().set(key, transition));
+    }
+    public static Subject set(Object key, HazardousImpression impression) {
+        System.out.println("hazard impression");
+        return new WrapSubject(new HashSubject().set(key, impression));
+    }
+    public static Subject set(Object key, HazardousAction action) {
+        System.out.println("hazard action");
+        return new WrapSubject(new HashSubject().set(key, action));
+    }
+    public static Subject set(Object key, HazardousFunction function) {
+        System.out.println("hazard function");
+        return new WrapSubject(new HashSubject().set(key, function));
+    }
+    public static Subject set(Object key, HazardousExpression expression) {
+        System.out.println("hazard expression");
+        return new WrapSubject(new HashSubject().set(key, expression));
     }
 
-    public static Subject forge(Subject source, Object... keys) {
-        return new WrapSubject(new HashSubject().forge(source, keys));
+    public static Subject met(Subject source, Object... keys) {
+        return new WrapSubject(new HashSubject().met(source, keys));
     }
-    public static Subject forgeExisting(Subject source, Object... keys) {
-        return new WrapSubject(new HashSubject().forgeExisting(source, keys));
+    public static Subject mix(Subject source, Object... keys) {
+        return new WrapSubject(new HashSubject().mix(source, keys));
     }
 
     public static <C> FlowCollection<C> values(Subject subject) {

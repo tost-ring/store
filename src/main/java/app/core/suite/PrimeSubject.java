@@ -2,6 +2,8 @@ package app.core.suite;
 
 import app.core.flow.FlowArrayList;
 import app.core.flow.FlowCollection;
+import app.core.suite.transition.Action;
+import app.core.suite.transition.Transition;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -10,17 +12,6 @@ public class PrimeSubject implements Subject {
 
     private Object primeKey;
     private Object primeValue;
-
-    public PrimeSubject() {
-    }
-
-    public Object getPrimeKey() {
-        return primeKey;
-    }
-
-    public Object getPrimeValue() {
-        return primeValue;
-    }
 
     protected Subject upgrade() {
         return new HashSubject().set(primeKey, primeValue);
@@ -51,15 +42,6 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public Subject set(Class<?> classKey, Object value) {
-        if(classKey.isInstance(value)) {
-            return set((Object)classKey, value);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + classKey);
-        }
-    }
-
-    @Override
     public Subject set(Coupon<?> coupon, Object value) {
         if(coupon.getGlass().isInstance(value)) {
             return set((Object)coupon, value);
@@ -69,18 +51,8 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public Subject set(Object key, Fun fun) {
-        return set(key, (Object)fun);
-    }
-
-    @Override
-    public Subject set(Object key, Tun tun) {
-        return set(key, (Object)tun);
-    }
-
-    @Override
-    public Subject set(Object key, Statement statement) {
-        return set(key, (Object)statement);
+    public Subject set(Object key, Transition transition) {
+        return set(key, (Object)transition);
     }
 
     @Override
@@ -104,15 +76,6 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public Subject sor(Class<?> classKey, Object value) {
-        if(classKey.isInstance(value)) {
-            return sor((Object)classKey, value);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + classKey);
-        }
-    }
-
-    @Override
     public Subject sor(Coupon<?> coupon, Object value) {
         if(coupon.getGlass().isInstance(value)) {
             return set((Object)coupon, value);
@@ -122,27 +85,17 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public Subject sor(Object key, Fun fun) {
-        return sor(key, (Object)fun);
+    public Subject sor(Object key, Transition transition) {
+        return sor(key, (Object)transition);
     }
 
     @Override
-    public Subject sor(Object key, Tun tun) {
-        return sor(key, (Object)tun);
+    public Subject sos(Object value) {
+        return sos(value, value);
     }
 
     @Override
-    public Subject sor(Object key, Statement statement) {
-        return sor(key, (Object)statement);
-    }
-
-    @Override
-    public Subject sok(Object value) {
-        return sok(value, value);
-    }
-
-    @Override
-    public Subject sok(Object key, Object value) {
+    public Subject sos(Object key, Object value) {
         if(primeValue == null) {
             primeKey = key;
             primeValue = value;
@@ -155,28 +108,13 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public Subject sok(Class<?> classKey, Object value) {
-        return sok((Object)classKey, value);
+    public Subject sos(Coupon<?> coupon, Object value) {
+        return sos((Object)coupon, value);
     }
 
     @Override
-    public Subject sok(Coupon<?> coupon, Object value) {
-        return sok((Object)coupon, value);
-    }
-
-    @Override
-    public Subject sok(Object key, Fun fun) {
-        return sok(key, (Object)fun);
-    }
-
-    @Override
-    public Subject sok(Object key, Tun tun) {
-        return sok(key, (Object)tun);
-    }
-
-    @Override
-    public Subject sok(Object key, Statement statement) {
-        return sok(key, (Object)statement);
+    public Subject sos(Object key, Transition transition) {
+        return sos(key, (Object)transition);
     }
 
     @Override
@@ -204,8 +142,13 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public<B> B get(Class<? super B> classKey) {
-        return get((Object)classKey);
+    public<B> B getAs(Class<B> requestedType) {
+        return get();
+    }
+
+    @Override
+    public <B> B getAs(Glass<? super B, B> requestedType) {
+        return get();
     }
 
     @Override
@@ -214,12 +157,12 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public<B> B get(Object key, Class<B> classFilter) {
+    public<B> B getAs(Object key, Class<B> requestedType) {
         return get(key);
     }
 
     @Override
-    public<B> B get(Object key, Glass<? super B, B> glassFilter) {
+    public<B> B getAs(Object key, Glass<? super B, B> requestedType) {
         return get(key);
     }
 
@@ -237,15 +180,15 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
-    public<B> B god(Object key, Class<B> classFilter, B substitute) {
+    public<B> B godAs(Object key, B substitute, Class<B> requestedType) {
         Object o = internalGet(key);
-        return classFilter.isInstance(o) ? classFilter.cast(o) : substitute;
+        return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
     }
 
     @Override
-    public<B> B god(Object key, Glass<? super B, B> glassFilter, B substitute) {
+    public<B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
         Object o = internalGet(key);
-        return glassFilter.isInstance(o) ? glassFilter.cast(o) : substitute;
+        return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
     }
 
     @Override
@@ -263,7 +206,7 @@ public class PrimeSubject implements Subject {
 
     @Override
     @SuppressWarnings("unchecked")
-    public<B> B gos(B substitute) {
+    public<B> B goc(B substitute) {
         if(primeValue == null) {
             throw new UnsupportedOperationException("Self upgrade in gos method is not supported for PrimeSubject");
         } else {
@@ -273,7 +216,7 @@ public class PrimeSubject implements Subject {
 
     @Override
     @SuppressWarnings("unchecked")
-    public<B> B gos(Object key, B substitute) {
+    public<B> B goc(Object key, B substitute) {
         if(primeValue == null) {
             primeKey = key;
             primeValue = substitute;
@@ -283,6 +226,11 @@ public class PrimeSubject implements Subject {
         } else {
             throw new UnsupportedOperationException("Self upgrade in gos method is not supported for PrimeSubject");
         }
+    }
+
+    @Override
+    public <B> B gac(Class<B> key) {
+        return get(key);
     }
 
     @Override
@@ -305,12 +253,17 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
+    public <B> boolean iso(Class<B> checkedType) {
+        return checkedType.isInstance(primeValue);
+    }
+
+    @Override
     public boolean is(Object key) {
         return internalGet(key) != null;
     }
 
     @Override
-    public <B>boolean is(Object key, Class<B> classFilter){
+    public <B>boolean iso(Object key, Class<B> classFilter){
         return classFilter.isInstance(internalGet(key));
     }
 
@@ -334,7 +287,8 @@ public class PrimeSubject implements Subject {
 
     @Override
     public String toString() {
-        if(primeValue == null) return "Subject{}";
+        if(iso(toString, Action.class)) return act().get();
+        else if(primeValue == null) return "Subject{}";
         else return "Subject{" + primeKey + "=" + primeValue + "}";
     }
 }

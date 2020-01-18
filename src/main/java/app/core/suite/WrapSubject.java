@@ -1,6 +1,7 @@
 package app.core.suite;
 
 import app.core.flow.FlowCollection;
+import app.core.suite.transition.Transition;
 
 import java.util.function.Supplier;
 
@@ -29,32 +30,14 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Subject set(Class<?> classKey, Object value) {
-        subject = subject.set(classKey, value);
-        return this;
-    }
-
-    @Override
     public Subject set(Coupon<?> coupon, Object value) {
         subject = subject.set(coupon, value);
         return this;
     }
 
     @Override
-    public Subject set(Object key, Fun fun) {
-        subject = subject.set(key, fun);
-        return this;
-    }
-
-    @Override
-    public Subject set(Object key, Tun tun) {
-        subject = subject.set(key, tun);
-        return this;
-    }
-
-    @Override
-    public Subject set(Object key, Statement statement) {
-        subject = subject.set(key, statement);
+    public Subject set(Object key, Transition transition) {
+        subject = subject.set(key, transition);
         return this;
     }
 
@@ -71,74 +54,38 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Subject sor(Class<?> classKey, Object value) {
-        subject = subject.sor(classKey, value);
-        return this;
-    }
-
-    @Override
     public Subject sor(Coupon<?> coupon, Object value) {
         subject = subject.sor(coupon, value);
         return this;
     }
 
     @Override
-    public Subject sor(Object key, Fun fun) {
-        subject = subject.sor(key, fun);
+    public Subject sor(Object key, Transition transition) {
+        subject = subject.sor(key, transition);
         return this;
     }
 
     @Override
-    public Subject sor(Object key, Tun tun) {
-        subject = subject.sor(key, tun);
+    public Subject sos(Object value) {
+        subject = subject.sos(value);
         return this;
     }
 
     @Override
-    public Subject sor(Object key, Statement statement) {
-        subject = subject.sor(key, statement);
+    public Subject sos(Object key, Object value) {
+        subject = subject.sos(key, value);
         return this;
     }
 
     @Override
-    public Subject sok(Object value) {
-        subject = subject.sok(value);
+    public Subject sos(Coupon<?> coupon, Object value) {
+        subject = subject.sos(coupon, value);
         return this;
     }
 
     @Override
-    public Subject sok(Object key, Object value) {
-        subject = subject.sok(key, value);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Class<?> classKey, Object value) {
-        subject = subject.sok(classKey, value);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Coupon<?> coupon, Object value) {
-        subject = subject.sok(coupon, value);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Object key, Fun fun) {
-        subject = subject.sok(key, fun);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Object key, Tun tun) {
-        subject = subject.sok(key, tun);
-        return this;
-    }
-
-    @Override
-    public Subject sok(Object key, Statement statement) {
-        subject = subject.sok(key, statement);
+    public Subject sos(Object key, Transition transition) {
+        subject = subject.sos(key, transition);
         return this;
     }
 
@@ -159,8 +106,13 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> B get(Class<? super B> classKey) {
-        return subject.get(classKey);
+    public <B> B getAs(Class<B> requestedType) {
+        return subject.getAs(requestedType);
+    }
+
+    @Override
+    public <B> B getAs(Glass<? super B, B> requestedType) {
+        return subject.getAs(requestedType);
     }
 
     @Override
@@ -169,13 +121,13 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> B get(Object key, Class<B> classFilter) {
-        return subject.get(key, classFilter);
+    public <B> B getAs(Object key, Class<B> requestedType) {
+        return subject.getAs(key, requestedType);
     }
 
     @Override
-    public <B> B get(Object key, Glass<? super B, B> glassFilter) {
-        return subject.get(key, glassFilter);
+    public <B> B getAs(Object key, Glass<? super B, B> requestedType) {
+        return subject.getAs(key, requestedType);
     }
 
     @Override
@@ -189,13 +141,13 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> B god(Object key, Class<B> classFilter, B substitute) {
-        return subject.god(key, classFilter, substitute);
+    public <B> B godAs(Object key, B substitute, Class<B> requestedType) {
+        return subject.godAs(key, substitute, requestedType);
     }
 
     @Override
-    public <B> B god(Object key, Glass<? super B, B> glassFilter, B substitute) {
-        return subject.god(key, glassFilter, substitute);
+    public <B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
+        return subject.godAs(key, substitute, requestedType);
     }
 
     @Override
@@ -209,7 +161,7 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public<B> B gos(B substitute) {
+    public<B> B goc(B substitute) {
         B b = subject.god(null);
         if(b == null) {
             subject = subject.set(substitute);
@@ -220,8 +172,7 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-
-    public<B> B gos(Object key, B substitute) {
+    public<B> B goc(Object key, B substitute) {
         B b = subject.god(key,null);
         if(b == null) {
             subject = subject.set(key, substitute);
@@ -229,6 +180,11 @@ public class WrapSubject implements Subject {
         } else {
             return b;
         }
+    }
+
+    @Override
+    public <B> B gac(Class<B> key) {
+        return subject.gac(key);
     }
 
     @Override
@@ -242,13 +198,18 @@ public class WrapSubject implements Subject {
     }
 
     @Override
+    public <B> boolean iso(Class<B> checkedType) {
+        return subject.iso(checkedType);
+    }
+
+    @Override
     public boolean is(Object key) {
         return subject.is(key);
     }
 
     @Override
-    public <B> boolean is(Object key, Class<B> classFilter) {
-        return subject.is(key, classFilter);
+    public <B> boolean iso(Object key, Class<B> classFilter) {
+        return subject.iso(key, classFilter);
     }
 
     @Override

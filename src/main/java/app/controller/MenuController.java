@@ -33,11 +33,11 @@ public class MenuController extends Controller {
 
     private Parent makeOptionButton(String buttonName, String imageName, String token) {
         Subject option = aproot().loadView(this, Suite
-                .set(Controller.class, new MenuButtonView()).set(employStuff, Suite
+                .set(Controller.class, new MiniatureView()).set(employStuff, Suite
                         .set("buttonName", buttonName)
                         .set("imageName", imageName)
                         .set(tokenString, token)));
-        return option.get(Controller.class).parent();
+        return option.gac(Controller.class).parent();
     }
 
     @Override

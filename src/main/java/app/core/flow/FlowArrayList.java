@@ -1,11 +1,16 @@
 package app.core.flow;
 
+import app.core.suite.Prospect;
+import app.core.suite.Subject;
+import app.core.suite.Subjective;
+import app.core.suite.Suite;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class FlowArrayList<E> extends ArrayList<E> implements FlowCollection<E> {
+public class FlowArrayList<E> extends ArrayList<E> implements FlowCollection<E>, Subjective {
 
     @SafeVarargs
     public static<M> FlowArrayList<M> melt(M ... es) {
@@ -48,5 +53,15 @@ public class FlowArrayList<E> extends ArrayList<E> implements FlowCollection<E> 
         return skipNulls ?
                 stream().map(function).filter(Objects::nonNull).collect(Collectors.toCollection(FlowArrayList::new))
                 : mapTo(function);
+    }
+
+    @Override
+    public Subject toSubject() {
+        return Prospect.collectionSubjectively(Suite.set(this));
+    }
+
+    @Override
+    public Subject fromSubject(Subject subject) {
+        return Prospect.collectionObjectively(Suite.set(Object.class, this).set(Subject.class, subject));
     }
 }

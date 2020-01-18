@@ -13,22 +13,25 @@ import java.lang.reflect.Constructor;
 public class GeneralPerformer implements Performer{
 
     private DupleGraph<String, Class<?>> namingGraph;
-    private Performer subPerformer;
+    private Performer detailPerformer;
 
     public GeneralPerformer(Subject naming) {
         namingGraph = new HashDupleGraph<>();
-        for(String it : Suite.keys(naming, String.class)) {
+        for(String it : Suite.keys(naming, String.class, true)) {
             namingGraph.link(it, naming.get(it));
         }
-        subPerformer = new ObjectPerformer();
+        for(Class<?> it : Suite.keys(naming, Class.class, true)) {
+            namingGraph.link(naming.get(it), it);
+        }
+        detailPerformer = DefaultDetailPerformer.getInstance();
     }
 
-    public Performer getSubPerformer() {
-        return subPerformer;
+    public Performer getDetailPerformer() {
+        return detailPerformer;
     }
 
-    public void setSubPerformer(Performer subPerformer) {
-        this.subPerformer = subPerformer;
+    public void setDetailPerformer(Performer performer) {
+        this.detailPerformer = performer;
     }
 
     public boolean isComplex(Object object) {
@@ -45,12 +48,13 @@ public class GeneralPerformer implements Performer{
         if(type.isArray()){
             return arraySubjectively(object);
         } else {
-            Subject subject = subPerformer.subjectively(object);
+            Subject subject = detailPerformer.subjectively(object);
             if(subject != null) {
                 return subject;
             } else if(Subjective.class.isAssignableFrom(type)) {
                 return ((Subjective) object).toSubject();
             } else {
+                System.out.println(type);
                 throw new ClassCastException("Cant transform " + object + " to Subject");
             }
         }
@@ -113,24 +117,16 @@ public class GeneralPerformer implements Performer{
     }
 
     @Override
-    public Object objectively(Object object, Subject subject) {
+    public boolean objectively(Object object, Subject subject) {
         Class<?> aClass = object.getClass();
         if(aClass.isArray()) {
             return arrayObjectively(object, subject);
         } else {
-            Object result = subPerformer.objectively(object, subject);
-            if(result != null) {
-                return result;
-            } else if(Subjective.class.isAssignableFrom(aClass)) {
-                ((Subjective)object).fromSubject(subject);
-                return object;
-            } else {
-                return null;
-            }
+            return detailPerformer.objectively(object, subject);
         }
     }
 
-    private Object arrayObjectively(Object object, Subject subject) {
+    private boolean arrayObjectively(Object object, Subject subject) {
         Class<?> type = object.getClass().getComponentType();
         if (type.isPrimitive()) {
             if (type == Integer.TYPE) {
@@ -174,7 +170,7 @@ public class GeneralPerformer implements Performer{
                     a[i] = subject.god("" + i, null);
                 }
             } else {
-                return null;
+                return false;
             }
         } else {
             Object[] a = (Object[]) object;
@@ -182,10 +178,10 @@ public class GeneralPerformer implements Performer{
                 a[i] = subject.god("" + i, null);
             }
         }
-        return object;
+        return true;
     }
 
-    public String getType(Object object) {
+    public String getTypeName(Object object) {
         if(object == null)return namingGraph.getBlack(null);
         String type = namingGraph.getBlack(object.getClass());
         if(type == null) {
@@ -199,6 +195,20 @@ public class GeneralPerformer implements Performer{
         return aClass != null && aClass.isArray();
     }
 
+    @Override
+    public Object construct(Class<?> type) {
+        try {
+            Object object = detailPerformer.construct(type);
+            if(object != null)return object;
+            Constructor<?> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public Object formObject(String type) {
         try {
             Class<?> aClass = namingGraph.getWhite(type);
@@ -206,9 +216,7 @@ public class GeneralPerformer implements Performer{
                 aClass = Class.forName(type);
             }
             if (aClass != null) {
-                Constructor<?> constructor = aClass.getDeclaredConstructor();
-                constructor.setAccessible(true);
-                return constructor.newInstance();
+                return construct(aClass);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,5 +1,7 @@
 package app.core.suite;
 
+import app.core.suite.transition.Function;
+
 import java.io.Serializable;
 
 public class Coupon<G> implements Serializable {
@@ -12,8 +14,8 @@ public class Coupon<G> implements Serializable {
         return new Coupon<>(brand);
     }
 
-    public static Coupon<Fun> forFun() {
-        return new Coupon<>(Glass.of(Fun.class));
+    public static Coupon<Function> forFun() {
+        return new Coupon<>(Glass.of(Function.class));
     }
 
     private Glass<G, G> glass;
