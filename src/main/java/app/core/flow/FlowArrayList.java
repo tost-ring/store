@@ -54,14 +54,4 @@ public class FlowArrayList<E> extends ArrayList<E> implements FlowCollection<E>,
                 stream().map(function).filter(Objects::nonNull).collect(Collectors.toCollection(FlowArrayList::new))
                 : mapTo(function);
     }
-
-    @Override
-    public Subject toSubject() {
-        return Prospect.collectionSubjectively(Suite.set(this));
-    }
-
-    @Override
-    public Subject fromSubject(Subject subject) {
-        return Prospect.collectionObjectively(Suite.set(Object.class, this).set(Subject.class, subject));
-    }
 }

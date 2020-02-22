@@ -37,7 +37,7 @@ public class Encoder {
     public Reference put(Object o) {
 
         Reference reference = new Reference(o);
-        reference = refs.goc(reference, reference);
+        reference = refs.gsg(reference, reference);
         if(reference.index < 0) {
             reference.index = Suite.size(refs) - 1;
             reference.header = header(o);

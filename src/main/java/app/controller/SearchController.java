@@ -1,6 +1,7 @@
 package app.controller;
 
 import app.controller.tool.PathName;
+import app.core.agent.Aproot;
 import app.core.agent.Controller;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
@@ -15,6 +16,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Window;
 
 import java.util.Comparator;
 
@@ -71,9 +73,28 @@ public class SearchController extends Controller {
         return Suite.set();
     }
 
+    @Override
+    public Subject fulfil(Subject subject) {
+        switch (subject.god(tokenString, "")) {
+            case "new":
+                store.getStored().add(subject.get(Storable.class));
+                resetFlow();
+                break;
+            default:
+                order(subject);
+        }
+        return Suite.set();
+    }
+
     @FXML
     void addAction(ActionEvent event) {
-
+        order(Suite.
+            set(Aproot.Please.showView).
+            set(Controller.fxml, "record").
+            set("StageTitle", "Nowy element").
+            set(dressStuff, Suite.
+                    set(tokenString, "new").
+                    set(Store.class, store)));
     }
 
     private void resetSearch() {
@@ -139,10 +160,12 @@ public class SearchController extends Controller {
     }
 
     private Parent makeMiniature(Storable storable) {
-        Subject option = aproot().loadView(this, Suite
-                .set(Controller.class, new MiniatureView()).set(employStuff, Suite
-                        .set(Storable.class, storable)
-                        .set(tokenString, "openElement")));
+        Subject option = aproot().loadView(this, Suite.
+                set(Controller.class, new MiniatureView()).
+                set(employStuff, Suite.
+                        set(Storable.class, storable).
+                        set(tokenString, "openElement").
+                        set("buttonName", storable.getTitle())));
         return option.gac(Controller.class).parent();
     }
 
@@ -152,7 +175,7 @@ public class SearchController extends Controller {
 
     private TreeItem<PathName> makeTree(Subject categoryTree, PathName pathname) {
         TreeItem<PathName> treeItem = new TreeItem<>(pathname);
-        for(String it : Suite.keys(categoryTree, String.class)) {
+        for(String it : Suite.keys(categoryTree, String.class, true)) {
             treeItem.getChildren().add(makeTree(categoryTree.godAs(it, Suite.set(), Subject.class), pathname.extended(it)));
         }
         return treeItem;

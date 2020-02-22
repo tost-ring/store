@@ -6,12 +6,13 @@ import javafx.scene.control.TableColumn;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Map;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class Glass<C, G extends C> implements Serializable {
 
-    abstract G cast(Object o);
-    abstract Glass[] getGenerics();
+    public abstract G cast(Object o);
+    public abstract Glass[] getGenerics();
 
     private Class<C> c;
 
@@ -51,7 +52,7 @@ public abstract class Glass<C, G extends C> implements Serializable {
             }
 
             @Override
-            Glass[] getGenerics() {
+            public Glass[] getGenerics() {
                 return new Glass[0];
             }
         };
@@ -70,7 +71,7 @@ public abstract class Glass<C, G extends C> implements Serializable {
             }
 
             @Override
-            Glass[] getGenerics() {
+            public Glass[] getGenerics() {
                 return new Glass[]{brand};
             }
         };
@@ -89,7 +90,7 @@ public abstract class Glass<C, G extends C> implements Serializable {
             }
 
             @Override
-            Glass[] getGenerics() {
+            public Glass[] getGenerics() {
                 return new Glass[]{brand};
             }
         };
@@ -104,7 +105,22 @@ public abstract class Glass<C, G extends C> implements Serializable {
             }
 
             @Override
-            Glass[] getGenerics() {
+            public Glass[] getGenerics() {
+                return new Glass[]{Glass.of(a), Glass.of(b)};
+            }
+        };
+    }
+
+    public static<A, B> Glass<Map, Map<A, B>> map(Class<A> a, Class<B> b) {
+        return new Glass<>(Map.class) {
+
+            @Override
+            public Map<A, B> cast(Object o) {
+                return (Map<A, B>)o;
+            }
+
+            @Override
+            public Glass[] getGenerics() {
                 return new Glass[]{Glass.of(a), Glass.of(b)};
             }
         };

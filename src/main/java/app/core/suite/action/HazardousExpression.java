@@ -1,4 +1,4 @@
-package app.core.suite.transition;
+package app.core.suite.action;
 
 import app.core.suite.Subject;
 

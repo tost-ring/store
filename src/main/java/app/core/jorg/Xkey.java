@@ -2,8 +2,8 @@ package app.core.jorg;
 
 public class Xkey {
     private Object object;
-    private final String type;
-    private final String id;
+    private String type;
+    private String id;
     private boolean array;
 
     public Xkey(String type, String id) {
@@ -21,6 +21,14 @@ public class Xkey {
         this.type = type;
         this.id = id;
         this.array = array;
+    }
+
+    public void set(Xkey that) {
+        this.object = that.object;
+        this.type = that.type;
+        this.id = that.id;
+        this.array = that.array;
+
     }
 
     public Object getObject() {
@@ -61,9 +69,7 @@ public class Xkey {
 
     @Override
     public String toString() {
-        if(object instanceof String) {
-            return "\"" + object + "\"";
-        } else if(object instanceof Integer) {
+        if(object != null) {
             return "" + object;
         } else {
             return type + "@" + id;

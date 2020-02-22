@@ -1,6 +1,5 @@
 package app.modules.xml;
 
-import app.core.suite.Coupon;
 import app.core.suite.Subject;
 import app.core.suite.WrapSubject;
 
@@ -20,7 +19,7 @@ import java.util.*;
 
 public class XMLLoader {
 
-    private static final Coupon<String> xmlName = Coupon.forObjectOf(String.class);
+    private static final Object xmlName = new Object();
 
     private File file;
 

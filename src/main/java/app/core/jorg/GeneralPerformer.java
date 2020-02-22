@@ -9,19 +9,20 @@ import app.modules.graph.HashDupleGraph;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 
 public class GeneralPerformer implements Performer{
 
     private DupleGraph<String, Class<?>> namingGraph;
     private Performer detailPerformer;
 
-    public GeneralPerformer(Subject naming) {
+    public GeneralPerformer(Subject aliases) {
         namingGraph = new HashDupleGraph<>();
-        for(String it : Suite.keys(naming, String.class, true)) {
-            namingGraph.link(it, naming.get(it));
+        for(String it : Suite.keys(aliases, String.class, true)) {
+            namingGraph.link(it, aliases.get(it));
         }
-        for(Class<?> it : Suite.keys(naming, Class.class, true)) {
-            namingGraph.link(naming.get(it), it);
+        for(Class<?> it : Suite.keys(aliases, Class.class, true)) {
+            namingGraph.link(aliases.get(it), it);
         }
         detailPerformer = DefaultDetailPerformer.getInstance();
     }
@@ -39,7 +40,8 @@ public class GeneralPerformer implements Performer{
     }
 
     public boolean isPrimitive(Object object) {
-        return object == null || object instanceof String || object instanceof Integer;
+        return object == null || object instanceof String || object instanceof Integer ||
+                object instanceof Field || object instanceof Class;
     }
 
     @Override
@@ -54,7 +56,6 @@ public class GeneralPerformer implements Performer{
             } else if(Subjective.class.isAssignableFrom(type)) {
                 return ((Subjective) object).toSubject();
             } else {
-                System.out.println(type);
                 throw new ClassCastException("Cant transform " + object + " to Subject");
             }
         }
@@ -181,13 +182,27 @@ public class GeneralPerformer implements Performer{
         return true;
     }
 
-    public String getTypeName(Object object) {
+    public String getTypeAlias(Object object) {
         if(object == null)return namingGraph.getBlack(null);
-        String type = namingGraph.getBlack(object.getClass());
-        if(type == null) {
-            type = object.getClass().getTypeName();
+        return getAlias(object.getClass());
+    }
+
+    public String getAlias(Class<?> type) {
+        String alias = namingGraph.getBlack(type);
+        if(alias == null) {
+            alias = type.getTypeName();
         }
-        return type;
+        return alias;
+    }
+
+    public Class<?> getType(String typeName) {
+        Class<?> type = namingGraph.getWhite(typeName);
+        if(type != null)return type;
+        try {
+            return Class.forName(typeName);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
     }
 
     public boolean isArrayType(String type) {

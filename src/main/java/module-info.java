@@ -7,7 +7,7 @@ open module store.main {
     requires org.apache.commons.text;
     exports app;
     exports app.core.suite;
-    exports app.core.suite.transition;
+    exports app.core.suite.action;
     exports app.core.agent;
     exports app.core.flow;
 

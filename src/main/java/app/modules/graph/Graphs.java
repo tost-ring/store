@@ -39,7 +39,7 @@ public class Graphs {
         for(N it : graph.getNodes()){
             stringBuilder.append(it).append("\n");
             for(L itt : graph.getLinks(it)){
-                stringBuilder.append("\t").append(itt).append(" = ").append(graph.getNode(it, itt)).append("\n");
+                stringBuilder.append("\t[ ").append(itt).append(" ] ").append(graph.getNode(it, itt)).append("\n");
             }
         }
         return stringBuilder.toString();

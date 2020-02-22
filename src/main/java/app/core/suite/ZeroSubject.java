@@ -2,7 +2,6 @@ package app.core.suite;
 
 import app.core.flow.FlowArrayList;
 import app.core.flow.FlowCollection;
-import app.core.suite.transition.Transition;
 
 import java.util.function.Supplier;
 
@@ -17,52 +16,18 @@ public class ZeroSubject implements Subject {
     private ZeroSubject() {}
 
     @Override
-    public Subject set(Object value) {
-        return new PrimeSubject().set(value, value);
+    public Subject set(Object element) {
+        return new PrimeSubject(element, element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        return new PrimeSubject().set(key, value);
+        return new PrimeSubject(key, value);
     }
 
     @Override
-    public Subject set(Coupon<?> coupon, Object value) {
-        if(coupon.getGlass().isInstance(value)) {
-            return new PrimeSubject().set(coupon, value);
-        } else {
-            throw new ClassCastException("Value " + value + " must be instance of " + coupon.getGlass());
-        }
-    }
-
-    @Override
-    public Subject set(Object key, Transition transition) {
-        return new PrimeSubject().set(key, transition);
-    }
-
-    @Override
-    public Subject sor(Object value) {
-        return set(value);
-    }
-
-    @Override
-    public Subject sor(Object key, Object value) {
-        return set(key, value);
-    }
-
-    @Override
-    public Subject sor(Coupon<?> coupon, Object value) {
-        return set(coupon, value);
-    }
-
-    @Override
-    public Subject sor(Object key, Transition transition) {
-        return set(key, transition);
-    }
-
-    @Override
-    public Subject sos(Object value) {
-        return set(value);
+    public Subject sos(Object element) {
+        return set(element);
     }
 
     @Override
@@ -71,13 +36,8 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Coupon<?> coupon, Object value) {
-        return set(coupon, value);
-    }
-
-    @Override
-    public Subject sos(Object key, Transition transition) {
-        return set(key, transition);
+    public Subject unset() {
+        return this;
     }
 
     @Override
@@ -106,11 +66,6 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B get(Coupon<B> coupon) {
-        throw new NullPointerException("ZeroSubject contains no values");
-    }
-
-    @Override
     public<B> B getAs(Object key, Class<B> requestedType) {
         throw new NullPointerException("ZeroSubject contains no values");
     }
@@ -127,6 +82,16 @@ public class ZeroSubject implements Subject {
 
     @Override
     public<B> B god(Object key, B substitute) {
+        return substitute;
+    }
+
+    @Override
+    public <B> B godAs(B substitute, Class<B> requestedType) {
+        return substitute;
+    }
+
+    @Override
+    public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
         return substitute;
     }
 
@@ -151,13 +116,13 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B goc(B substitute) {
-        throw new UnsupportedOperationException("Self upgrade in gos method is not supported for ZeroSubject");
+    public<B> B gsg(B substitute) {
+        throw new UnsupportedOperationException("Self upgrade in goc method is not supported for ZeroSubject");
     }
 
     @Override
-    public<B> B goc(Object key, B substitute) {
-        throw new UnsupportedOperationException("Self upgrade in gos method is not supported for ZeroSubject");
+    public<B> B gsg(Object key, B substitute) {
+        throw new UnsupportedOperationException("Self upgrade in goc method is not supported for ZeroSubject");
     }
 
     @Override
@@ -180,7 +145,7 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public <B> boolean iso(Class<B> checkedType) {
+    public <B> boolean isi(Class<B> checkedType) {
         return false;
     }
 
@@ -190,7 +155,7 @@ public class ZeroSubject implements Subject {
     }
 
     @Override
-    public <B>boolean iso(Object key, Class<B> classFilter){
+    public <B>boolean isi(Object key, Class<B> classFilter){
         return false;
     }
 

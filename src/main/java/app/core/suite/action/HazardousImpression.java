@@ -1,29 +1,36 @@
-package app.core.suite.transition;
+package app.core.suite.action;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 
 @FunctionalInterface
-public interface HazardousAction extends HazardousTransition, Action {
+public interface HazardousImpression extends Impression {
 
     @Override
-    default void revel(Subject state, Subject in) {
+    default void revel(Subject in) {
         try {
-            gamble(state, in);
+            strive(in);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    default void strive(Subject state, Subject in) throws Exception {
-        gamble(state, in);
+    default void revel(Subject state, Subject in) {
+        try {
+            strive(in);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    void strive(Subject in) throws Exception;
 
     @Override
     default Subject play() {
         try {
-            return gamble(Suite.set(), Suite.set());
+            strive(Suite.set());
+            return Suite.set();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -32,7 +39,8 @@ public interface HazardousAction extends HazardousTransition, Action {
     @Override
     default Subject play(Subject in) {
         try {
-            return gamble(Suite.set(), in);
+            strive(in);
+            return Suite.set();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -41,7 +49,8 @@ public interface HazardousAction extends HazardousTransition, Action {
     @Override
     default Subject play(Subject state, Subject in) {
         try {
-            return gamble(state, in);
+            strive(in);
+            return Suite.set();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -49,14 +58,20 @@ public interface HazardousAction extends HazardousTransition, Action {
 
     @Override
     default Subject gamble() throws Exception {
-        return gamble(Suite.set(), Suite.set());
+        strive(Suite.set());
+        return Suite.set();
     }
 
     @Override
     default Subject gamble(Subject in) throws Exception {
-        return gamble(Suite.set(), in);
+        strive(in);
+        return Suite.set();
     }
 
     @Override
-    Subject gamble(Subject state, Subject in) throws Exception;
+    default Subject gamble(Subject state, Subject in) throws Exception {
+        strive(in);
+        return Suite.set();
+
+    }
 }

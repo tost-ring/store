@@ -1,10 +1,20 @@
-package app.core.suite.transition;
+package app.core.suite.action;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 
+import java.util.function.Supplier;
+
 @FunctionalInterface
 public interface Action extends Transition {
+
+    static Subject needless(Subject state, Subject input) {
+        return input;
+    }
+
+    static Subject lossy(Subject state, Subject input) {
+        return Suite.set();
+    }
 
     @Override
     default void revel(Subject state, Subject in) {

@@ -1,7 +1,7 @@
 package app.core.jorg;
 
 import app.core.suite.*;
-import app.core.suite.transition.Function;
+import app.core.suite.action.*;
 
 import java.util.function.Supplier;
 
@@ -34,11 +34,10 @@ public class DetailPerformer implements Performer{
         return constructRouter;
     }
 
-    public<T> void addType(Class<T> type, Function subjectively, Function objectively, Supplier<T> constructor) {
-//        Suite.set("A", Suite::set);
-//        subjectiveRouter.sor(type, () -> {});
-        objectiveRouter.sor(type, objectively);
-//        constructRouter.sor(type, Expression.fromSupplier(constructor)); TODO
+    public<T> void addType(Class<T> type, Function subjectively, Impression objectively, Supplier<T> constructor) {
+        subjectiveRouter.set(type, subjectively);
+        objectiveRouter.set(type, objectively);
+        constructRouter.set(type, Expression.fromSupplier(constructor));
     }
 
     @Override
@@ -46,21 +45,28 @@ public class DetailPerformer implements Performer{
         if(object instanceof Subjective) {
             return ((Subjective) object).toSubject();
         } else {
-            return subjectiveRouter.act(object.getClass(), Suite.set(object));
+            Function function = subjectiveRouter.god(object.getClass(), null);
+            if(function == null)return null;
+            return function.play(Suite.set(object));
         }
     }
 
     @Override
     public boolean objectively(Object object, Subject subject) {
         if(object instanceof Subjective) {
-            return ((Subjective) object).fromSubject(subject).get();
+            ((Subjective) object).fromSubject(subject);
         } else {
-            return objectiveRouter.act(object.getClass(), Suite.set(Object.class, object).set(Subject.class, subject)).get();
+            Impression impression = objectiveRouter.god(object.getClass(), null);
+            if(impression == null) return false;
+            impression.revel(Suite.set(Object.class, object).set(Subject.class, subject));
         }
+        return true;
     }
 
     @Override
     public Object construct(Class<?> type) {
-        return constructRouter.aod(type, ZeroSubject.getInstance()).god(null);
+        Expression expression = constructRouter.god(type, null);
+        if(expression == null) return null;
+        return expression.play().god(null);
     }
 }

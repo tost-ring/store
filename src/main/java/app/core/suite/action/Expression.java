@@ -1,9 +1,16 @@
-package app.core.suite.transition;
+package app.core.suite.action;
 
 import app.core.suite.Subject;
+import app.core.suite.Suite;
+
+import java.util.function.Supplier;
 
 @FunctionalInterface
 public interface Expression extends Statement {
+
+    static Expression fromSupplier(Supplier<?> supplier) {
+        return () -> Suite.set(supplier.get());
+    }
 
     @Override
     default void revel() {

@@ -43,7 +43,7 @@ public class MenuController extends Controller {
     @Override
     public Subject fulfil(Subject subject) {
         if(subject.is(tokenString))
-            switch (subject.get(tokenString)) {
+            switch (subject.getAs(tokenString, String.class)) {
                 case "location":
                     aproot().showView(this, Suite.set(fxml, "locations").set(Window.class, window()).set(employStuff, Suite
                         .set(Store.class, store)));

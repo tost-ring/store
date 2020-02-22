@@ -1,11 +1,16 @@
 package app.core.flow;
 
+import app.core.suite.Prospect;
+import app.core.suite.Subject;
+import app.core.suite.Subjective;
+import app.core.suite.Suite;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface FlowCollection<E> extends Collection<E> {
+public interface FlowCollection<E> extends Collection<E>, Subjective {
 
 
     FlowArrayList<E> asFAL();
@@ -49,5 +54,15 @@ public interface FlowCollection<E> extends Collection<E> {
         FlowArrayList<E> flowArrayList = asFAL();
         flowArrayList.sort(comparator);
         return flowArrayList;
+    }
+
+    @Override
+    default Subject toSubject() {
+        return Prospect.collectionSubjectively(Suite.set(this));
+    }
+
+    @Override
+    default void fromSubject(Subject subject) {
+        Prospect.collectionObjectively(Suite.set(Object.class, this).set(Subject.class, subject));
     }
 }

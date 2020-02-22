@@ -1,6 +1,5 @@
 package app.core.agent;
 
-import app.core.suite.Coupon;
 import app.core.suite.Subject;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -9,10 +8,10 @@ import javafx.stage.Window;
 
 public abstract class Controller extends Agent {
 
-    public static final Coupon<Subject> employStuff = Coupon.forObjectOf(Subject.class);
-    public static final Coupon<Subject> dressStuff = Coupon.forObjectOf(Subject.class);
+    public static final Object employStuff = new Object();
+    public static final Object dressStuff = new Object();
     public static final Object fxml = new Object();
-    public static final Coupon<String> tokenString = Coupon.forObjectOf(String.class);
+    public static final Object tokenString = new Object();
 
     private Aproot aproot;
     protected Parent parent;

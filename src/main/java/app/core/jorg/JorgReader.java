@@ -13,10 +13,15 @@ import java.util.regex.Pattern;
 
 public class JorgReader {
 
-    private final static Pattern idPattern = Pattern.compile("^\\s*#([\\p{Alpha}_]\\w*(?:\\.[\\p{Alpha}_]\\w*)*)(\\[])?@(\\w+)\\s*$");
-    private final static Pattern fieldPattern = Pattern.compile("^\\s*\\[\\s*(.*)\\s*]\\s*(.*)");
+    private final static Pattern quillPattern =
+            Pattern.compile("^\\s*@(\\w+)\\s*(?:#([\\p{Alpha}_]\\w*(?:\\.[\\p{Alpha}_]\\w*)*(?:\\$[\\p{Alpha}_]\\w*)?))?(\\[])?\\s*(?:\\[\\s*(.*)\\s*)?$");
+    private final static Pattern referencePattern = Pattern.compile("^\\s*@(\\w+)\\s*$");
+    private final static Pattern arrowPattern = Pattern.compile("^\\s*\\[\\s*(.*)\\s*]\\s*(.*)");
+    private static final Pattern humbleStringPattern = Pattern.compile("^\\s*([\\p{Alpha}_]\\w*)\\s*$");
     private final static Pattern stringPattern = Pattern.compile("^\\s*\"(.*)\"\\s*$");
     private final static Pattern intPattern = Pattern.compile("^\\s*(\\d+)\\s*$");
+    private final static Pattern classPattern = Pattern.compile("^\\s*#([\\p{Alpha}_]\\w*(?:\\.[\\p{Alpha}_]\\w*)*(?:\\$[\\p{Alpha}_]\\w*)?)\\s*$");
+    private final static Pattern fieldPattern = Pattern.compile("^\\s*([\\p{Alpha}_]\\w*)\\s*$");
 
     public static<T> T read(String filePath) {
         JorgReader reader = new JorgReader();
@@ -46,20 +51,27 @@ public class JorgReader {
         try {
             Xkey quill = null;
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            int lineCounter = 1;
             String line = reader.readLine();
             while(line != null) {
-                Xkey id = parseId(line);
-                if(id != null) {
-                    quill = referenceGraph.putNode(id);
-                } else if(quill != null) {
-                    Subject parseResult = parseField(line);
-                    if(parseResult.are("pipe", "dart")) {
-                        Xkey pipe = referenceGraph.putNode(parseResult.get("pipe"));
-                        Xkey dart = referenceGraph.putNode(parseResult.get("dart"));
-                        referenceGraph.link(quill, pipe, dart);
-                    }
+                if(!line.isBlank()) {
+                    Xkey id = parseQuill(line);
+                    if (id != null) {
+                        quill = referenceGraph.putNode(id);
+                        if (quill != id) {
+                            quill.set(id);
+                        }
+                    } else if (quill != null) {
+                        Subject parseResult = parseArrow(line);
+                        if (parseResult.are("pipe", "dart")) {
+                            Xkey pipe = referenceGraph.putNode(parseResult.get("pipe"));
+                            Xkey dart = referenceGraph.putNode(parseResult.get("dart"));
+                            referenceGraph.link(quill, pipe, dart);
+                        } else throw new JorgReadException("Invalid syntax at line " + lineCounter + ": " + line);
+                    } else throw new JorgReadException("Invalid syntax at line " + lineCounter + ": " + line);
                 }
                 line = reader.readLine();
+                ++lineCounter;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,6 +82,7 @@ public class JorgReader {
                 e.printStackTrace();
             }
         }
+//        System.out.println(Graphs.toString(referenceGraph));
         for(Xkey it : referenceGraph.getNodes()) {
             if(it.getObject() == null) {
                 Object o;
@@ -93,30 +106,51 @@ public class JorgReader {
     }
 
     private Xkey parse(String string) {
-        Xkey xkey = parseId(string);
+        Xkey xkey = parseReference(string);
         if(xkey != null)return xkey;
         xkey = parseString(string);
         if(xkey != null)return xkey;
         xkey = parseInteger(string);
+        if(xkey != null)return xkey;
+        xkey = parseField(string);
+        if(xkey != null)return xkey;
+        xkey = parseClass(string);
         return xkey;
     }
 
-    private Xkey parseId(String string) {
-        Matcher matcher = idPattern.matcher(string);
+    private Xkey parseQuill(String string) {
+        Matcher matcher = quillPattern.matcher(string);
         if(matcher.matches()) {
-            String type = matcher.group(1);
-            boolean arrayType = matcher.group(2) != null;
-            String id = matcher.group(3);
+            String id = matcher.group(1);
+            String type = matcher.group(2);
+            if(type == null) {
+                type = "Subject";
+            }
+            boolean arrayType = matcher.group(3) != null;
             return new Xkey(type, id, arrayType);
         } else return null;
     }
 
+    private Xkey parseReference(String string) {
+        Matcher matcher = referencePattern.matcher(string);
+        if(matcher.matches()) {
+            String id = matcher.group(1);
+            return new Xkey(null, "", id);
+        } else return null;
+    }
+
     private Xkey parseString(String string) {
-        Matcher matcher = stringPattern.matcher(string);
+        Matcher matcher = humbleStringPattern.matcher(string);
+        if (matcher.matches()) {
+            String str = matcher.group(1);
+            return new Xkey(str, "", null);
+        }
+        matcher = stringPattern.matcher(string);
         if (matcher.matches()) {
             String str = StringEscapeUtils.unescapeJava(matcher.group(1));
             return new Xkey(str, "", null);
-        } else return null;
+        }
+        return null;
     }
 
     private Xkey parseInteger(String string) {
@@ -127,8 +161,25 @@ public class JorgReader {
         } else return null;
     }
 
-     private Subject parseField(String line) {
-         Matcher matcher = fieldPattern.matcher(line);
+    private Xkey parseField(String string) {
+        Matcher matcher = fieldPattern.matcher(string);
+        if (matcher.matches()) {
+            String str = matcher.group(1);
+            return new Xkey(str, "", null);
+        } else return null;
+    }
+
+    private Xkey parseClass(String string) {
+        Matcher matcher = classPattern.matcher(string);
+        if (matcher.matches()) {
+            Class<?> type = performer.getType(matcher.group(1));
+            System.out.println(type);
+            return new Xkey(type, "", null);
+        } else return null;
+    }
+
+     private Subject parseArrow(String line) {
+         Matcher matcher = arrowPattern.matcher(line);
          if (matcher.matches()) {
              Xkey pipe = parse(matcher.group(1));
              Xkey dart = parse(matcher.group(2));

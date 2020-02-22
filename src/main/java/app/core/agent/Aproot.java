@@ -14,7 +14,13 @@ import java.net.URL;
 
 public abstract class Aproot extends Application {
 
-    public enum Stock {loadView, showView, closeStage}
+    public enum Please {
+        /**
+         * Dokumentacja
+         */
+        loadView,
+        showView,
+        closeStage}
 
     private final String fxmlDefaultPrePath = "/fxml/";
     private final String fxmlDefaultPostPath = ".fxml";
@@ -54,11 +60,11 @@ public abstract class Aproot extends Application {
     }
 
     private Subject fulfill(Broker broker, Subject subject) {
-        if(subject.is(Stock.loadView)) {
+        if(subject.is(Please.loadView)) {
             return loadView(broker, subject);
-        }else if(subject.is(Stock.showView)) {
+        }else if(subject.is(Please.showView)) {
             return showView(broker, subject);
-        }else if(subject.is(Stock.closeStage)) {
+        }else if(subject.is(Please.closeStage)) {
             if(broker instanceof Controller) {
                 Window window = ((Controller) broker).window();
                 if(window instanceof Stage) {

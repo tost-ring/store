@@ -8,12 +8,15 @@ import app.modules.graph.ReferenceHashGraph;
 import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class JorgWriter {
 
     private static final Xray nullObject = new Xray(null);
+    private static final Pattern humbleString = Pattern.compile("^[\\p{Alpha}_]\\w*$");
 
     public static boolean write(Object object, String filePath) {
         JorgWriter writer = new JorgWriter();
@@ -42,11 +45,40 @@ public class JorgWriter {
         objects.set(new Xray(object, true));
     }
     public void addObject(Object object, String trace) {
-        if(trace.matches("^[\\p{Alpha}_]\\w*$"))
+        if(humbleString.matcher(trace).matches())
             objects.set(new Xray(object, trace));
         else {
-            throw new IllegalArgumentException("Trace pattern is ^[\\p{Alpha}_]\\w*$");
+            throw new IllegalArgumentException("Trace pattern is " + humbleString.pattern());
         }
+    }
+
+    public boolean write(OutputStream output) {
+        ReferenceHashGraph<Xray, Xray> referenceGraph = formReferenceGraph();
+
+        int id = 1;
+        for(Xray it : referenceGraph.getNodes()) {
+            if(it.getTrace() == null && (it.isForceTrace() || performer.isComplex(it.getObject()))) {
+                it.setTrace("" + id++);
+            }
+        }
+        PrintStream printStream = new PrintStream(output);
+
+        for(Xray it : referenceGraph.getNodes()) {
+            if(it.getTrace() != null) {
+                printStream.println(encodeHeader(it));
+                for(Xray pipe : referenceGraph.getLinks(it)) {
+                    printStream.println(encodeField(pipe, referenceGraph.getNode(it, pipe)));
+                }
+                printStream.println();
+            }
+        }
+        try {
+            output.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private ReferenceHashGraph<Xray, Xray> formReferenceGraph() {
@@ -84,62 +116,44 @@ public class JorgWriter {
         return referenceGraph;
     }
 
-    public boolean write(OutputStream output) {
-        ReferenceHashGraph<Xray, Xray> referenceGraph = formReferenceGraph();
-
-        int id = 1;
-        for(Xray it : referenceGraph.getNodes()) {
-            if(it.getTrace() == null && (it.isForceTrace() || performer.isComplex(it.getObject()))) {
-                it.setTrace("" + id++);
-            }
-        }
-        PrintStream printStream = new PrintStream(output);
-
-        for(Xray it : referenceGraph.getNodes()) {
-            if(it.getTrace() != null) {
-                printStream.println(encodeHeader(it));
-                for(Xray pipe : referenceGraph.getLinks(it)) {
-                    printStream.println(encodeField(pipe, referenceGraph.getNode(it, pipe)));
-                }
-                printStream.println();
-            }
-        }
-        try {
-            output.close();
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     private String encodeHeader(Xray xray) {
 
-        String type = performer.getTypeName(xray.getObject());
-        if(performer.isComplex(xray.getObject())) {
+        Object object = xray.getObject();
+        if(performer.isPrimitive(object)) {
+            return stringify(xray) + " ] " + stringify(object);
+        } else if(object instanceof Subject) {
             return stringify(xray);
         } else {
-            return stringify(xray) + " = " + stringify(xray.getObject());
+            String typeName = performer.getTypeAlias(object);
+            return stringify(xray) + " #" + typeName;
         }
+
     }
 
-    public String encodeField(Xray pipe, Xray dart) {
-        return "\t[ " + stringify(pipe) + " ] " + stringify(dart);
+    private String encodeField(Xray pipe, Xray dart) {
+        return "  [ " + stringify(pipe) + " ] " + stringify(dart);
     }
 
     private String stringify(Xray xray) {
-        if(xray.getTrace() != null) {
-            return "#" + performer.getTypeName(xray.getObject()) + "@" + xray.getTrace();
-        } else {
-            return stringify(xray.getObject());
-        }
+        if(xray.getTrace() == null) return stringify(xray.getObject());
+        return "@" + xray.getTrace();
+
     }
 
     private String stringify(Object object) {
         if(object instanceof String) {
-            return "\"" + StringEscapeUtils.escapeJava((String)object) + "\"";
+            String str = (String)object;
+            return isHumbleString(str) ? str : "\"" + StringEscapeUtils.escapeJava(str) + "\"";
         } else if(object instanceof Integer) {
             return "" + object;
+        } else if(object instanceof Class) {
+            return "#" + performer.getAlias((Class<?>)object);
+        } else if(object instanceof Field) {
+            return ((Field) object).getName();
         } else return "";
+    }
+
+    boolean isHumbleString(String str) {
+        return humbleString.matcher(str).matches();
     }
 }

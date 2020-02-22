@@ -1,7 +1,6 @@
 package app.core.suite;
 
 import app.core.flow.FlowCollection;
-import app.core.suite.transition.Transition;
 
 import java.util.function.Supplier;
 
@@ -18,50 +17,14 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Subject set(Object value) {
-        subject = subject.set(value);
+    public Subject set(Object element) {
+        subject = subject.set(element);
         return this;
     }
 
     @Override
     public Subject set(Object key, Object value) {
         subject = subject.set(key, value);
-        return this;
-    }
-
-    @Override
-    public Subject set(Coupon<?> coupon, Object value) {
-        subject = subject.set(coupon, value);
-        return this;
-    }
-
-    @Override
-    public Subject set(Object key, Transition transition) {
-        subject = subject.set(key, transition);
-        return this;
-    }
-
-    @Override
-    public Subject sor(Object value) {
-        subject = subject.sor(value);
-        return this;
-    }
-
-    @Override
-    public Subject sor(Object key, Object value) {
-        subject = subject.sor(key, value);
-        return this;
-    }
-
-    @Override
-    public Subject sor(Coupon<?> coupon, Object value) {
-        subject = subject.sor(coupon, value);
-        return this;
-    }
-
-    @Override
-    public Subject sor(Object key, Transition transition) {
-        subject = subject.sor(key, transition);
         return this;
     }
 
@@ -78,14 +41,8 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Coupon<?> coupon, Object value) {
-        subject = subject.sos(coupon, value);
-        return this;
-    }
-
-    @Override
-    public Subject sos(Object key, Transition transition) {
-        subject = subject.sos(key, transition);
+    public Subject unset() {
+        subject = subject.unset();
         return this;
     }
 
@@ -116,11 +73,6 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> B get(Coupon<B> coupon) {
-        return subject.get(coupon);
-    }
-
-    @Override
     public <B> B getAs(Object key, Class<B> requestedType) {
         return subject.getAs(key, requestedType);
     }
@@ -138,6 +90,16 @@ public class WrapSubject implements Subject {
     @Override
     public <B> B god(Object key, B substitute) {
         return subject.god(key, substitute);
+    }
+
+    @Override
+    public <B> B godAs(B substitute, Class<B> requestedType) {
+        return subject.godAs(substitute, requestedType);
+    }
+
+    @Override
+    public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
+        return subject.godAs(substitute, requestedType);
     }
 
     @Override
@@ -161,25 +123,13 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public<B> B goc(B substitute) {
-        B b = subject.god(null);
-        if(b == null) {
-            subject = subject.set(substitute);
-            return substitute;
-        } else {
-            return b;
-        }
+    public <B> B gsg(B substitute) {
+        return sos(substitute).get();
     }
 
     @Override
-    public<B> B goc(Object key, B substitute) {
-        B b = subject.god(key,null);
-        if(b == null) {
-            subject = subject.set(key, substitute);
-            return substitute;
-        } else {
-            return b;
-        }
+    public<B> B gsg(Object key, B substitute) {
+        return sos(key, substitute).get(key);
     }
 
     @Override
@@ -198,8 +148,8 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> boolean iso(Class<B> checkedType) {
-        return subject.iso(checkedType);
+    public <B> boolean isi(Class<B> checkedType) {
+        return subject.isi(checkedType);
     }
 
     @Override
@@ -208,8 +158,8 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> boolean iso(Object key, Class<B> classFilter) {
-        return subject.iso(key, classFilter);
+    public <B> boolean isi(Object key, Class<B> classFilter) {
+        return subject.isi(key, classFilter);
     }
 
     @Override

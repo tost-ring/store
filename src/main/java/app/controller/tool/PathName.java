@@ -5,6 +5,8 @@ public class PathName {
     private String name = "";
 
     public PathName() {
+        path = "";
+        name = "";
     }
 
     public String getPath() {
