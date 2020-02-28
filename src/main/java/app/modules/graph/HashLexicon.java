@@ -66,7 +66,7 @@ public class HashLexicon<B,T> implements Lexicon<B,T> {
     }
 
     @Override
-    public Set<T> getTraits(B being){
+    public Collection<T> getTraits(B being){
         return data.getOrDefault(being,fakeTraits);
     }
 

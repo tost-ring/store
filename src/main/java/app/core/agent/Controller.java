@@ -1,6 +1,7 @@
 package app.core.agent;
 
 import app.core.suite.Subject;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -14,8 +15,14 @@ public abstract class Controller extends Agent {
     public static final Object tokenString = new Object();
 
     private Aproot aproot;
+    private ChangeListener<Scene> sceneChangeCallback = (observableValue, scene, t1) -> {
+        if(scene == scene()) {
+            undress();
+        }
+    };
     protected Parent parent;
     protected Subject suite;
+
 
     protected final Subject internalEmploy(Subject subject) {
         suite = subject;
@@ -31,6 +38,7 @@ public abstract class Controller extends Agent {
 
     protected final Subject internalDress(Subject subject) {
         window().setOnHiding(event -> undress());
+        stage().sceneProperty().addListener(sceneChangeCallback);
         suite = subject;
         return dress(subject);
     }
@@ -41,6 +49,11 @@ public abstract class Controller extends Agent {
     }
 
     protected void dress(){}
+
+    protected final void internalUndress() {
+        stage().sceneProperty().removeListener(sceneChangeCallback);
+        undress();
+    }
 
     protected void undress(){}
 

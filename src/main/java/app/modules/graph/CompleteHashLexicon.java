@@ -1,5 +1,6 @@
 package app.modules.graph;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class CompleteHashLexicon<B,T> extends HashLexicon<B,T> implements CompleteLexicon<B,T> {
@@ -52,7 +53,7 @@ public class CompleteHashLexicon<B,T> extends HashLexicon<B,T> implements Comple
     }
 
     @Override
-    public Set<B> getBeings(T trait) {
+    public Collection<B> getBeings(T trait) {
         return antiLexicon.getTraits(trait);
     }
 

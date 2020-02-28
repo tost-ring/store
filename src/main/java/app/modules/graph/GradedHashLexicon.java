@@ -4,19 +4,23 @@
 
 package app.modules.graph;
 
+import app.core.flow.Chain;
+import app.core.flow.FlowCollection;
+
 import java.util.*;
 
 public class GradedHashLexicon<B, T, G> implements GradedLexicon<B, T, G> {
 
-    class WardMap extends HashMap<T, G> {
+    class WardMap extends Chain<T, G> {
         B ward;
 
         WardMap(B ward) {
+            super(true);
             this.ward = ward;
         }
 
-        public WardMap(int initialCapacity, B ward) {
-            super(initialCapacity);
+        WardMap(int initialCapacity, B ward) {
+            super(initialCapacity, true);
             this.ward = ward;
         }
     }
@@ -66,8 +70,8 @@ public class GradedHashLexicon<B, T, G> implements GradedLexicon<B, T, G> {
     }
 
     @Override
-    public Set<T> getTraits(B being){
-        return data.getOrDefault(being,fakeTraits).keySet();
+    public FlowCollection<T> getTraits(B being){
+        return data.getOrDefault(being,fakeTraits).keys();
     }
 
     @Override

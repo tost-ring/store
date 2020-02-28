@@ -3,34 +3,25 @@ package app.modules.model;
 import app.core.flow.FlowArrayList;
 import app.core.suite.Subject;
 import app.core.suite.Subjective;
-import app.core.suite.Suite;
-import app.modules.model.items.Capacitor;
-import app.modules.model.items.Storable;
-import app.modules.model.items.StorableStaff;
 
 public class Store implements Subjective {
 
-    private Subject categoryTree = Suite.set();
-    private FlowArrayList<Storable> stored = new FlowArrayList<>();
-    private FlowArrayList<StorableStaff> elementsTypes = new FlowArrayList<>(
-            new Capacitor.CapacitorStaff()
-    );
+    private FlowArrayList<String> columns;
+    private FlowArrayList<Subject> stored = new FlowArrayList<>();
 
-    public Store() {}
-
-    public Store(Subject categoryTree) {
-        this.categoryTree = categoryTree;
+    public Store() {
+        columns = new FlowArrayList<>();
     }
 
-    public Subject getCategoryTree() {
-        return categoryTree;
+    public Store(String ... columns) {
+        this.columns = new FlowArrayList<>(columns);
     }
 
-    public FlowArrayList<Storable> getStored() {
+    public FlowArrayList<Subject> getStored() {
         return stored;
     }
 
-    public FlowArrayList<StorableStaff> getElementsTypes() {
-        return elementsTypes;
+    public FlowArrayList<String> getColumns() {
+        return columns;
     }
 }

@@ -5,7 +5,7 @@ public interface Subjective {
         return Prospect.classpathSubjectively(Suite.set(this));
     }
 
-    default void fromSubject(Subject subject) {
-        Prospect.classpathObjectively(Suite.set(Object.class, this).set(Subject.class, subject));
+    default void fromSubject(Subject sub) {
+        Prospect.classpathObjectively(Suite.set(Object.class, this).set(Subject.class, sub));
     }
 }

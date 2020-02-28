@@ -41,7 +41,7 @@ public class GeneralPerformer implements Performer{
 
     public boolean isPrimitive(Object object) {
         return object == null || object instanceof String || object instanceof Integer ||
-                object instanceof Field || object instanceof Class;
+                object instanceof Double || object instanceof Field || object instanceof Class;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class GeneralPerformer implements Performer{
             } else if(Subjective.class.isAssignableFrom(type)) {
                 return ((Subjective) object).toSubject();
             } else {
-                throw new ClassCastException("Cant transform " + object + " to Subject");
+                throw new ClassCastException("Cant transform " + object.getClass() + " to Subject");
             }
         }
     }
@@ -225,17 +225,19 @@ public class GeneralPerformer implements Performer{
     }
 
     public Object formObject(String type) {
-        try {
-            Class<?> aClass = namingGraph.getWhite(type);
-            if(aClass == null) {
-                aClass = Class.forName(type);
+        if(!type.isEmpty()) {
+            try {
+                Class<?> aClass = namingGraph.getWhite(type);
+                if (aClass == null) {
+                    aClass = Class.forName(type);
+                }
+                if (aClass != null) {
+                    return construct(aClass);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
             }
-            if (aClass != null) {
-                return construct(aClass);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
         return null;
     }

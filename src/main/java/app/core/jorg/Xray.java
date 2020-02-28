@@ -32,6 +32,11 @@ public class Xray {
         return Objects.hash(object);
     }
 
+    @Override
+    public String toString() {
+        return "" + object;
+    }
+
     public Object getObject() {
         return object;
     }

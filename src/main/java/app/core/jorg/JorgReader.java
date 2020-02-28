@@ -20,14 +20,25 @@ public class JorgReader {
     private static final Pattern humbleStringPattern = Pattern.compile("^\\s*([\\p{Alpha}_]\\w*)\\s*$");
     private final static Pattern stringPattern = Pattern.compile("^\\s*\"(.*)\"\\s*$");
     private final static Pattern intPattern = Pattern.compile("^\\s*(\\d+)\\s*$");
+    private final static Pattern doublePattern = Pattern.compile("^\\s*(\\d+\\.\\d+)\\s*$");
     private final static Pattern classPattern = Pattern.compile("^\\s*#([\\p{Alpha}_]\\w*(?:\\.[\\p{Alpha}_]\\w*)*(?:\\$[\\p{Alpha}_]\\w*)?)\\s*$");
-    private final static Pattern fieldPattern = Pattern.compile("^\\s*([\\p{Alpha}_]\\w*)\\s*$");
+    private final static Pattern nullPattern = Pattern.compile("^\\s*\\?\\s*$");
 
     public static<T> T read(String filePath) {
         JorgReader reader = new JorgReader();
         try {
             reader.read(new FileInputStream(filePath));
-            return reader.getObjects().god("o", null);
+            return reader.getObjects().god("0", null);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
+    public static<T> T read(File file) {
+        JorgReader reader = new JorgReader();
+        try {
+            reader.read(new FileInputStream(file));
+            return reader.getObjects().god("0", null);
         } catch (FileNotFoundException e) {
             return null;
         }
@@ -112,7 +123,9 @@ public class JorgReader {
         if(xkey != null)return xkey;
         xkey = parseInteger(string);
         if(xkey != null)return xkey;
-        xkey = parseField(string);
+        xkey = parseDouble(string);
+        if(xkey != null)return xkey;
+        xkey = parseNull(string);
         if(xkey != null)return xkey;
         xkey = parseClass(string);
         return xkey;
@@ -161,11 +174,18 @@ public class JorgReader {
         } else return null;
     }
 
-    private Xkey parseField(String string) {
-        Matcher matcher = fieldPattern.matcher(string);
+    private Xkey parseDouble(String string) {
+        Matcher matcher = doublePattern.matcher(string);
         if (matcher.matches()) {
-            String str = matcher.group(1);
-            return new Xkey(str, "", null);
+            Double d =  Double.parseDouble(matcher.group(1));
+            return new Xkey(d, "", null);
+        } else return null;
+    }
+
+    private Xkey parseNull(String string) {
+        Matcher matcher = nullPattern.matcher(string);
+        if (matcher.matches()) {
+            return new Xkey(null, "", null);
         } else return null;
     }
 

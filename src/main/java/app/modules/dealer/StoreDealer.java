@@ -8,15 +8,11 @@ import java.io.*;
 
 public class StoreDealer {
 
-    public Store loadStore(File storeFile) throws FileNotFoundException {
-        JorgReader reader = new JorgReader();
-        reader.read(new FileInputStream(storeFile));
-        return reader.getObjects().get("store");
+    public Store loadStore(File storeFile) {
+        return JorgReader.read(storeFile);
     }
 
-    public void saveStore(Store store, File storeFile) throws FileNotFoundException {
-        JorgWriter writer = new JorgWriter();
-        writer.addObject(store, "store");
-        writer.write(new FileOutputStream(storeFile));
+    public boolean saveStore(Store store, File storeFile) {
+        return JorgWriter.write(store, storeFile);
     }
 }

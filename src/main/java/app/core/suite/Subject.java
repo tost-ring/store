@@ -1,6 +1,7 @@
 package app.core.suite;
 
 import app.core.flow.FlowCollection;
+import app.core.suite.action.*;
 
 import java.util.function.Supplier;
 
@@ -8,9 +9,9 @@ public interface Subject extends Subjective {
 
     Object toString = new Object();
 
-    Subject set(Object value);
+    Subject set(Object element);
     Subject set(Object key, Object value);
-    Subject sos(Object value);
+    Subject sos(Object element);
     Subject sos(Object key, Object value);
     Subject unset();
     Subject unset(Object key);
@@ -121,67 +122,50 @@ public interface Subject extends Subjective {
         met(subject);
     }
 
+
     // Lambdass
 
-//    default Subject setFun(Object key, Impression impression) {
-//        return setFun(key, (Transition)impression);
-//    }
-//    default Subject setFun(Object key, Statement statement) {
-//        return setFun(key, (Transition)statement);
-//    }
-//    default Subject setFun(Object key, Action action) {
-//        return setFun(key, (Transition)action);
-//    }
-//    default Subject setFun(Object key, Function function) {
-//        return setFun(key, (Transition)function);
-//    }
-//    default Subject setFun(Object key, Expression expression) {
-//        return setFun(key, (Transition)expression);
-//    }
-//    default Subject setFun(Object key, HazardousTransition hazardousTransition) {
-//        return setFun(key, (Transition)hazardousTransition);
-//    }
-//    default Subject setFun(Object key, HazardousImpression hazardousImpression) {
-//        return setFun(key, (Transition)hazardousImpression);
-//    }
-//    default Subject setFun(Object key, HazardousAction hazardousAction) {
-//        return setFun(key, (Transition)hazardousAction);
-//    }
-//    default Subject setFun(Object key, HazardousFunction hazardousFunction) {
-//        return setFun(key, (Transition)hazardousFunction);
-//    }
-//    default Subject setFun(Object key, HazardousExpression hazardousExpression) {
-//        return setFun(key, (Transition)hazardousExpression);
-//    }
-//
-//    default Subject sosFun(Object key, Impression impression) {
-//        return sosFun(key, (Transition)impression);
-//    }
-//    default Subject sosFun(Object key, Statement statement) {
-//        return sosFun(key, (Transition)statement);
-//    }
-//    default Subject sosFun(Object key, Action action) {
-//        return sosFun(key, (Transition)action);
-//    }
-//    default Subject sosFun(Object key, Function function) {
-//        return sosFun(key, (Transition)function);
-//    }
-//    default Subject sosFun(Object key, Expression expression) {
-//        return sosFun(key, (Transition)expression);
-//    }
-//    default Subject sosFun(Object key, HazardousTransition hazardousTransition) {
-//        return sosFun(key, (Transition)hazardousTransition);
-//    }
-//    default Subject sosFun(Object key, HazardousImpression hazardousImpression) {
-//        return sosFun(key, (Transition)hazardousImpression);
-//    }
-//    default Subject sosFun(Object key, HazardousAction hazardousAction) {
-//        return sosFun(key, (Transition)hazardousAction);
-//    }
-//    default Subject sosFun(Object key, HazardousFunction hazardousFunction) {
-//        return sosFun(key, (Transition)hazardousFunction);
-//    }
-//    default Subject sosFun(Object key, HazardousExpression hazardousExpression) {
-//        return sosFun(key, (Transition)hazardousExpression);
-//    }
+    default Subject setFun(Object key, Function function) {
+        return set(key, function);
+    }
+    default Subject setFun(Object key, Impression impression) {
+        return set(key, impression);
+    }
+    default Subject setFun(Object key, Expression expression) {
+        return set(key, expression);
+    }
+    default Subject setFun(Object key, Statement statement) {
+        return set(key, statement);
+    }
+    default Subject setHun(Object key, HazardousFunction hazardousFunction) {
+        return set(key, hazardousFunction);
+    }
+    default Subject setHun(Object key, HazardousImpression hazardousImpression) {
+        return set(key, hazardousImpression);
+    }
+    default Subject setHun(Object key, HazardousExpression hazardousExpression) {
+        return set(key, hazardousExpression);
+    }
+
+    default Subject sosFun(Object key, Function function) {
+        return sos(key, function);
+    }
+    default Subject sosFun(Object key, Impression impression) {
+        return sos(key, impression);
+    }
+    default Subject sosFun(Object key, Expression expression) {
+        return sos(key, expression);
+    }
+    default Subject sosFun(Object key, Statement statement) {
+        return sos(key, statement);
+    }
+    default Subject sosHun(Object key, HazardousFunction hazardousFunction) {
+        return sos(key, hazardousFunction);
+    }
+    default Subject sosHun(Object key, HazardousImpression hazardousImpression) {
+        return sos(key, hazardousImpression);
+    }
+    default Subject sosHun(Object key, HazardousExpression hazardousExpression) {
+        return sos(key, hazardousExpression);
+    }
 }

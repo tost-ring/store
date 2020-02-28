@@ -220,6 +220,6 @@ public class PrimeSubject implements Subject {
 
     @Override
     public String toString() {
-        return "Subject{" + primeKey + "=" + primeValue + "}";
+        return "$[" + primeKey + "=" + primeValue + "]";
     }
 }

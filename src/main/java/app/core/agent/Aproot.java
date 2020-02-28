@@ -141,7 +141,7 @@ public abstract class Aproot extends Application {
         Controller controller = subject.get(Controller.class);
         Scene scene = subject.god(Scene.class, controller.scene());
         if(scene == null) scene = new Scene(controller.parent());
-        else scene.setRoot(subject.get(Parent.class));
+        else scene.setRoot(controller.parent());
         Stage stage;
         Window window = subject.god(Window.class, controller.window());
         if(window == null) {
@@ -169,11 +169,23 @@ public abstract class Aproot extends Application {
         return showView(secretary, subject);
     }
 
+    public String getFxmlPrePath() {
+        return fxmlDefaultPrePath;
+    }
+
+    public String getFxmlPostPath() {
+        return fxmlDefaultPostPath;
+    }
+
+    public String getImagePrePath() {
+        return imageDefaultPrePath;
+    }
+
     public final URL getResource(String forPath){
         return getClass().getResource(forPath);
     }
 
-    public final URL getFxmlResource(String fxml){return getResource(fxmlDefaultPrePath + fxml + fxmlDefaultPostPath);}
+    public final URL getFxmlResource(String fxml){return getResource(getFxmlPrePath() + fxml + getFxmlPostPath());}
 
-    public final URL getImageResource(String image){return getResource(imageDefaultPrePath + image);}
+    public final URL getImageResource(String image){return getResource(getImagePrePath() + image);}
 }

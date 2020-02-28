@@ -225,6 +225,11 @@ public class Chain<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
         this.fifo = fifo;
     }
 
+    public Chain(int initialCapacity, boolean fifo) {
+        data = new HashMap<>(initialCapacity);
+        this.fifo = fifo;
+    }
+
     public Chain(Chain<K, V> that) {
         this();
         for(Map.Entry<K, Link> it : that.data.entrySet()){
@@ -373,6 +378,10 @@ public class Chain<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
     @Override
     public Set<K> keySet() {
         return data.keySet();
+    }
+
+    public FlowCollection<K> keys() {
+        return stream().map(Entry::getKey).collect(Collectors.toCollection(FlowArrayList::new));
     }
 
     @Override

@@ -4,6 +4,7 @@ import app.core.flow.FlowHashSet;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
+import app.modules.graph.Graphs;
 import app.modules.graph.ReferenceHashGraph;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -12,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class JorgWriter {
 
@@ -20,9 +22,19 @@ public class JorgWriter {
 
     public static boolean write(Object object, String filePath) {
         JorgWriter writer = new JorgWriter();
-        writer.addObject(object, "o");
+        writer.objects.set(new Xray(object, "0"));
         try {
             return writer.write(new FileOutputStream(filePath));
+        } catch (FileNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean write(Object object, File file) {
+        JorgWriter writer = new JorgWriter();
+        writer.objects.set(new Xray(object, "0"));
+        try {
+            return writer.write(new FileOutputStream(file));
         } catch (FileNotFoundException e) {
             return false;
         }
@@ -63,19 +75,19 @@ public class JorgWriter {
         }
         PrintStream printStream = new PrintStream(output);
 
-        for(Xray it : referenceGraph.getNodes()) {
-            if(it.getTrace() != null) {
-                printStream.println(encodeHeader(it));
-                for(Xray pipe : referenceGraph.getLinks(it)) {
-                    printStream.println(encodeField(pipe, referenceGraph.getNode(it, pipe)));
-                }
-                printStream.println();
-            }
-        }
         try {
+            for(Xray it : referenceGraph.getNodes()) {
+                if(it.getTrace() != null) {
+                    printStream.println(encodeHeader(it));
+                    for(Xray pipe : referenceGraph.getLinks(it)) {
+                        printStream.println(encodeField(pipe, referenceGraph.getNode(it, pipe)));
+                    }
+                    printStream.println();
+                }
+            }
             output.close();
             return true;
-        } catch (IOException e) {
+        } catch (IOException | JorgWriteException e) {
             e.printStackTrace();
         }
         return false;
@@ -97,9 +109,8 @@ public class JorgWriter {
             for(Xray it : examining) {
                 if(performer.isComplex(it.getObject())) {
                     Subject subject = performer.subjectively(it.getObject());
-                    for (Object key : Suite.keys(subject, String.class)) {
+                    for (Object key : subject.keys()) {
                         Xray pipe = referenceGraph.putNode(new Xray(key));
-                        referenceGraph.putNode(pipe);
                         if (performer.isComplex(pipe.getObject()) && !examined.contains(pipe)) {
                             toExamine.add(pipe);
                         }
@@ -108,7 +119,6 @@ public class JorgWriter {
                         if (performer.isComplex(dart.getObject()) && !examined.contains(dart)) {
                             toExamine.add(dart);
                         }
-
                     }
                 }
             }
@@ -116,7 +126,7 @@ public class JorgWriter {
         return referenceGraph;
     }
 
-    private String encodeHeader(Xray xray) {
+    private String encodeHeader(Xray xray) throws JorgWriteException {
 
         Object object = xray.getObject();
         if(performer.isPrimitive(object)) {
@@ -130,27 +140,32 @@ public class JorgWriter {
 
     }
 
-    private String encodeField(Xray pipe, Xray dart) {
+    private String encodeField(Xray pipe, Xray dart) throws JorgWriteException {
         return "  [ " + stringify(pipe) + " ] " + stringify(dart);
     }
 
-    private String stringify(Xray xray) {
+    private String stringify(Xray xray) throws JorgWriteException {
         if(xray.getTrace() == null) return stringify(xray.getObject());
         return "@" + xray.getTrace();
-
     }
 
-    private String stringify(Object object) {
+    private String stringify(Object object) throws JorgWriteException {
         if(object instanceof String) {
             String str = (String)object;
             return isHumbleString(str) ? str : "\"" + StringEscapeUtils.escapeJava(str) + "\"";
         } else if(object instanceof Integer) {
             return "" + object;
+        } else if(object instanceof Double) {
+            return "" + object;
         } else if(object instanceof Class) {
             return "#" + performer.getAlias((Class<?>)object);
         } else if(object instanceof Field) {
             return ((Field) object).getName();
-        } else return "";
+        } else if(object == null) {
+            return "?";
+        } else {
+            throw new JorgWriteException("Unrecognized object type " + object.getClass());
+        }
     }
 
     boolean isHumbleString(String str) {

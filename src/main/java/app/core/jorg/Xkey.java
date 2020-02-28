@@ -1,5 +1,7 @@
 package app.core.jorg;
 
+import java.util.Objects;
+
 public class Xkey {
     private Object object;
     private String type;
@@ -57,14 +59,14 @@ public class Xkey {
 
     @Override
     public boolean equals(Object o1) {
-        if(id == null) return o1.equals(object);
+        if(id == null) return Objects.equals(o1, object);
         String thatId = o1 instanceof Xkey ? ((Xkey) o1).id : o1 instanceof String ? (String)o1 : null;
         return id.equals(thatId);
     }
 
     @Override
     public int hashCode() {
-        return id == null ? object.hashCode() : id.hashCode();
+        return id == null ? Objects.hashCode(object) : id.hashCode();
     }
 
     @Override

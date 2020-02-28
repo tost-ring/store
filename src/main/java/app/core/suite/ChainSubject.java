@@ -4,6 +4,8 @@ import app.core.flow.Chain;
 import app.core.flow.FlowArrayList;
 import app.core.flow.FlowCollection;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class ChainSubject implements Subject {
@@ -192,7 +194,7 @@ public class ChainSubject implements Subject {
 
     @Override
     public FlowCollection<Object> keys() {
-        return new FlowArrayList<>(chain.keySet());
+        return new FlowArrayList<>(chain.keys());
     }
 
     @Override
@@ -200,8 +202,22 @@ public class ChainSubject implements Subject {
         return new FlowArrayList<>(chain.values());
     }
 
+    public Set<Map.Entry<Object, Object>> entries() {
+        return chain.entrySet();
+    }
+
     @Override
     public String toString() {
-        return "Subject" + chain;
+        return "$" + chain;
+    }
+
+    @Override
+    public int hashCode() {
+        return keys().hashCode() ^ values().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Subject && keys().equals(((Subject) obj).keys()) && values().equals(((Subject) obj).values());
     }
 }
