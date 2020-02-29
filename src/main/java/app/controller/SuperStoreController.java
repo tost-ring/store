@@ -20,6 +20,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Window;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 public class SuperStoreController extends Controller {
@@ -46,7 +47,7 @@ public class SuperStoreController extends Controller {
         store = storeDealer.loadStore(storeFile);
         if(store == null) {
             store = new Store("Nazwa", "Dodatkowe informacje", "Lokalizacja", "Kolumny");
-            store.getStored().add(Suite.set("Nazwa", "Przykladowy magazyn").set("Lokalizacja", "store.jorg"));
+            store.getStored().add(Suite.set("Nazwa", "Przykładowy magazyn").set("Lokalizacja", "store.jorg"));
         }
 
         searchText.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -224,7 +225,7 @@ public class SuperStoreController extends Controller {
     }
 
     private void deleteSelected() {
-        ParentHelper.confirmation(stack, "Potwierdz usuniecie klikajac ENTER", () -> {
+        ParentHelper.confirmation(stack, "Potwierdź usunięcie klikając ENTER", () -> {
             Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
             store.getStored().removeAll(selected);
             tableView.getItems().removeAll(selected);
@@ -247,7 +248,7 @@ public class SuperStoreController extends Controller {
                 Store store = storeDealer.loadStore(storeFile);
 
                 if (store == null) {
-                    new Alert(Alert.AlertType.WARNING, "Nie znaleziono magazynu na dysku!").show();
+                    new Alert(Alert.AlertType.WARNING, ParentHelper.polishString("Błąd podczas odczytu wybranego magazynu")).show();
                 } else {
                     order(Suite.
                             set(Aproot.Please.showView).
@@ -271,9 +272,9 @@ public class SuperStoreController extends Controller {
                 String name = subject.god("Nazwa", "Magazyn bez nazwy");
                 File storeFile = new File(path);
                 if(storeFile.exists()) {
-                    new Alert(Alert.AlertType.WARNING, "Podany plik juz istnieje!").show();
+                    new Alert(Alert.AlertType.WARNING, ParentHelper.polishString("Podany plik już istnieje!")).show();
                 } else {
-                    Store store = new Store(stringToGlyphs(subject.getAs("Kolumny", String.class), false));
+                    Store store = new Store(stringToGlyphs(subject.godAs("Kolumny", String.class), false));
                     order(Suite.
                             set(Aproot.Please.showView).
                             set(Controller.fxml, "store").

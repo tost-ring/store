@@ -205,7 +205,7 @@ public class StoreController extends Controller {
     }
 
     private void deleteSelected() {
-        ParentHelper.confirmation(stack, "Potwierdz usuniecie klikajac ENTER", () -> {
+        ParentHelper.confirmation(stack, ParentHelper.polishString("Potwierdź usunięcie klikając ENTER"), () -> {
             Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
             store.getStored().removeAll(selected);
             tableView.getItems().removeAll(selected);

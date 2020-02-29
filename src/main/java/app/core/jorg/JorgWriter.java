@@ -4,16 +4,15 @@ import app.core.flow.FlowHashSet;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
-import app.modules.graph.Graphs;
 import app.modules.graph.ReferenceHashGraph;
-import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.channels.Channels;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class JorgWriter {
 
@@ -73,18 +72,19 @@ public class JorgWriter {
                 it.setTrace("" + id++);
             }
         }
-        PrintStream printStream = new PrintStream(output);
+        OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
 
         try {
             for(Xray it : referenceGraph.getNodes()) {
                 if(it.getTrace() != null) {
-                    printStream.println(encodeHeader(it));
+                    writer.write(encodeHeader(it) + "\n");
                     for(Xray pipe : referenceGraph.getLinks(it)) {
-                        printStream.println(encodeField(pipe, referenceGraph.getNode(it, pipe)));
+                        writer.write(encodeField(pipe, referenceGraph.getNode(it, pipe)) + "\n");
                     }
-                    printStream.println();
+                    writer.write("\n");
                 }
             }
+            writer.flush();
             output.close();
             return true;
         } catch (IOException | JorgWriteException e) {
@@ -152,7 +152,7 @@ public class JorgWriter {
     private String stringify(Object object) throws JorgWriteException {
         if(object instanceof String) {
             String str = (String)object;
-            return isHumbleString(str) ? str : "\"" + StringEscapeUtils.escapeJava(str) + "\"";
+            return isHumbleString(str) ? str : "\"" + str + "\"";
         } else if(object instanceof Integer) {
             return "" + object;
         } else if(object instanceof Double) {

@@ -13,6 +13,8 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+import java.nio.charset.StandardCharsets;
+
 public class ParentHelper {
 
     public static AnchorPane stretch(Node node) {
@@ -43,5 +45,9 @@ public class ParentHelper {
         });
         target.getChildren().add(closeConfirm);
         closeConfirm.requestFocus();
+    }
+
+    public static String polishString(String str) {
+        return new String(str.getBytes(), StandardCharsets.UTF_8);
     }
 }

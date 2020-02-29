@@ -4,7 +4,7 @@ open module store.main {
     requires java.xml;
     requires javafx.graphics;
     requires java.sql;
-    requires org.apache.commons.text;
+//    requires org.apache.commons.text;
     exports app;
     exports app.core.suite;
     exports app.core.suite.action;

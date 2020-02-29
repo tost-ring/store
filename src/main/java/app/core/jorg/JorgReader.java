@@ -3,11 +3,11 @@ package app.core.jorg;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
-import app.modules.graph.Graphs;
 import app.modules.graph.ReferenceHashGraph;
-import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +61,7 @@ public class JorgReader {
         ReferenceHashGraph<Xkey, Xkey> referenceGraph = new ReferenceHashGraph<>();
         try {
             Xkey quill = null;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             int lineCounter = 1;
             String line = reader.readLine();
             while(line != null) {
@@ -160,7 +160,7 @@ public class JorgReader {
         }
         matcher = stringPattern.matcher(string);
         if (matcher.matches()) {
-            String str = StringEscapeUtils.unescapeJava(matcher.group(1));
+            String str = matcher.group(1);
             return new Xkey(str, "", null);
         }
         return null;
