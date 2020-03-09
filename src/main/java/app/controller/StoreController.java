@@ -79,7 +79,7 @@ public class StoreController extends Controller {
     @Override
     protected void undress() {
 
-        store.getStored().removeIf(s -> Suite.size(s) == 0);
+        store.getStored().removeIf(s -> s.size() == 0);
         storeDealer.saveStore(store, storeFile);
     }
 
@@ -131,10 +131,10 @@ public class StoreController extends Controller {
             column.setEditable(true);
             list.add(column);
         }
-        TableColumn<Subject, String> actionColumn = ActionTableColumn.make("Akcja", Suite.set("Usun"),
+        TableColumn<Subject, String> actionColumn = ActionTableColumn.make("Akcja", Suite.set("delete", aproot().getString("delete")),
                 s -> {
                     switch(s.getAs("value", String.class)) {
-                        case "Usun":
+                        case "delete":
                             tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
                             deleteSelected();
                             break;
@@ -205,7 +205,7 @@ public class StoreController extends Controller {
     }
 
     private void deleteSelected() {
-        ParentHelper.confirmation(stack, ParentHelper.polishString("Potwierdź usunięcie klikając ENTER"), () -> {
+        ParentHelper.confirmation(stack, aproot().getString("deleteConfirm"), () -> {
             Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
             store.getStored().removeAll(selected);
             tableView.getItems().removeAll(selected);

@@ -4,7 +4,7 @@ import app.core.suite.Subject;
 import app.core.suite.Suite;
 
 @FunctionalInterface
-public interface Statement extends Transition {
+public interface Statement extends Action {
 
     void revel();
 

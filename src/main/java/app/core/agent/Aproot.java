@@ -1,5 +1,8 @@
 package app.core.agent;
 
+import app.core.NativeString;
+import app.core.jorg.GeneralPerformer;
+import app.core.jorg.JorgReader;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import javafx.application.Application;
@@ -11,6 +14,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public abstract class Aproot extends Application {
 
@@ -35,6 +39,7 @@ public abstract class Aproot extends Application {
         }
     };
     protected Subject suite;
+    private Subject dictionary;
 
     @Override
     public final void init() {
@@ -43,6 +48,13 @@ public abstract class Aproot extends Application {
 
     @Override
     public final void start(Stage primaryStage) {
+        JorgReader reader = new JorgReader(new GeneralPerformer(Suite.set("", NativeString.class)));
+        if(reader.readWell(getResource("/jorg/dictionary.jorg"))) {
+            dictionary = reader.getObjects();
+        } else {
+            dictionary = Suite.set();
+        }
+        setNation("pl");
         employ(primaryStage);
     }
 
@@ -188,4 +200,18 @@ public abstract class Aproot extends Application {
     public final URL getFxmlResource(String fxml){return getResource(getFxmlPrePath() + fxml + getFxmlPostPath());}
 
     public final URL getImageResource(String image){return getResource(getImagePrePath() + image);}
+
+    public void setNation(String nation) {
+        for(var nstr : Suite.values(dictionary, NativeString.class)) {
+            nstr.setNation(nation);
+        }
+    }
+
+    public NativeString getNativeString(String id) {
+        return dictionary.get(id);
+    }
+
+    public String getString(String id) {
+        return dictionary.get(id).toString();
+    }
 }

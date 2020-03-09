@@ -46,8 +46,4 @@ public class ParentHelper {
         target.getChildren().add(closeConfirm);
         closeConfirm.requestFocus();
     }
-
-    public static String polishString(String str) {
-        return new String(str.getBytes(), StandardCharsets.UTF_8);
-    }
 }

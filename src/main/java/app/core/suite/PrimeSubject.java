@@ -1,10 +1,11 @@
 package app.core.suite;
 
-import app.core.flow.FlowArrayList;
-import app.core.flow.FlowCollection;
+import app.core.flow.FlowIterator;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class PrimeSubject implements Subject {
 
@@ -55,6 +56,15 @@ public class PrimeSubject implements Subject {
     }
 
     @Override
+    public <B> Subject sen(Class<B> key) {
+        try {
+            return set(key, key.getConstructor().newInstance());
+        } catch (Exception e) {
+            throw new NullPointerException("Failed instance creation of " + key);
+        }
+    }
+
+    @Override
     public Subject unset() {
         return ZeroSubject.getInstance();
     }
@@ -72,7 +82,7 @@ public class PrimeSubject implements Subject {
     @SuppressWarnings("unchecked")
     public <B> B get() {
         if(primeValue == null) {
-            throw new NullPointerException("Missing value associated with key " + primeKey);
+            throw new NullPointerException("Missing first value");
         }
         return (B)primeValue;
     }
@@ -208,14 +218,49 @@ public class PrimeSubject implements Subject {
         return true;
     }
 
-    @Override
-    public FlowCollection<Object> keys() {
-        return FlowArrayList.melt(primeKey);
+    public int size() {
+        return 1;
     }
 
     @Override
-    public FlowCollection<Object> values() {
-        return FlowArrayList.melt(primeValue);
+    @SuppressWarnings("unchecked")
+    public <K> K getKey() {
+        if(primeKey == null) {
+            throw new NullPointerException("Missing first key");
+        }
+        return (K)primeKey;
+    }
+
+    @Override
+    public <K> K godKey(K substitute, Class<K> requestedType) {
+        return requestedType.isInstance(primeKey) ? requestedType.cast(primeKey) : substitute;
+    }
+
+    @Override
+    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
+        return requestedType.isInstance(primeKey) ? requestedType.cast(primeKey) : substitute;
+    }
+
+    @Override
+    public FlowIterator<Subject> iterator() {
+        return new FlowIterator<>() {
+            boolean available = true;
+
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public Subject next() {
+                available = false;
+                return Suite.set(primeKey, primeValue);
+            }
+        };
+    }
+
+    public Stream<Subject> stream() {
+        return Stream.of(Suite.set(primeKey, primeValue));
     }
 
     @Override

@@ -3,10 +3,13 @@ package app.core.suite;
 import app.core.flow.Chain;
 import app.core.flow.FlowArrayList;
 import app.core.flow.FlowCollection;
+import app.core.flow.FlowIterator;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class ChainSubject implements Subject {
 
@@ -41,6 +44,15 @@ public class ChainSubject implements Subject {
             chain.put(key, home);
         }
         return this;
+    }
+
+    @Override
+    public <B> Subject sen(Class<B> key) {
+        try {
+            return set(key, key.getConstructor().newInstance());
+        } catch (Exception e) {
+            throw new NullPointerException("Failed instance creation of " + key);
+        }
     }
 
     @Override
@@ -192,18 +204,80 @@ public class ChainSubject implements Subject {
         return true;
     }
 
-    @Override
-    public FlowCollection<Object> keys() {
-        return new FlowArrayList<>(chain.keys());
+    public int size() {
+        return chain.size();
     }
 
     @Override
-    public FlowCollection<Object> values() {
-        return new FlowArrayList<>(chain.values());
+    @SuppressWarnings("unchecked")
+    public <K> K getKey() {
+        Object o = chain.getFirstLink().getKey();
+        if(o == null) {
+            throw new NullPointerException("Missing first key");
+        }
+        return (K)o;
     }
 
-    public Set<Map.Entry<Object, Object>> entries() {
-        return chain.entrySet();
+    @Override
+    public <K> K godKey(K substitute, Class<K> requestedType) {
+        Object o = chain.getFirstLink().getKey();
+        return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
+    }
+
+    @Override
+    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
+        Object o = chain.getFirstLink().getKey();
+        return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
+    }
+
+    @Override
+    public FlowIterator<Subject> iterator() {
+        return new FlowIterator<>() {
+            Iterator<Map.Entry<Object, Object>> origin = chain.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return origin.hasNext();
+            }
+
+            @Override
+            public Subject next() {
+                var entry = origin.next();
+                return Suite.set(entry.getKey(), entry.getValue());
+            }
+        };
+    }
+
+    public Stream<Subject> stream() {
+        Spliterator<Subject> spliterator = new Spliterator<>() {
+            Iterator<Subject> iterator = iterator();
+
+            @Override
+            public boolean tryAdvance(Consumer<? super Subject> action) {
+                if (action == null) throw new NullPointerException();
+                if (iterator.hasNext()) {
+                    action.accept(iterator.next());
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public Spliterator<Subject> trySplit() {
+                return null;
+            }
+
+            @Override
+            public long estimateSize() {
+                return size();
+            }
+
+            @Override
+            public int characteristics() {
+                return DISTINCT | NONNULL | ORDERED | SIZED;
+            }
+        };
+        return StreamSupport.stream(spliterator, false);
     }
 
     @Override
@@ -213,11 +287,11 @@ public class ChainSubject implements Subject {
 
     @Override
     public int hashCode() {
-        return keys().hashCode() ^ values().hashCode();
+        return Suite.hashCode(this);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Subject && keys().equals(((Subject) obj).keys()) && values().equals(((Subject) obj).values());
+        return obj instanceof Subject && Suite.equals(this, (Subject)obj);
     }
 }

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class Chain<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
+public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
 
     public class Link implements Entry<K, V>{
         private Link front;
@@ -74,7 +74,7 @@ public class Chain<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
         }
     }
 
-    public class ChainIterator implements Iterator<Entry<K, V>> {
+    public class ChainIterator implements FlowIterator<Entry<K, V>> {
 
         private Link first;
         private Link last;
@@ -92,9 +92,6 @@ public class Chain<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
 
         public Link next() {
             checkForComodification();
-            if (!hasNext())
-                throw new NoSuchElementException();
-
             current = current == null ? first : current.front;
             return current;
         }
@@ -380,13 +377,41 @@ public class Chain<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
         return data.keySet();
     }
 
-    public FlowCollection<K> keys() {
-        return stream().map(Entry::getKey).collect(Collectors.toCollection(FlowArrayList::new));
-    }
-
     @Override
     public FlowCollection<V> values() {
         return stream().map(Entry::getValue).collect(Collectors.toCollection(FlowArrayList::new));
+    }
+
+    public FlowIterable<K> keys() {
+        return () -> new FlowIterator<>() {
+            Iterator<Entry<K, V>> origin = iterator();
+
+            @Override
+            public boolean hasNext() {
+                return origin.hasNext();
+            }
+
+            @Override
+            public K next() {
+                return origin.next().getKey();
+            }
+        };
+    }
+
+    public FlowIterable<V> getValues() {
+        return () -> new FlowIterator<>() {
+            Iterator<Entry<K, V>> origin = iterator();
+
+            @Override
+            public boolean hasNext() {
+                return origin.hasNext();
+            }
+
+            @Override
+            public V next() {
+                return origin.next().getValue();
+            }
+        };
     }
 
     @Override

@@ -1,5 +1,7 @@
 package app.core.suite;
 
+import app.controller.tool.ParentHelper;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -76,8 +78,8 @@ public class Prospect {
     public static void mapObjectively(Subject subject) {
         Map<Object, Object> map = subject.getAs(Object.class, Glass.map(Object.class, Object.class));
         Subject sub = subject.get(Subject.class);
-        for(Object key : sub.keys()) {
-            map.put(key, sub.get(key));
+        for(Subject it : sub) {
+            map.put(it.getKey(), it.get());
         }
     }
 

@@ -1,11 +1,13 @@
 package app.core.suite;
 
 import app.core.flow.FlowCollection;
+import app.core.flow.FlowIterable;
 import app.core.suite.action.*;
 
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-public interface Subject extends Subjective {
+public interface Subject extends Subjective, FlowIterable<Subject> {
 
     Object toString = new Object();
 
@@ -13,6 +15,7 @@ public interface Subject extends Subjective {
     Subject set(Object key, Object value);
     Subject sos(Object element);
     Subject sos(Object key, Object value);
+    <B> Subject sen(Class<B> key);
     Subject unset();
     Subject unset(Object key);
     <B> B get();
@@ -38,13 +41,16 @@ public interface Subject extends Subjective {
     boolean is(Object key);
     <B>boolean isi(Object key, Class<B> checkedType);
     boolean are(Object ... keys);
-    FlowCollection<Object> keys();
-    FlowCollection<Object> values();
+    <K> K getKey();
+    <K> K godKey(K substitute, Class<K> requestedType);
+    <K> K godKey(K substitute, Glass<? super K, K> requestedType);
+    Stream<Subject> stream();
+    int size();
 
     default Subject met(Subject that) {
         Subject subject = this;
-        for(Object key : that.keys()) {
-            subject = subject.set(key, that.get(key));
+        for(Subject it : that) {
+            subject = subject.set(it.getKey(), it.get());
         }
         return subject;
     }
@@ -66,6 +72,10 @@ public interface Subject extends Subjective {
             }
         }
         return subject;
+    }
+
+    default Subject fuse() {
+        return new FuseSubject(this);
     }
 
 //    default Subject act() {

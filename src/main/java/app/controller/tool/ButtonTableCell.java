@@ -37,11 +37,11 @@ public class ButtonTableCell<S, T> extends TableCell<S, T> {
         hbox.setMaxWidth(1.7976931348623157E308D);
         hbox.setSpacing(9.0);
         hbox.setAlignment(Pos.CENTER);
-        for(Object key : sub.keys()) {
-            Button button = new Button(key.toString());
+        for(Subject it : sub) {
+            Button button = new Button(it.get());
             button.setMaxWidth(1.7976931348623157E308D);
             button.setOnAction(event -> {
-                impression.revel(Suite.set("value", sub.get(key)).set("row", cell.getIndex()));
+                impression.revel(Suite.set("value", it.getKey()).set("row", cell.getIndex()));
             });
             hbox.getChildren().add(button);
         }

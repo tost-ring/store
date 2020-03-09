@@ -6,58 +6,47 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class WrapSubject implements Subject {
+public class FuseSubject implements Subject {
 
     private Subject subject;
 
-    WrapSubject() {
-        subject = ZeroSubject.getInstance();
-    }
-
-    WrapSubject(Subject subject) {
+    FuseSubject(Subject subject) {
         this.subject = subject;
     }
 
     @Override
     public Subject set(Object element) {
-        subject = subject.set(element);
-        return this;
+        return Suite.met(subject).set(element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        subject = subject.set(key, value);
-        return this;
+        return Suite.met(subject).set(key, value);
     }
 
     @Override
     public Subject sos(Object value) {
-        subject = subject.sos(value);
-        return this;
+        return Suite.met(subject).sos(value);
     }
 
     @Override
     public Subject sos(Object key, Object value) {
-        subject = subject.sos(key, value);
-        return this;
+        return Suite.met(subject).sos(key, value);
     }
 
     @Override
     public <B> Subject sen(Class<B> key) {
-        subject = subject.sen(key);
-        return this;
+        return Suite.met(subject).sen(key);
     }
 
     @Override
     public Subject unset() {
-        subject = subject.unset();
-        return this;
+        return Suite.met(subject).unset();
     }
 
     @Override
     public Subject unset(Object key) {
-        subject = subject.unset(key);
-        return this;
+        return Suite.met(subject).unset(key);
     }
 
     @Override
@@ -132,12 +121,12 @@ public class WrapSubject implements Subject {
 
     @Override
     public <B> B gsg(B substitute) {
-        return sos(substitute).get();
+        return Suite.met(subject).gsg(substitute);
     }
 
     @Override
-    public<B> B gsg(Object key, B substitute) {
-        return sos(key, substitute).get(key);
+    public <B> B gsg(Object key, B substitute) {
+        return Suite.met(subject).gsg(key, substitute);
     }
 
     @Override
@@ -196,20 +185,22 @@ public class WrapSubject implements Subject {
 
     @Override
     public Subject met(Subject that) {
-        subject = subject.met(that);
-        return this;
+        return Suite.met(subject).met(that);
     }
 
     @Override
     public Subject met(Subject that, Object... keys) {
-        subject = subject.met(that, keys);
-        return this;
+        return Suite.met(subject).met(that, keys);
     }
 
     @Override
     public Subject mix(Subject source, Object... keys) {
-        subject = subject.mix(source, keys);
-        return this;
+        return Suite.met(subject).mix(source, keys);
+    }
+
+    @Override
+    public Stream<Subject> stream() {
+        return subject.stream();
     }
 
     @Override
@@ -217,18 +208,8 @@ public class WrapSubject implements Subject {
         return subject.iterator();
     }
 
-    public Stream<Subject> stream() {
-        return subject.stream();
-    }
-
     @Override
     public Subject fuse() {
-        subject = subject.fuse();
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return subject.toString();
     }
 }

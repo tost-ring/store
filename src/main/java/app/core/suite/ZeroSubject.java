@@ -1,15 +1,17 @@
 package app.core.suite;
 
-import app.core.flow.FlowArrayList;
-import app.core.flow.FlowCollection;
+import app.core.flow.FlowIterator;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class ZeroSubject implements Subject {
 
     private static ZeroSubject instance = new ZeroSubject();
 
-    public static ZeroSubject getInstance() {
+    static ZeroSubject getInstance() {
         return instance;
     }
 
@@ -33,6 +35,15 @@ public class ZeroSubject implements Subject {
     @Override
     public Subject sos(Object key, Object value) {
         return set(key, value);
+    }
+
+    @Override
+    public <B> Subject sen(Class<B> key) {
+        try {
+            return set(key, key.getConstructor().newInstance());
+        } catch (Exception e) {
+            throw new NullPointerException("Failed instance creation of " + key);
+        }
     }
 
     @Override
@@ -164,14 +175,42 @@ public class ZeroSubject implements Subject {
         return keys.length == 0;
     }
 
-    @Override
-    public FlowCollection<Object> keys() {
-        return new FlowArrayList<>();
+    public int size() {
+        return 0;
     }
 
     @Override
-    public FlowCollection<Object> values() {
-        return new FlowArrayList<>();
+    public <K> K getKey() {
+        throw new NullPointerException("ZeroSubject contains no keys");
+    }
+
+    @Override
+    public <K> K godKey(K substitute, Class<K> requestedType) {
+        return substitute;
+    }
+
+    @Override
+    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
+        return substitute;
+    }
+
+    @Override
+    public FlowIterator<Subject> iterator() {
+        return new FlowIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public Subject next() {
+                return Suite.set();
+            }
+        };
+    }
+
+    public Stream<Subject> stream() {
+        return Stream.empty();
     }
 
     @Override

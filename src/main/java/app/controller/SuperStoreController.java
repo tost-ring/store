@@ -2,12 +2,15 @@ package app.controller;
 
 import app.controller.tool.ActionTableColumn;
 import app.controller.tool.ParentHelper;
+import app.core.NativeString;
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
 import app.core.flow.FlowArrayList;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.dealer.StoreDealer;
+import app.modules.model.GlyphSerialProcessor;
+import app.modules.model.ProcessorException;
 import app.modules.model.Store;
 import javafx.beans.binding.StringBinding;
 import javafx.event.ActionEvent;
@@ -20,7 +23,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Window;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.Collection;
 
 public class SuperStoreController extends Controller {
@@ -72,7 +75,7 @@ public class SuperStoreController extends Controller {
     @Override
     protected void undress() {
 
-        store.getStored().removeIf(s -> Suite.size(s) == 0);
+        store.getStored().removeIf(s -> s.size() == 0);
         storeDealer.saveStore(store, storeFile);
     }
 
@@ -121,24 +124,27 @@ public class SuperStoreController extends Controller {
         }
         list.get(2).setVisible(false);
         list.get(3).setVisible(false);
-        TableColumn<Subject, String> publicActionColumn = ActionTableColumn.make("Akcja", Suite.set("Otworz").set("Usun"),
+        TableColumn<Subject, String> publicActionColumn = ActionTableColumn.make("Akcja", Suite.
+                        set("open", aproot().getString("open")).
+                        set("delete", aproot().getString("delete")),
                 s -> {
                     switch(s.getAs("value", String.class)) {
-                        case "Otworz":
+                        case "open":
                             tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
                             enterSelected();
                             break;
-                        case "Usun":
+                        case "delete":
                             tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
                             deleteSelected();
                             break;
                     }
                 });
         list.add(publicActionColumn);
-        TableColumn<Subject, String> protectedActionColumn = ActionTableColumn.make("Akcja admin", Suite.set("Utworz"),
+        TableColumn<Subject, String> protectedActionColumn = ActionTableColumn.make("Akcja admin", Suite.
+                        set("create", aproot().getString("create")),
                 s -> {
                     switch(s.getAs("value", String.class)) {
-                        case "Utworz":
+                        case "create":
                             tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
                             createSelected();
                             break;
@@ -179,15 +185,15 @@ public class SuperStoreController extends Controller {
     }
 
     private String[] stringToGlyphs(String str, boolean toLowerCase) {
-        if(toLowerCase) {
-            str = str.toLowerCase();
+        GlyphSerialProcessor processor = new GlyphSerialProcessor(toLowerCase);
+        try {
+            processor.process(str);
+            System.out.println(processor.getStrings());
+            return processor.getStrings().toArray(new String[0]);
+        } catch (ProcessorException pe) {
+            pe.printStackTrace();
         }
-        String[] glyphs = str.split("\\s+");
-        for(int i = 0;i < glyphs.length; ++i) {
-            glyphs[i] = glyphs[i].replaceAll("([^_])_([^_])", "$1 $2");
-            glyphs[i] = glyphs[i].replaceAll("__", "_");
-        }
-        return glyphs;
+        return new String[0];
     }
 
     private void tableKeyAction(KeyEvent event) {
@@ -225,7 +231,7 @@ public class SuperStoreController extends Controller {
     }
 
     private void deleteSelected() {
-        ParentHelper.confirmation(stack, "Potwierdź usunięcie klikając ENTER", () -> {
+        ParentHelper.confirmation(stack, aproot().getString("deleteConfirm"), () -> {
             Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
             store.getStored().removeAll(selected);
             tableView.getItems().removeAll(selected);
@@ -248,7 +254,7 @@ public class SuperStoreController extends Controller {
                 Store store = storeDealer.loadStore(storeFile);
 
                 if (store == null) {
-                    new Alert(Alert.AlertType.WARNING, ParentHelper.polishString("Błąd podczas odczytu wybranego magazynu")).show();
+                    new Alert(Alert.AlertType.ERROR, aproot().getString("storeReadFail")).show();
                 } else {
                     order(Suite.
                             set(Aproot.Please.showView).
@@ -268,21 +274,28 @@ public class SuperStoreController extends Controller {
         Subject subject = tableView.getSelectionModel().getSelectedItem();
         if(subject != null) {
             String path = subject.god("Lokalizacja", null);
-            if(path != null) {
+            if( path == null || path.isBlank()) {
+                new Alert(Alert.AlertType.ERROR, aproot().getString("emptyFileLocationError")).show();
+            } else {
                 String name = subject.god("Nazwa", "Magazyn bez nazwy");
                 File storeFile = new File(path);
-                if(storeFile.exists()) {
-                    new Alert(Alert.AlertType.WARNING, ParentHelper.polishString("Podany plik już istnieje!")).show();
-                } else {
-                    Store store = new Store(stringToGlyphs(subject.godAs("Kolumny", String.class), false));
-                    order(Suite.
-                            set(Aproot.Please.showView).
-                            set(Controller.fxml, "store").
-                            set(Window.class, stage()).
-                            set("StageTitle", "Magazynier - " + name).
-                            set(Controller.dressStuff, Suite.
-                                    set(Store.class, store).
-                                    set(File.class, storeFile)));
+                try {
+                    if(storeFile.createNewFile()) {
+                        Store store = new Store(stringToGlyphs(subject.godAs("Kolumny", "", String.class), false));
+                        order(Suite.
+                                set(Aproot.Please.showView).
+                                set(Controller.fxml, "store").
+                                set(Window.class, stage()).
+                                set(Scene.class, scene()).
+                                set("StageTitle", "Magazynier - " + name).
+                                set(Controller.dressStuff, Suite.
+                                        set(Store.class, store).
+                                        set(File.class, storeFile)));
+                    } else {
+                        new Alert(Alert.AlertType.ERROR, aproot().getString("fileExistError")).show();
+                    }
+                } catch (IOException | SecurityException e) {
+                    new Alert(Alert.AlertType.ERROR, aproot().getString("fileCreationError")).show();
                 }
             }
         }

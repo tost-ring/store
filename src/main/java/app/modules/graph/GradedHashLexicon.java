@@ -6,6 +6,7 @@ package app.modules.graph;
 
 import app.core.flow.Chain;
 import app.core.flow.FlowCollection;
+import app.core.flow.FlowIterable;
 
 import java.util.*;
 
@@ -71,7 +72,7 @@ public class GradedHashLexicon<B, T, G> implements GradedLexicon<B, T, G> {
 
     @Override
     public FlowCollection<T> getTraits(B being){
-        return data.getOrDefault(being,fakeTraits).keys();
+        return data.getOrDefault(being,fakeTraits).keys().iterator().collectRemaining();
     }
 
     @Override

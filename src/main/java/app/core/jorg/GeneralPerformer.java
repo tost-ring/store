@@ -5,6 +5,7 @@ import app.core.suite.Subjective;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
 import app.modules.graph.DupleGraph;
+import app.modules.graph.Graphs;
 import app.modules.graph.HashDupleGraph;
 
 import java.lang.reflect.Array;
@@ -18,10 +19,10 @@ public class GeneralPerformer implements Performer{
 
     public GeneralPerformer(Subject aliases) {
         namingGraph = new HashDupleGraph<>();
-        for(String it : Suite.keys(aliases, String.class, true)) {
+        for(String it : Suite.keys(aliases, String.class)) {
             namingGraph.link(it, aliases.get(it));
         }
-        for(Class<?> it : Suite.keys(aliases, Class.class, true)) {
+        for(Class<?> it : Suite.keys(aliases, Class.class)) {
             namingGraph.link(aliases.get(it), it);
         }
         detailPerformer = DefaultDetailPerformer.getInstance();
@@ -62,7 +63,7 @@ public class GeneralPerformer implements Performer{
     }
 
     private Subject arraySubjectively(Object object) {
-        Subject subject = new WrapSubject();
+        Subject subject = Suite.set();
         Class<?> type = object.getClass().getComponentType();
         if (type.isPrimitive()) {
             if (type == Integer.TYPE) {
@@ -221,23 +222,21 @@ public class GeneralPerformer implements Performer{
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("b");
         return null;
     }
 
     public Object formObject(String type) {
-        if(!type.isEmpty()) {
-            try {
-                Class<?> aClass = namingGraph.getWhite(type);
-                if (aClass == null) {
-                    aClass = Class.forName(type);
-                }
-                if (aClass != null) {
-                    return construct(aClass);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+        try {
+            Class<?> aClass = namingGraph.getWhite(type);
+            if (aClass == null) {
+                aClass = Class.forName(type);
             }
+            if (aClass != null) {
+                return construct(aClass);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }

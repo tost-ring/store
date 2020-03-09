@@ -3,49 +3,38 @@ package app.core.suite.action;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 
-import java.util.function.Supplier;
-
 @FunctionalInterface
-public interface Action extends Transition {
+public interface Action {
 
-    static Subject needless(Subject state, Subject input) {
-        return input;
-    }
+    void revel(Subject state, Subject in);
 
-    static Subject lossy(Subject state, Subject input) {
+    default Subject play() {
+        revel(Suite.set(), Suite.set());
         return Suite.set();
     }
 
-    @Override
-    default void revel(Subject state, Subject in) {
-        play(state, in);
-    }
-
-    @Override
     default Subject play(Subject in) {
-        return play(Suite.set(), in);
+        revel(Suite.set(), in);
+        return Suite.set();
     }
 
-    @Override
-    default Subject play() {
-        return play(Suite.set(), Suite.set());
+    default Subject play(Subject state, Subject in) {
+        revel(state, in);
+        return Suite.set();
     }
 
-    @Override
-    Subject play(Subject state, Subject in);
-
-    @Override
     default Subject gamble() throws Exception {
-        return play(Suite.set(), Suite.set());
+        revel(Suite.set(), Suite.set());
+        return Suite.set();
     }
 
-    @Override
     default Subject gamble(Subject in) throws Exception {
-        return play(Suite.set(), in);
+        revel(Suite.set(), in);
+        return Suite.set();
     }
 
-    @Override
     default Subject gamble(Subject state, Subject in) throws Exception {
-        return play(state, in);
+        revel(state, in);
+        return Suite.set();
     }
 }

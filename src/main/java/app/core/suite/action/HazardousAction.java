@@ -4,7 +4,7 @@ import app.core.suite.Subject;
 import app.core.suite.Suite;
 
 @FunctionalInterface
-public interface HazardousAction extends HazardousTransition, Action {
+public interface HazardousAction extends HazardousTransition, Transition {
 
     @Override
     default void revel(Subject state, Subject in) {

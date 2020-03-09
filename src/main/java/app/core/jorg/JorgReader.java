@@ -3,9 +3,12 @@ package app.core.jorg;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
+import app.modules.graph.Graphs;
 import app.modules.graph.ReferenceHashGraph;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
@@ -49,12 +52,26 @@ public class JorgReader {
 
     public JorgReader() {
         this(new GeneralPerformer(Suite.
-                set("Subject", Subject.class)));
+                set("", Subject.class)));
     }
 
     public JorgReader(GeneralPerformer performer) {
         this.performer = performer;
-        objects = new WrapSubject();
+        objects = Suite.set();
+    }
+
+    public void read(URL url) throws IOException {
+        URLConnection connection = url.openConnection();
+        read(connection.getInputStream());
+    }
+
+    public boolean readWell(URL url) {
+        try {
+            read(url);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public void read(InputStream inputStream) {
@@ -137,7 +154,7 @@ public class JorgReader {
             String id = matcher.group(1);
             String type = matcher.group(2);
             if(type == null) {
-                type = "Subject";
+                type = "";
             }
             boolean arrayType = matcher.group(3) != null;
             return new Xkey(type, id, arrayType);

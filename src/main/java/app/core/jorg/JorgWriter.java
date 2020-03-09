@@ -8,6 +8,8 @@ import app.modules.graph.ReferenceHashGraph;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -39,6 +41,17 @@ public class JorgWriter {
         }
     }
 
+    public static boolean write(Object object, URL url) {
+        JorgWriter writer = new JorgWriter();
+        writer.objects.set(new Xray(object, "0"));
+        try {
+            URLConnection connection = url.openConnection();
+            return writer.write(connection.getOutputStream());
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     private Subject objects;
     private GeneralPerformer performer;
 
@@ -49,7 +62,7 @@ public class JorgWriter {
 
     public JorgWriter(GeneralPerformer performer) {
         this.performer = performer;
-        objects = new WrapSubject();
+        objects = Suite.set();
     }
 
     public void addObject(Object object) {
@@ -109,12 +122,12 @@ public class JorgWriter {
             for(Xray it : examining) {
                 if(performer.isComplex(it.getObject())) {
                     Subject subject = performer.subjectively(it.getObject());
-                    for (Object key : subject.keys()) {
-                        Xray pipe = referenceGraph.putNode(new Xray(key));
+                    for (Subject itt : subject) {
+                        Xray pipe = referenceGraph.putNode(new Xray(itt.getKey()));
                         if (performer.isComplex(pipe.getObject()) && !examined.contains(pipe)) {
                             toExamine.add(pipe);
                         }
-                        Xray dart = referenceGraph.putNode(new Xray(subject.god(key, null)));
+                        Xray dart = referenceGraph.putNode(new Xray(itt.god( null)));
                         referenceGraph.link(it, pipe, dart);
                         if (performer.isComplex(dart.getObject()) && !examined.contains(dart)) {
                             toExamine.add(dart);
