@@ -2,12 +2,11 @@ package app.core.suite;
 
 import app.core.flow.FlowIterator;
 
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class PrimeSubject implements Subject {
+class PrimeSubject implements Subject {
 
     private Object primeKey;
     private Object primeValue;
@@ -156,20 +155,6 @@ public class PrimeSubject implements Subject {
     @Override
     public <B> B gom(Object key, Supplier<B> supplier) {
         return Objects.equals(primeKey, key) ? gom(supplier) : supplier.get();
-    }
-
-    @Override
-    public <B> B gsg(B substitute) {
-        return sos(substitute).get();
-    }
-
-    @Override
-    public<B> B gsg(Object key, B substitute) {
-        if(Objects.equals(primeKey, key)) {
-            return gsg(substitute);
-        } else {
-            throw new UnsupportedOperationException("Self upgrade in goc method is not supported for PrimeSubject");
-        }
     }
 
     @Override

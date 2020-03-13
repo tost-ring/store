@@ -2,12 +2,10 @@ package app.core.suite;
 
 import app.core.flow.FlowIterator;
 
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class ZeroSubject implements Subject {
+class ZeroSubject implements Subject {
 
     private static ZeroSubject instance = new ZeroSubject();
 
@@ -124,16 +122,6 @@ public class ZeroSubject implements Subject {
     @Override
     public <B> B gom(Object key, Supplier<B> supplier) {
         return supplier.get();
-    }
-
-    @Override
-    public<B> B gsg(B substitute) {
-        throw new UnsupportedOperationException("Self upgrade in goc method is not supported for ZeroSubject");
-    }
-
-    @Override
-    public<B> B gsg(Object key, B substitute) {
-        throw new UnsupportedOperationException("Self upgrade in goc method is not supported for ZeroSubject");
     }
 
     @Override

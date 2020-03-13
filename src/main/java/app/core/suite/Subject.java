@@ -1,6 +1,5 @@
 package app.core.suite;
 
-import app.core.flow.FlowCollection;
 import app.core.flow.FlowIterable;
 import app.core.suite.action.*;
 
@@ -8,8 +7,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface Subject extends Subjective, FlowIterable<Subject> {
-
-    Object toString = new Object();
 
     Subject set(Object element);
     Subject set(Object key, Object value);
@@ -32,8 +29,6 @@ public interface Subject extends Subjective, FlowIterable<Subject> {
     <B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType);
     <B> B gom(Supplier<B> supplier);
     <B> B gom(Object key, Supplier<B> supplier);
-    <B> B gsg(B substitute);
-    <B> B gsg(Object key, B substitute);
     <B> B gac(Class<B> key);
     <B> B gon(Class<B> key);
     boolean is();
@@ -46,6 +41,19 @@ public interface Subject extends Subjective, FlowIterable<Subject> {
     <K> K godKey(K substitute, Glass<? super K, K> requestedType);
     Stream<Subject> stream();
     int size();
+
+    default <B> B gs(B substitute) {
+        throw new UnsupportedOperationException("Method only supported in homogeneous subjects");
+    }
+    default <B> B gs(Object key, B substitute) {
+        throw new UnsupportedOperationException("Method only supported in homogeneous subjects");
+    }
+    default <B> B gms(Supplier<B> supplier) {
+        throw new UnsupportedOperationException("Method only supported in homogeneous subjects");
+    }
+    default <B> B gms(Object key, Supplier<B> supplier) {
+        throw new UnsupportedOperationException("Method only supported in homogeneous subjects");
+    }
 
     default Subject met(Subject that) {
         Subject subject = this;

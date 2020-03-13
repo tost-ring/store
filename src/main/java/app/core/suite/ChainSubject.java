@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class ChainSubject implements Subject {
+class ChainSubject implements Subject {
 
     private Chain<Object, Object> chain;
 
@@ -67,8 +67,13 @@ public class ChainSubject implements Subject {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public<B> B get() {
-        return get(chain.getFirstLink().getKey());
+        Object o = chain.getFirstLink().getValue();
+        if(o == null) {
+            throw new NullPointerException("Missing first value");
+        }
+        return (B)o;
     }
 
     @Override
@@ -145,16 +150,6 @@ public class ChainSubject implements Subject {
     public <B> B gom(Object key, Supplier<B> supplier) {
         Object o = chain.get(key);
         return o != null ? (B)o : supplier.get();
-    }
-
-    @Override
-    public <B> B gsg(B substitute) {
-        return gsg(chain.getFirstLink().getKey(), substitute);
-    }
-
-    @Override
-    public<B> B gsg(Object key, B substitute) {
-        return sos(key, substitute).get(key);
     }
 
     @Override

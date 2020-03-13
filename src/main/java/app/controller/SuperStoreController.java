@@ -37,7 +37,7 @@ public class SuperStoreController extends Controller {
     @FXML
     private TableView<Subject> tableView;
 
-    private String searchString;
+    private String searchString = "";
     private StoreDealer storeDealer;
     private Store store;
     private File storeFile;
@@ -84,7 +84,7 @@ public class SuperStoreController extends Controller {
         tableView.requestFocus();
         Subject sub = Suite.set();
         if(searchString != null) {
-            String[] glyphs = stringToGlyphs(searchString, false);
+            String[] glyphs = GlyphSerialProcessor.process(searchString, false);
             for(int i = 0;i < glyphs.length && i < tableView.getVisibleLeafColumns().size(); ++i) {
                 sub.sos(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
             }
@@ -158,8 +158,8 @@ public class SuperStoreController extends Controller {
 
     private void resetTableItems() {
         FlowArrayList<Subject> items = new FlowArrayList<>();
-        String[] glyphs = stringToGlyphs(searchString, true);
         boolean pass, halt;
+        String[] glyphs = GlyphSerialProcessor.process(searchString, true);
         for(Subject it : store.getStored()) {
             pass = true;
             for(String glyph : glyphs) {
@@ -182,18 +182,6 @@ public class SuperStoreController extends Controller {
         }
 
         tableView.getItems().setAll(items);
-    }
-
-    private String[] stringToGlyphs(String str, boolean toLowerCase) {
-        GlyphSerialProcessor processor = new GlyphSerialProcessor(toLowerCase);
-        try {
-            processor.process(str);
-            System.out.println(processor.getStrings());
-            return processor.getStrings().toArray(new String[0]);
-        } catch (ProcessorException pe) {
-            pe.printStackTrace();
-        }
-        return new String[0];
     }
 
     private void tableKeyAction(KeyEvent event) {
@@ -281,7 +269,7 @@ public class SuperStoreController extends Controller {
                 File storeFile = new File(path);
                 try {
                     if(storeFile.createNewFile()) {
-                        Store store = new Store(stringToGlyphs(subject.godAs("Kolumny", "", String.class), false));
+                        Store store = new Store(GlyphSerialProcessor.process(subject.godAs("Kolumny", "", String.class), false));
                         order(Suite.
                                 set(Aproot.Please.showView).
                                 set(Controller.fxml, "store").

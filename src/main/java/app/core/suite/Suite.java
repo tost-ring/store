@@ -37,6 +37,10 @@ public final class Suite {
         return new WrapSubject(new PrimeSubject("error", cause));
     }
 
+    public static<K, V> Sub<K, V> sub(Class<K> keyType, Class<V> valueType) {
+        return new Sub<>(keyType, valueType);
+    }
+
     public static <C> FlowCollection<C> values(Subject subject) {
         FlowArrayList<C> flowArrayList = new FlowArrayList<>();
         for(Subject it : subject) {

@@ -131,13 +131,25 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> B gsg(B substitute) {
-        return sos(substitute).get();
+    public <B> B gs(B substitute) {
+        subject = subject.sos(substitute);
+        return subject.get();
     }
 
     @Override
-    public<B> B gsg(Object key, B substitute) {
-        return sos(key, substitute).get(key);
+    public<B> B gs(Object key, B substitute) {
+        subject = subject.sos(key, substitute);
+        return subject.get();
+    }
+
+    @Override
+    public <B> B gms(Supplier<B> supplier) {
+        return gs(gom(supplier));
+    }
+
+    @Override
+    public <B> B gms(Object key, Supplier<B> supplier) {
+        return gs(gom(key, supplier));
     }
 
     @Override

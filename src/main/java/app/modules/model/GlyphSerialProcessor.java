@@ -1,64 +1,177 @@
 package app.modules.model;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import app.core.flow.FlowIterator;
+import app.core.suite.Sub;
+import app.core.suite.Subject;
+import app.core.suite.Suite;
 
-public class GlyphSerialProcessor extends TextSerialProcessor {
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
+public class GlyphSerialProcessor implements IntSerialProcessor {
+
+    public static String[] process(String string, boolean standardize) {
+        return new GlyphSerialProcessor(standardize).process(string);
+    }
+
+    enum State {
+        QUOTED, UNQUOTED
+    }
+
+    private Subject processors = Suite.set();
 
     private boolean standardize;
+    private State state;
     private Queue<String> strings;
-    private StringBuilder builder;
 
     public GlyphSerialProcessor(boolean standardize) {
         this.standardize = standardize;
+    }
 
-        Node inQuote = new Node();
+    private IntSerialProcessor quotedProcessor() {
+        return new IntSerialProcessor() {
+            StringBuilder builder;
 
-        connect(getStartNode(), i -> i == '"', this::pushBuilder, inQuote);
+            @Override
+            public Subject ready() {
+                builder = new StringBuilder();
+                return Suite.set();
+            }
 
-        connect(inQuote, i -> i == '"', this::pushBuilder, getStartNode());
-        connect(inQuote, i -> true, this::pushCharacterQuoted, inQuote);
-        connect(inQuote, i -> false, this::pushBuilder, getEndNode());
+            @Override
+            public Subject advance(int codePoint) {
+                if(codePoint == '"') {
+                    return Suite.error("Quote mark");
+                } else {
+                    builder.appendCodePoint(standardize ? Character.toLowerCase(codePoint) : codePoint);
+                    return Suite.set();
+                }
+            }
 
-        connect(getStartNode(), Character::isWhitespace, this::pushBuilder, getStartNode());
-        connect(getStartNode(), i -> true, this::pushCharacter, getStartNode());
-        connect(getStartNode(), i -> false, this::pushBuilder, getEndNode());
+            @Override
+            public Subject finish() {
+                return builder.length() > 0 ? Suite.set(builder.toString()) : Suite.set();
+            }
+        };
+    }
+
+    private IntSerialProcessor unquotedProcessor() {
+        return new IntSerialProcessor() {
+            StringBuilder builder = new StringBuilder();
+
+            @Override
+            public Subject ready() {
+                builder = new StringBuilder();
+                return Suite.set();
+            }
+
+            @Override
+            public Subject advance(int codePoint) {
+                if(Character.isWhitespace(codePoint)) {
+                    return Suite.error("Whitespace mark");
+                } else if(codePoint == '"') {
+                    return Suite.error("Quote mark");
+                } else {
+                    builder.appendCodePoint(standardize ? Character.toLowerCase(codePoint) : codePoint);
+                    return Suite.set();
+                }
+            }
+
+            @Override
+            public Subject finish() {
+                return builder.length() > 0 ? Suite.set(builder.toString()) : Suite.set();
+            }
+        };
+    }
+
+    private boolean setState(State state) {
+        this.state = state;
+        switch (state) {
+            case QUOTED:
+                processors.gms(state, this::quotedProcessor).ready();
+                return true;
+            case UNQUOTED:
+                processors.gms(state, this::unquotedProcessor).ready();
+                return true;
+            default:
+                return false;
+        }
     }
 
     @Override
-    public void start() {
-        super.start();
+    public Subject ready() {
         strings = new LinkedList<>();
-        builder = new StringBuilder();
+        setState(State.UNQUOTED);
+        return Suite.set();
     }
 
-    private void pushBuilder(int ch) {
-        System.out.println("pushB");
-        if(builder.length() > 0) {
-            strings.add(builder.toString());
-            builder = new StringBuilder();
-        }
+    @Override
+    public Subject advance(int codePoint) {
+//        switch (state) {
+//            case QUOTED:
+//                sub = processors.getAs(IntSerialProcessor.class).advance(codePoint);
+//                if(sub.is()) {
+//                    sub = quotedProcessor.finish();
+//                    if(sub.is()) {
+//                        strings.add(sub.getAsExpected());
+//                    }
+//                    setState(State.UNQUOTED);
+//                }
+//                return Suite.set();
+//            case UNQUOTED:
+//                sub = unquotedProcessor.advance(codePoint);
+//                if(sub.is("closed")) {
+//                    String str = sub.get("data");
+//                    if(!str.isEmpty()) {
+//                        strings.add(sub.get("data"));
+//                    }
+//                    unquotedProcessor.ready();
+//                    state = State.UNQUOTED;
+//                }
+//                if(!sub.is("consumed") && codePoint == '"') {
+//                    quotedProcessor.ready();
+//                    state = State.QUOTED;
+//                }
+//                return Suite.mix(sub, "consumed");
+//            default:
+//                return Suite.set();
+//        }
+        return Suite.set();
     }
 
-    private void pushCharacter(int ch) {
-        System.out.println("pushCh " + ch + " " + Character.toString(ch));
-        if(standardize) {
-            builder.appendCodePoint(Character.toLowerCase(ch));
-        } else {
-            builder.appendCodePoint(ch);
-        }
+    @Override
+    public Subject finish() {
+//        Subject sub;
+//        switch (state) {
+//            case QUOTED:
+//                sub = quotedProcessor.finish();
+//                if(sub.is("closed")) {
+//                    String str = sub.get("data");
+//                    if(!str.isEmpty()) {
+//                        strings.add(sub.get("data"));
+//                    }
+//                }
+//                break;
+//            case UNQUOTED:
+//                sub = unquotedProcessor.finish();
+//                if(sub.is("closed")) {
+//                    String str = sub.get("data");
+//                    if(!str.isEmpty()) {
+//                        strings.add(sub.get("data"));
+//                    }
+//                }
+//                break;
+//        }
+//        return Suite.set("closed").set("data", strings);
+        return Suite.set();
     }
 
-    private void pushCharacterQuoted(int ch) {
-        if(standardize) {
-            builder.appendCodePoint(Character.toLowerCase(ch));
-        } else {
-            builder.appendCodePoint(ch);
-        }
-    }
-
-    public Queue<String> getStrings() {
-        return strings;
+    public String[] process(String str) {
+        ready();
+        str.chars().forEach(this::advance);
+        finish();
+        return strings.toArray(new String[0]);
     }
 }

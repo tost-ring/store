@@ -2,11 +2,10 @@ package app.core.suite;
 
 import app.core.flow.FlowIterator;
 
-import java.util.Iterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class FuseSubject implements Subject {
+class FuseSubject implements Subject {
 
     private Subject subject;
 
@@ -117,16 +116,6 @@ public class FuseSubject implements Subject {
     @Override
     public <B> B gom(Object key, Supplier<B> supplier) {
         return subject.gom(key, supplier);
-    }
-
-    @Override
-    public <B> B gsg(B substitute) {
-        return Suite.met(subject).gsg(substitute);
-    }
-
-    @Override
-    public <B> B gsg(Object key, B substitute) {
-        return Suite.met(subject).gsg(key, substitute);
     }
 
     @Override
