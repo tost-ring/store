@@ -8,56 +8,81 @@ import app.modules.graph.ReferenceHashGraph;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JorgSerialProcessor{
+public class JorgSerialProcessor implements IntProcessor{
 
-    private int counter;
-    private ReferenceHashGraph<Xkey, Xkey> referenceGraph;
-    private boolean homeFlag;
-    private boolean idFlag;
-    private StringBuilder builder;
-    private String id;
-    private String type;
-    private List<String> list;
+    enum State {
+        ORDER, DATA
+    }
+
+    static class JorgGraphBuilder {
+
+        void appendData(Subject subject) {
+
+        }
+
+        void setDataMode() {
+
+        }
+
+        void setRowMode() {
+
+        }
+
+        void setTableMode() {
+
+        }
 
 
+    }
+
+    private JorgGraphBuilder builder;
+    private JorgDataProcessor dataProcessor = new JorgDataProcessor();
+    private State state;
+    private Subject current;
+    private int codeCounter;
+
+    @Override
     public Subject ready() {
-        counter = 0;
-        referenceGraph = new ReferenceHashGraph<>();
-        homeFlag = true;
-        idFlag = false;
+        builder = new JorgGraphBuilder();
+        dataProcessor.ready();
+        codeCounter = 0;
+        current = Suite.set();
         return Suite.set();
     }
 
-    public Subject advance(int i) throws ProcessorException{
-        ++counter;
-        if(homeFlag) {
-            if(isBlankCodePoint(i)) {
-
-            } else if(i == '@') {
-                builder = new StringBuilder();
-                list = new ArrayList<>();
-                homeFlag = false;
-                idFlag = true;
-            } else {
-                throw new ProcessorException("Illegal character " + counter);
+    public Subject advance(int i) throws ProcessorException {
+        ++codeCounter;
+        if(state == State.DATA) {
+            var advResult = dataProcessor.advance(i);
+            if(advResult.is(ResultType.UNSUPPORTED)) {
+                builder.appendData(dataProcessor.finish());
+                state = State.ORDER;
+                for(Subject s : advResult.getAs(ResultType.UNSUPPORTED, Subject.class)) {
+                    advance(s.get());
+                }
+            } else if(advResult.is(ResultType.RESULT_READY)) {
+                builder.appendData(dataProcessor.finish());
+                state = State.ORDER;
             }
         } else {
-            if(idFlag) {
-                if(Character.isLetterOrDigit(i)) {
-                    builder.appendCodePoint(i);
-                } else if(i == '#') {
+            if(i == ']'){
+                builder.setDataMode();
+            } else if(i == '[') {
+                builder.setRowMode();
+            } else if(i == '$') {
+                builder.setTableMode();
+            } else if(Character.isWhitespace(i)) {
 
-                }
-            }
+            } else throw new ProcessorException("Unexpected code point " + Character.toString(i) + " at " + codeCounter);
         }
         return Suite.set();
     }
 
-    public Subject finish() {
-        return null;
-    }
-
-    private boolean isBlankCodePoint(int i) {
-        return i == ' ' || i == '\t' || i == '\n' || i == '\r';
+    public Subject finish() throws ProcessorException{
+        if(state == State.DATA) {
+            builder.appendData(dataProcessor.finish());
+        }
+        builder.setTableMode();
+        return Suite.set();
     }
 }

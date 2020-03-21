@@ -269,6 +269,10 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
         return head;
     }
 
+    public Link getLastLink() {
+        return head == null ? null : head.back;
+    }
+
     @Override
     public int size() {
         return data.size();

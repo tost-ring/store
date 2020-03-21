@@ -49,6 +49,12 @@ public class WrapSubject implements Subject {
     }
 
     @Override
+    public Subject add(Object element) {
+        subject = subject.add(element);
+        return this;
+    }
+
+    @Override
     public Subject unset() {
         subject = subject.unset();
         return this;
@@ -149,7 +155,7 @@ public class WrapSubject implements Subject {
 
     @Override
     public <B> B gms(Object key, Supplier<B> supplier) {
-        return gs(gom(key, supplier));
+        return gs(key, gom(key, supplier));
     }
 
     @Override

@@ -2,15 +2,13 @@ package app.controller;
 
 import app.controller.tool.ActionTableColumn;
 import app.controller.tool.ParentHelper;
-import app.core.NativeString;
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
 import app.core.flow.FlowArrayList;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.dealer.StoreDealer;
-import app.modules.model.GlyphSerialProcessor;
-import app.modules.model.ProcessorException;
+import app.modules.model.GlyphProcessor;
 import app.modules.model.Store;
 import javafx.beans.binding.StringBinding;
 import javafx.event.ActionEvent;
@@ -84,7 +82,7 @@ public class SuperStoreController extends Controller {
         tableView.requestFocus();
         Subject sub = Suite.set();
         if(searchString != null) {
-            String[] glyphs = GlyphSerialProcessor.process(searchString, false);
+            String[] glyphs = GlyphProcessor.process(searchString, false);
             for(int i = 0;i < glyphs.length && i < tableView.getVisibleLeafColumns().size(); ++i) {
                 sub.sos(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
             }
@@ -159,7 +157,7 @@ public class SuperStoreController extends Controller {
     private void resetTableItems() {
         FlowArrayList<Subject> items = new FlowArrayList<>();
         boolean pass, halt;
-        String[] glyphs = GlyphSerialProcessor.process(searchString, true);
+        String[] glyphs = GlyphProcessor.process(searchString, true);
         for(Subject it : store.getStored()) {
             pass = true;
             for(String glyph : glyphs) {
@@ -269,7 +267,7 @@ public class SuperStoreController extends Controller {
                 File storeFile = new File(path);
                 try {
                     if(storeFile.createNewFile()) {
-                        Store store = new Store(GlyphSerialProcessor.process(subject.godAs("Kolumny", "", String.class), false));
+                        Store store = new Store(GlyphProcessor.process(subject.godAs("Kolumny", "", String.class), false));
                         order(Suite.
                                 set(Aproot.Please.showView).
                                 set(Controller.fxml, "store").

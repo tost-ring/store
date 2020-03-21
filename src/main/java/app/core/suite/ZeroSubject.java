@@ -17,12 +17,12 @@ class ZeroSubject implements Subject {
 
     @Override
     public Subject set(Object element) {
-        return new PrimeSubject(element, element);
+        return new CoupleSubject(element, element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        return new PrimeSubject(key, value);
+        return new CoupleSubject(key, value);
     }
 
     @Override
@@ -42,6 +42,11 @@ class ZeroSubject implements Subject {
         } catch (Exception e) {
             throw new NullPointerException("Failed instance creation of " + key);
         }
+    }
+
+    @Override
+    public Subject add(Object element) {
+        return new BubbleSubject(element);
     }
 
     @Override

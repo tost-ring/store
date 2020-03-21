@@ -12,13 +12,15 @@ public final class Suite {
     public static Subject set() {
         return new WrapSubject();
     }
-    public static Subject set(Object value) {
-        return new WrapSubject(new PrimeSubject(value));
+    public static Subject set(Object element) {
+        return new WrapSubject(new CoupleSubject(element));
     }
     public static Subject set(Object key, Object value) {
-        return new WrapSubject(new PrimeSubject(key, value));
+        return new WrapSubject(new CoupleSubject(key, value));
     }
-
+    public static Subject add(Object element) {
+        return new WrapSubject(new BubbleSubject(element));
+    }
     public static Subject met(Subject source) {
         return new WrapSubject(ZeroSubject.getInstance().met(source));
     }
@@ -30,15 +32,15 @@ public final class Suite {
     }
 
     public static Subject ok() {
-        return new WrapSubject(new PrimeSubject("ok"));
+        return new WrapSubject(new CoupleSubject("ok"));
     }
 
     public static Subject error(Object cause) {
-        return new WrapSubject(new PrimeSubject("error", cause));
+        return new WrapSubject(new CoupleSubject("error", cause));
     }
 
-    public static<K, V> Sub<K, V> sub(Class<K> keyType, Class<V> valueType) {
-        return new Sub<>(keyType, valueType);
+    public static Subject thready() {
+        return new ThreadyWrapSubject();
     }
 
     public static <C> FlowCollection<C> values(Subject subject) {

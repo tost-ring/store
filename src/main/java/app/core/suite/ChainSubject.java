@@ -56,8 +56,14 @@ class ChainSubject implements Subject {
     }
 
     @Override
+    public Subject add(Object element) {
+        chain.put(new BubbleSubject(element), element);
+        return this;
+    }
+
+    @Override
     public Subject unset() {
-        return unset(chain.getFirstLink().getKey());
+        return unset(chain.getLastLink().getKey());
     }
 
     @Override
@@ -69,7 +75,7 @@ class ChainSubject implements Subject {
     @Override
     @SuppressWarnings("unchecked")
     public<B> B get() {
-        Object o = chain.getFirstLink().getValue();
+        Object o = chain.getLastLink().getValue();
         if(o == null) {
             throw new NullPointerException("Missing first value");
         }
@@ -108,7 +114,7 @@ class ChainSubject implements Subject {
 
     @Override
     public<B> B god(B substitute) {
-        return god(chain.getFirstLink().getKey(), substitute);
+        return god(chain.getLastLink().getKey(), substitute);
     }
 
     @Override
@@ -120,12 +126,12 @@ class ChainSubject implements Subject {
 
     @Override
     public <B> B godAs(B substitute, Class<B> requestedType) {
-        return godAs(chain.getFirstLink().getKey(), substitute, requestedType);
+        return godAs(chain.getLastLink().getKey(), substitute, requestedType);
     }
 
     @Override
     public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
-        return godAs(chain.getFirstLink().getKey(), substitute, requestedType);
+        return godAs(chain.getLastLink().getKey(), substitute, requestedType);
     }
 
     @Override
@@ -142,7 +148,7 @@ class ChainSubject implements Subject {
 
     @Override
     public <B> B gom(Supplier<B> supplier) {
-        return gom(chain.getFirstLink().getKey(), supplier);
+        return gom(chain.getLastLink().getKey(), supplier);
     }
 
     @Override
@@ -206,7 +212,7 @@ class ChainSubject implements Subject {
     @Override
     @SuppressWarnings("unchecked")
     public <K> K getKey() {
-        Object o = chain.getFirstLink().getKey();
+        Object o = chain.getLastLink().getKey();
         if(o == null) {
             throw new NullPointerException("Missing first key");
         }
@@ -215,13 +221,13 @@ class ChainSubject implements Subject {
 
     @Override
     public <K> K godKey(K substitute, Class<K> requestedType) {
-        Object o = chain.getFirstLink().getKey();
+        Object o = chain.getLastLink().getKey();
         return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
     }
 
     @Override
     public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
-        Object o = chain.getFirstLink().getKey();
+        Object o = chain.getLastLink().getKey();
         return requestedType.isInstance(o) ? requestedType.cast(o) : substitute;
     }
 

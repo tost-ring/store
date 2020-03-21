@@ -13,6 +13,7 @@ public interface Subject extends Subjective, FlowIterable<Subject> {
     Subject sos(Object element);
     Subject sos(Object key, Object value);
     <B> Subject sen(Class<B> key);
+    Subject add(Object element);
     Subject unset();
     Subject unset(Object key);
     <B> B get();

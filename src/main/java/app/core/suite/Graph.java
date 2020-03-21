@@ -3,7 +3,7 @@ package app.core.suite;
 import java.util.Collections;
 import java.util.Iterator;
 
-public class Graph implements Iterable<Subject> {
+public class Graph {
 
     private static Subject fakeSub = ZeroSubject.getInstance();
     private Subject sub = Suite.set();
@@ -172,11 +172,11 @@ public class Graph implements Iterable<Subject> {
     }
 
     public void connect(Object from, Object to) {
-        sub.gsg(from, Suite.set()).gsg(to, Suite.set());
+        sub.gs(from, Suite.set()).gs(to, Suite.set());
     }
 
     public void connect(Object from, Object to, Object via) {
-        sub.gsg(from, Suite.set()).gsg(to, Suite.set()).set(via);
+        sub.gs(from, Suite.set()).gs(to, Suite.set()).set(via);
     }
 
     public void disconnect(Object from, Object to) {

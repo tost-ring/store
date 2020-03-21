@@ -39,6 +39,11 @@ class FuseSubject implements Subject {
     }
 
     @Override
+    public Subject add(Object element) {
+        return Suite.met(subject).add(element);
+    }
+
+    @Override
     public Subject unset() {
         return Suite.met(subject).unset();
     }
