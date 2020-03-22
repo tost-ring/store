@@ -15,12 +15,16 @@ public class FlowHashSet<E> extends HashSet<E> implements FlowCollection<E>{
 
     @SafeVarargs
     public FlowHashSet(E ... es) {
-        this(Arrays.asList(es));
+        super(Arrays.asList(es));
+    }
+
+    public FlowHashSet(Iterable<E> iterable) {
+        iterable.forEach(this::add);
     }
 
     @Override
     public FlowArrayList<E> asFAL() {
-        return new FlowArrayList<E>(this);
+        return new FlowArrayList<>((Iterable<E>)this);
     }
 
     @Override

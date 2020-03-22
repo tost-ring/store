@@ -1,5 +1,6 @@
 package app.core.suite;
 
+import app.core.flow.FlowIterable;
 import app.core.flow.FlowIterator;
 
 import java.util.function.Supplier;
@@ -26,17 +27,17 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Object element) {
+    public Subject sit(Object element) {
         return set(element);
     }
 
     @Override
-    public Subject sos(Object key, Object value) {
+    public Subject sit(Object key, Object value) {
         return set(key, value);
     }
 
     @Override
-    public <B> Subject sen(Class<B> key) {
+    public <B> Subject setNew(Class<B> key) {
         try {
             return set(key, key.getConstructor().newInstance());
         } catch (Exception e) {
@@ -120,22 +121,22 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public <B> B gom(Supplier<B> supplier) {
+    public <B> B goMake(Supplier<B> supplier) {
         return supplier.get();
     }
 
     @Override
-    public <B> B gom(Object key, Supplier<B> supplier) {
+    public <B> B goMake(Object key, Supplier<B> supplier) {
         return supplier.get();
     }
 
     @Override
-    public <B> B gac(Class<B> key) {
+    public <B> B getAsGiven(Class<B> key) {
         throw new NullPointerException("ZeroSubject contains no values");
     }
 
     @Override
-    public<B> B gon(Class<B> key) {
+    public<B> B goNew(Class<B> key) {
         try {
             return key.getConstructor().newInstance();
         } catch (Exception e) {
@@ -149,7 +150,7 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Class<B> checkedType) {
+    public boolean isAsStated(Class<?> checkedType) {
         return false;
     }
 
@@ -159,7 +160,7 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public <B>boolean isi(Object key, Class<B> classFilter){
+    public boolean isAsStated(Object key, Class<?> classFilter){
         return false;
     }
 
@@ -200,6 +201,43 @@ class ZeroSubject implements Subject {
                 return Suite.set();
             }
         };
+    }
+
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public Object next() {
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public Object next() {
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return this;
     }
 
     public Stream<Subject> stream() {

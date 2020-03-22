@@ -1,5 +1,6 @@
 package app.core.suite;
 
+import app.core.flow.FlowIterable;
 import app.core.flow.FlowIterator;
 
 import java.util.function.Supplier;
@@ -15,42 +16,42 @@ class FuseSubject implements Subject {
 
     @Override
     public Subject set(Object element) {
-        return Suite.met(subject).set(element);
+        return ZeroSubject.getInstance().met(subject).set(element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        return Suite.met(subject).set(key, value);
+        return ZeroSubject.getInstance().met(subject).set(key, value);
     }
 
     @Override
-    public Subject sos(Object value) {
-        return Suite.met(subject).sos(value);
+    public Subject sit(Object value) {
+        return ZeroSubject.getInstance().met(subject).sit(value);
     }
 
     @Override
-    public Subject sos(Object key, Object value) {
-        return Suite.met(subject).sos(key, value);
+    public Subject sit(Object key, Object value) {
+        return ZeroSubject.getInstance().met(subject).sit(key, value);
     }
 
     @Override
-    public <B> Subject sen(Class<B> key) {
-        return Suite.met(subject).sen(key);
+    public <B> Subject setNew(Class<B> key) {
+        return ZeroSubject.getInstance().met(subject).setNew(key);
     }
 
     @Override
     public Subject add(Object element) {
-        return Suite.met(subject).add(element);
+        return ZeroSubject.getInstance().met(subject).add(element);
     }
 
     @Override
     public Subject unset() {
-        return Suite.met(subject).unset();
+        return ZeroSubject.getInstance().met(subject).unset();
     }
 
     @Override
     public Subject unset(Object key) {
-        return Suite.met(subject).unset(key);
+        return ZeroSubject.getInstance().met(subject).unset(key);
     }
 
     @Override
@@ -114,23 +115,23 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public <B> B gom(Supplier<B> supplier) {
-        return subject.gom(supplier);
+    public <B> B goMake(Supplier<B> supplier) {
+        return subject.goMake(supplier);
     }
 
     @Override
-    public <B> B gom(Object key, Supplier<B> supplier) {
-        return subject.gom(key, supplier);
+    public <B> B goMake(Object key, Supplier<B> supplier) {
+        return subject.goMake(key, supplier);
     }
 
     @Override
-    public <B> B gac(Class<B> key) {
-        return subject.gac(key);
+    public <B> B getAsGiven(Class<B> key) {
+        return subject.getAsGiven(key);
     }
 
     @Override
-    public <B> B gon(Class<B> classKey) {
-        return subject.gon(classKey);
+    public <B> B goNew(Class<B> classKey) {
+        return subject.goNew(classKey);
     }
 
     @Override
@@ -139,8 +140,8 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Class<B> checkedType) {
-        return subject.isi(checkedType);
+    public boolean isAsStated(Class<?> checkedType) {
+        return subject.isAsStated(checkedType);
     }
 
     @Override
@@ -149,8 +150,8 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Object key, Class<B> classFilter) {
-        return subject.isi(key, classFilter);
+    public boolean isAsStated(Object key, Class<?> classFilter) {
+        return subject.isAsStated(key, classFilter);
     }
 
     @Override
@@ -179,17 +180,17 @@ class FuseSubject implements Subject {
 
     @Override
     public Subject met(Subject that) {
-        return Suite.met(subject).met(that);
+        return ZeroSubject.getInstance().met(subject).met(that);
     }
 
     @Override
     public Subject met(Subject that, Object... keys) {
-        return Suite.met(subject).met(that, keys);
+        return ZeroSubject.getInstance().met(subject).met(that, keys);
     }
 
     @Override
     public Subject mix(Subject source, Object... keys) {
-        return Suite.met(subject).mix(source, keys);
+        return ZeroSubject.getInstance().met(subject).mix(source, keys);
     }
 
     @Override
@@ -203,7 +204,17 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public Subject fuse() {
-        return this;
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return subject.keys(lastFirst);
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return subject.values(lastFirst);
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return subject.reverse();
     }
 }

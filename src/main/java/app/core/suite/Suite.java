@@ -1,7 +1,7 @@
 package app.core.suite;
 
-import app.core.flow.FlowArrayList;
-import app.core.flow.FlowCollection;
+import app.core.flow.FlowIterable;
+import app.core.flow.FlowIterator;
 import app.core.suite.action.*;
 
 import java.util.Iterator;
@@ -18,6 +18,9 @@ public final class Suite {
     public static Subject set(Object key, Object value) {
         return new WrapSubject(new CoupleSubject(key, value));
     }
+    public static Subject setNew(Class<?> classKey) {
+        return new WrapSubject().setNew(classKey);
+    }
     public static Subject add(Object element) {
         return new WrapSubject(new BubbleSubject(element));
     }
@@ -32,73 +35,115 @@ public final class Suite {
     }
 
     public static Subject ok() {
-        return new WrapSubject(new CoupleSubject("ok"));
+        return new WrapSubject(new BubbleSubject("ok"));
     }
 
     public static Subject error(Object cause) {
         return new WrapSubject(new CoupleSubject("error", cause));
     }
 
+    public static Subject fuse(Subject subject) {
+        return new WrapSubject(new FuseSubject(subject));
+    }
+
     public static Subject thready() {
         return new ThreadyWrapSubject();
     }
 
-    public static <C> FlowCollection<C> values(Subject subject) {
-        FlowArrayList<C> flowArrayList = new FlowArrayList<>();
-        for(Subject it : subject) {
-            flowArrayList.add(it.get());
-        }
-        return flowArrayList;
-    }
+    public static <C> FlowIterable<C> values(Subject subject, Class<C> filter) {
+        return () -> new FlowIterator<>() {
+            Iterator<Object> origin = subject.values().iterator();
+            C next = null;
 
-    public static <C> FlowCollection<C> values(Subject subject, Glass<C, C> glassFilter) {
-        FlowArrayList<C> flowArrayList = new FlowArrayList<>();
-        for(Subject it : subject) {
-            if(it.is(glassFilter)) {
-                flowArrayList.add(it.get());
+            @Override
+            public boolean hasNext() {
+                while(origin.hasNext()) {
+                    Object o = origin.next();
+                    if(filter.isInstance(o)){
+                        next = filter.cast(o);
+                        return true;
+                    }
+                }
+                return false;
             }
-        }
-        return flowArrayList;
-    }
 
-    public static <C> FlowCollection<C> values(Subject subject, Class<C> classFilter) {
-        FlowArrayList<C> flowArrayList = new FlowArrayList<>();
-        for(Subject it : subject) {
-            if(it.isi(classFilter)) {
-                flowArrayList.add(it.get());
+            @Override
+            public C next() {
+                return next;
             }
-        }
-        return flowArrayList;
+        };
     }
 
-    public static <C> FlowCollection<C> keys(Subject subject) {
-        FlowArrayList<C> flowArrayList = new FlowArrayList<>();
-        for(Subject it : subject) {
-            flowArrayList.add(it.getKey());
-        }
-        return flowArrayList;
-    }
+    public static <C> FlowIterable<C> values(Subject subject, Glass<? super C, C> filter) {
+        return () -> new FlowIterator<>() {
+            Iterator<Object> origin = subject.values().iterator();
+            C next = null;
 
-    public static <C> FlowCollection<C> keys(Subject subject, Glass<C, C> glassFilter) {
-        FlowArrayList<C> flowArrayList = new FlowArrayList<>();
-        for(Subject it : subject) {
-            C key = it.godKey(null, glassFilter);
-            if(key != null) {
-                flowArrayList.add(key);
+            @Override
+            public boolean hasNext() {
+                while(origin.hasNext()) {
+                    Object o = origin.next();
+                    if(filter.isInstance(o)){
+                        next = filter.cast(o);
+                        return true;
+                    }
+                }
+                return false;
             }
-        }
-        return flowArrayList;
+
+            @Override
+            public C next() {
+                return next;
+            }
+        };
     }
 
-    public static <C> FlowCollection<C> keys(Subject subject, Class<C> classFilter) {
-        FlowArrayList<C> flowArrayList = new FlowArrayList<>();
-        for(Subject it : subject) {
-            C key = it.godKey(null, classFilter);
-            if(key != null) {
-                flowArrayList.add(key);
+    public static <C> FlowIterable<C> keys(Subject subject, Glass<? super C, C> filter) {
+        return () -> new FlowIterator<>() {
+            Iterator<Object> origin = subject.keys().iterator();
+            C next = null;
+
+            @Override
+            public boolean hasNext() {
+                while(origin.hasNext()) {
+                    Object o = origin.next();
+                    if(filter.isInstance(o)){
+                        next = filter.cast(o);
+                        return true;
+                    }
+                }
+                return false;
             }
-        }
-        return flowArrayList;
+
+            @Override
+            public C next() {
+                return next;
+            }
+        };
+    }
+
+    public static <C> FlowIterable<C> keys(Subject subject, Class<C> filter) {
+        return () -> new FlowIterator<>() {
+            Iterator<Object> origin = subject.keys().iterator();
+            C next = null;
+
+            @Override
+            public boolean hasNext() {
+                while(origin.hasNext()) {
+                    Object o = origin.next();
+                    if(filter.isInstance(o)){
+                        next = filter.cast(o);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public C next() {
+                return next;
+            }
+        };
     }
 
     public static int hashCode(Subject subject) {

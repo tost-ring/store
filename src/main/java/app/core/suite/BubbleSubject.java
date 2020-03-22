@@ -1,8 +1,8 @@
 package app.core.suite;
 
+import app.core.flow.FlowIterable;
 import app.core.flow.FlowIterator;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -34,12 +34,12 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Object element) {
-        return sos(element, element);
+    public Subject sit(Object element) {
+        return sit(element, element);
     }
 
     @Override
-    public Subject sos(Object key, Object value) {
+    public Subject sit(Object key, Object value) {
         if(equals(key)) {
             return this;
         } else {
@@ -48,7 +48,7 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public <B> Subject sen(Class<B> key) {
+    public <B> Subject setNew(Class<B> key) {
         try {
             return set(key, key.getConstructor().newInstance());
         } catch (Exception e) {
@@ -146,22 +146,22 @@ class BubbleSubject implements Subject {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <B> B gom(Supplier<B> supplier) {
+    public <B> B goMake(Supplier<B> supplier) {
         return value != null ? (B)value : supplier.get();
     }
 
     @Override
-    public <B> B gom(Object key, Supplier<B> supplier) {
-        return equals(key) ? gom(supplier) : supplier.get();
+    public <B> B goMake(Object key, Supplier<B> supplier) {
+        return equals(key) ? goMake(supplier) : supplier.get();
     }
 
     @Override
-    public <B> B gac(Class<B> key) {
+    public <B> B getAsGiven(Class<B> key) {
         return get(key);
     }
 
     @Override
-    public<B> B gon(Class<B> classKey) {
+    public<B> B goNew(Class<B> classKey) {
         try {
             return classKey.getConstructor().newInstance();
         } catch (Exception e) {
@@ -175,7 +175,7 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Class<B> checkedType) {
+    public boolean isAsStated(Class<?> checkedType) {
         return checkedType.isInstance(value);
     }
 
@@ -185,7 +185,7 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public <B>boolean isi(Object key, Class<B> classFilter){
+    public boolean isAsStated(Object key, Class<?> classFilter){
         return equals(key) && classFilter.isInstance(value);
     }
 
@@ -233,6 +233,47 @@ class BubbleSubject implements Subject {
                 return Suite.set(this, value);
             }
         };
+    }
+
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+            boolean available = true;
+
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public Object next() {
+                available = false;
+                return BubbleSubject.this;
+            }
+        };
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+            boolean available = true;
+
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public Object next() {
+                available = false;
+                return value;
+            }
+        };
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return this;
     }
 
     public Stream<Subject> stream() {

@@ -1,9 +1,6 @@
 package app.core.flow;
 
-import app.core.suite.Prospect;
-import app.core.suite.Subject;
 import app.core.suite.Subjective;
-import app.core.suite.Suite;
 
 import java.util.*;
 import java.util.function.Function;
@@ -25,7 +22,11 @@ public class FlowArrayList<E> extends ArrayList<E> implements FlowCollection<E>,
 
     @SafeVarargs
     public FlowArrayList(E ... es) {
-        this(Arrays.asList(es));
+        super(Arrays.asList(es));
+    }
+
+    public FlowArrayList(Iterable<E> iterable) {
+        iterable.forEach(this::add);
     }
 
     @Override
@@ -35,7 +36,7 @@ public class FlowArrayList<E> extends ArrayList<E> implements FlowCollection<E>,
 
     @Override
     public FlowHashSet<E> asFHS() {
-        return new FlowHashSet<>(this);
+        return new FlowHashSet<>((Iterable<E>)this);
     }
 
     @Override

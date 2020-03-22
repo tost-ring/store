@@ -14,10 +14,10 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
     public class Link implements Entry<K, V>{
         private Link front;
         private Link back;
-        private Object key;
+        private K key;
         private Object value;
 
-        Link(Link front, Link back, Object key, Object value) {
+        public Link(Link front, Link back, K key, Object value) {
             this.front = front;
             this.back = back;
             this.key = key;
@@ -47,9 +47,8 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public K getKey() {
-            return (K)key;
+            return key;
         }
 
         @Override
@@ -76,14 +75,20 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
 
     public class ChainIterator implements FlowIterator<Entry<K, V>> {
 
+        private boolean reverse;
         private Link first;
         private Link last;
         private Link current;
         private int expectedModCount = modCount;
 
         public ChainIterator(Link first, Link last) {
+            this(first, last, false);
+        }
+
+        public ChainIterator(Link first, Link last, boolean reverse) {
             this.first = first;
             this.last = last;
+            this.reverse = reverse;
         }
 
         public boolean hasNext() {
@@ -92,7 +97,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
 
         public Link next() {
             checkForComodification();
-            current = current == null ? first : current.front;
+            current = current == null ? first : reverse ? current.back : current.front;
             return current;
         }
 
@@ -101,7 +106,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
             if (current == null)
                 throw new IllegalStateException();
 
-            Chain.this.remove(current.key);
+            Chain.this.remove(current.getKey());
 
             expectedModCount++;
         }
@@ -319,7 +324,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
             }
         } else {
             seniorValue = linkSenior.getValue();
-            linkSenior.value = value;
+            linkSenior.setValue(value);
             if(linkSenior != head) {
                 if(linkSenior != head.back) {
                     linkSenior.front.back = linkSenior.back;
@@ -386,9 +391,9 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
         return stream().map(Entry::getValue).collect(Collectors.toCollection(FlowArrayList::new));
     }
 
-    public FlowIterable<K> keys() {
-        return () -> new FlowIterator<>() {
-            Iterator<Entry<K, V>> origin = iterator();
+    public FlowIterator<K> keysIterator(boolean reverse) {
+        return new FlowIterator<>() {
+            Iterator<Entry<K, V>> origin = iterator(reverse);
 
             @Override
             public boolean hasNext() {
@@ -402,9 +407,9 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
         };
     }
 
-    public FlowIterable<V> getValues() {
-        return () -> new FlowIterator<>() {
-            Iterator<Entry<K, V>> origin = iterator();
+    public FlowIterator<V> valuesIterator(boolean reverse) {
+        return new FlowIterator<>() {
+            Iterator<Entry<K, V>> origin = iterator(reverse);
 
             @Override
             public boolean hasNext() {
@@ -472,7 +477,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
     public boolean remove(Object key, Object value) {
 
         Link link = data.get(key);
-        return link != null && Objects.equals(link.value, value) && data.remove(key) != null;
+        return link != null && link.equals(value) && data.remove(key) != null;
     }
 
     @Override
@@ -480,7 +485,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
 
         Link link = data.get(key);
         if(link == null) return false;
-        if(Objects.equals(link.value, oldValue)) {
+        if(link.equals(oldValue)) {
             link.setValue(newValue);
             return true;
         } else return false;
@@ -499,7 +504,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
         Link link = data.get(key);
         V valueJunior = null;
 
-        if(link == null || link.value == null) {
+        if(link == null || link.getValue() == null) {
             valueJunior = mappingFunction.apply(key);
             if(valueJunior != null) {
                 put(key, valueJunior);
@@ -562,7 +567,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
                 put(key, valueJunior);
             }
         } else {
-            if(link.value == null) {
+            if(link.getValue() == null) {
                 if(value != null) {
                     valueJunior = value;
                     link.setValue(valueJunior);
@@ -583,8 +588,16 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
     }
 
     @Override
-    public ChainIterator iterator() {
+    public FlowIterator<Entry<K, V>> iterator() {
         return new ChainIterator(head, head == null ? null : head.back);
+    }
+
+    public FlowIterator<Entry<K, V>> iterator(boolean reverse) {
+        if(reverse) {
+            return new ChainIterator(head == null ? null : head.back, head, true);
+        } else {
+            return new ChainIterator(head, head == null ? null : head.back);
+        }
     }
 
     @Override
@@ -610,7 +623,7 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("[");
-        ChainIterator iterator = iterator();
+        Iterator<Entry<K, V>> iterator = iterator();
         while (iterator.hasNext()) {
             stringBuilder.append(iterator.next());
             if(iterator.hasNext()){

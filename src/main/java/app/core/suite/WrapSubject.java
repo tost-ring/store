@@ -1,8 +1,8 @@
 package app.core.suite;
 
+import app.core.flow.FlowIterable;
 import app.core.flow.FlowIterator;
 
-import java.util.Iterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -31,20 +31,20 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Object value) {
-        subject = subject.sos(value);
+    public Subject sit(Object value) {
+        subject = subject.sit(value);
         return this;
     }
 
     @Override
-    public Subject sos(Object key, Object value) {
-        subject = subject.sos(key, value);
+    public Subject sit(Object key, Object value) {
+        subject = subject.sit(key, value);
         return this;
     }
 
     @Override
-    public <B> Subject sen(Class<B> key) {
-        subject = subject.sen(key);
+    public <B> Subject setNew(Class<B> key) {
+        subject = subject.setNew(key);
         return this;
     }
 
@@ -127,45 +127,45 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> B gom(Supplier<B> supplier) {
-        return subject.gom(supplier);
+    public <B> B goMake(Supplier<B> supplier) {
+        return subject.goMake(supplier);
     }
 
     @Override
-    public <B> B gom(Object key, Supplier<B> supplier) {
-        return subject.gom(key, supplier);
+    public <B> B goMake(Object key, Supplier<B> supplier) {
+        return subject.goMake(key, supplier);
     }
 
     @Override
     public <B> B gs(B substitute) {
-        subject = subject.sos(substitute);
+        subject = subject.sit(substitute);
         return subject.get();
     }
 
     @Override
     public<B> B gs(Object key, B substitute) {
-        subject = subject.sos(key, substitute);
+        subject = subject.sit(key, substitute);
         return subject.get();
     }
 
     @Override
     public <B> B gms(Supplier<B> supplier) {
-        return gs(gom(supplier));
+        return gs(goMake(supplier));
     }
 
     @Override
     public <B> B gms(Object key, Supplier<B> supplier) {
-        return gs(key, gom(key, supplier));
+        return gs(key, goMake(key, supplier));
     }
 
     @Override
-    public <B> B gac(Class<B> key) {
-        return subject.gac(key);
+    public <B> B getAsGiven(Class<B> key) {
+        return subject.getAsGiven(key);
     }
 
     @Override
-    public <B> B gon(Class<B> classKey) {
-        return subject.gon(classKey);
+    public <B> B goNew(Class<B> classKey) {
+        return subject.goNew(classKey);
     }
 
     @Override
@@ -174,8 +174,8 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Class<B> checkedType) {
-        return subject.isi(checkedType);
+    public boolean isAsStated(Class<?> checkedType) {
+        return subject.isAsStated(checkedType);
     }
 
     @Override
@@ -184,8 +184,8 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Object key, Class<B> classFilter) {
-        return subject.isi(key, classFilter);
+    public boolean isAsStated(Object key, Class<?> classFilter) {
+        return subject.isAsStated(key, classFilter);
     }
 
     @Override
@@ -235,14 +235,23 @@ public class WrapSubject implements Subject {
         return subject.iterator();
     }
 
-    public Stream<Subject> stream() {
-        return subject.stream();
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return subject.keys(lastFirst);
     }
 
     @Override
-    public Subject fuse() {
-        subject = subject.fuse();
-        return this;
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return subject.values(lastFirst);
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return subject.reverse();
+    }
+
+    public Stream<Subject> stream() {
+        return subject.stream();
     }
 
     @Override

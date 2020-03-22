@@ -1,5 +1,6 @@
 package app.core.suite;
 
+import app.core.flow.FlowIterable;
 import app.core.flow.FlowIterator;
 
 import java.util.Objects;
@@ -41,12 +42,12 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Object element) {
-        return sos(element, element);
+    public Subject sit(Object element) {
+        return sit(element, element);
     }
 
     @Override
-    public Subject sos(Object key, Object value) {
+    public Subject sit(Object key, Object value) {
         if(Objects.equals(primeKey, key)) {
             return this;
         } else {
@@ -55,7 +56,7 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public <B> Subject sen(Class<B> key) {
+    public <B> Subject setNew(Class<B> key) {
         try {
             return set(key, key.getConstructor().newInstance());
         } catch (Exception e) {
@@ -153,22 +154,22 @@ class CoupleSubject implements Subject {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <B> B gom(Supplier<B> supplier) {
+    public <B> B goMake(Supplier<B> supplier) {
         return primeValue != null ? (B)primeValue : supplier.get();
     }
 
     @Override
-    public <B> B gom(Object key, Supplier<B> supplier) {
-        return Objects.equals(primeKey, key) ? gom(supplier) : supplier.get();
+    public <B> B goMake(Object key, Supplier<B> supplier) {
+        return Objects.equals(primeKey, key) ? goMake(supplier) : supplier.get();
     }
 
     @Override
-    public <B> B gac(Class<B> key) {
+    public <B> B getAsGiven(Class<B> key) {
         return get(key);
     }
 
     @Override
-    public<B> B gon(Class<B> classKey) {
+    public<B> B goNew(Class<B> classKey) {
         if(Objects.equals(primeKey, classKey) && classKey.isInstance(primeValue)) {
             return classKey.cast(primeValue);
         } else {
@@ -186,7 +187,7 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Class<B> checkedType) {
+    public boolean isAsStated(Class<?> checkedType) {
         return checkedType.isInstance(primeValue);
     }
 
@@ -196,7 +197,7 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public <B>boolean isi(Object key, Class<B> classFilter){
+    public boolean isAsStated(Object key, Class<?> classFilter){
         return Objects.equals(primeKey, key) && classFilter.isInstance(primeValue);
     }
 
@@ -247,6 +248,47 @@ class CoupleSubject implements Subject {
                 return Suite.set(primeKey, primeValue);
             }
         };
+    }
+
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+            boolean available = true;
+
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public Object next() {
+                available = false;
+                return primeKey;
+            }
+        };
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+            boolean available = true;
+
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public Object next() {
+                available = false;
+                return primeValue;
+            }
+        };
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return this;
     }
 
     public Stream<Subject> stream() {

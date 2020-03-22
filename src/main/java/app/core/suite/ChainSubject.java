@@ -1,9 +1,6 @@
 package app.core.suite;
 
-import app.core.flow.Chain;
-import app.core.flow.FlowArrayList;
-import app.core.flow.FlowCollection;
-import app.core.flow.FlowIterator;
+import app.core.flow.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -31,12 +28,12 @@ class ChainSubject implements Subject {
     }
 
     @Override
-    public Subject sos(Object element) {
-        return sos(element, element);
+    public Subject sit(Object element) {
+        return sit(element, element);
     }
 
     @Override
-    public Subject sos(Object key, Object value) {
+    public Subject sit(Object key, Object value) {
         Object home = chain.get(key);
         if(home == null) {
             chain.put(key, value);
@@ -47,7 +44,7 @@ class ChainSubject implements Subject {
     }
 
     @Override
-    public <B> Subject sen(Class<B> key) {
+    public <B> Subject setNew(Class<B> key) {
         try {
             return set(key, key.getConstructor().newInstance());
         } catch (Exception e) {
@@ -147,24 +144,24 @@ class ChainSubject implements Subject {
     }
 
     @Override
-    public <B> B gom(Supplier<B> supplier) {
-        return gom(chain.getLastLink().getKey(), supplier);
+    public <B> B goMake(Supplier<B> supplier) {
+        return goMake(chain.getLastLink().getKey(), supplier);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <B> B gom(Object key, Supplier<B> supplier) {
+    public <B> B goMake(Object key, Supplier<B> supplier) {
         Object o = chain.get(key);
         return o != null ? (B)o : supplier.get();
     }
 
     @Override
-    public <B> B gac(Class<B> key) {
+    public <B> B getAsGiven(Class<B> key) {
         return get(key);
     }
 
     @Override
-    public<B> B gon(Class<B> key) {
+    public<B> B goNew(Class<B> key) {
         Object o = chain.get(key);
         if(o == null) {
             try {
@@ -183,7 +180,7 @@ class ChainSubject implements Subject {
     }
 
     @Override
-    public <B> boolean isi(Class<B> checkedType) {
+    public boolean isAsStated(Class<?> checkedType) {
         return checkedType.isInstance(god(null));
     }
 
@@ -193,7 +190,7 @@ class ChainSubject implements Subject {
     }
 
     @Override
-    public <B>boolean isi(Object key, Class<B> checkedType){
+    public boolean isAsStated(Object key, Class<?> checkedType){
         return checkedType.isInstance(god(key, null));
     }
 
@@ -243,10 +240,20 @@ class ChainSubject implements Subject {
 
             @Override
             public Subject next() {
-                var entry = origin.next();
+                Map.Entry<Object, Object> entry = origin.next();
                 return Suite.set(entry.getKey(), entry.getValue());
             }
         };
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return () -> chain.valuesIterator(lastFirst);
+    }
+
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return () -> chain.keysIterator(lastFirst);
     }
 
     public Stream<Subject> stream() {
@@ -279,6 +286,24 @@ class ChainSubject implements Subject {
             }
         };
         return StreamSupport.stream(spliterator, false);
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return () -> new FlowIterator<>() {
+            Iterator<Map.Entry<Object, Object>> origin = chain.iterator(true);
+
+            @Override
+            public boolean hasNext() {
+                return origin.hasNext();
+            }
+
+            @Override
+            public Subject next() {
+                Map.Entry<Object, Object> entry = origin.next();
+                return Suite.set(entry.getKey(), entry.getValue());
+            }
+        };
     }
 
     @Override
