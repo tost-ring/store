@@ -13,6 +13,7 @@ public class StoreDealer {
     }
 
     public boolean saveStore(Store store, File storeFile) {
-        return JorgWriter.write(store, storeFile);
+        return false; // TODO
+//        return JorgWriter.write(store, storeFile);
     }
 }

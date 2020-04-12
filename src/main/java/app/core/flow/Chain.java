@@ -387,8 +387,8 @@ public class Chain<K, V> implements Map<K, V>, FlowIterable<Map.Entry<K, V>> {
     }
 
     @Override
-    public FlowCollection<V> values() {
-        return stream().map(Entry::getValue).collect(Collectors.toCollection(FlowArrayList::new));
+    public Collection<V> values() {
+        return stream().map(Entry::getValue).collect(Collectors.toUnmodifiableList());
     }
 
     public FlowIterator<K> keysIterator(boolean reverse) {

@@ -25,4 +25,9 @@ public class Socket {
     public boolean equals(Object obj) {
         return obj instanceof Socket && subject.equals(((Socket) obj).subject);
     }
+
+    @Override
+    public String toString() {
+        return "#" + subject;
+    }
 }

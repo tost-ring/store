@@ -41,8 +41,8 @@ public class GlyphProcessor implements IntProcessor {
             @Override
             public Subject finish() {
                 Subject sub = super.finish();
-                if(sub.is()) {
-                    strings.add(sub.get());
+                if(sub.settled()) {
+                    strings.add(sub.asExpected());
                 }
                 return Suite.set();
             }
@@ -67,8 +67,8 @@ public class GlyphProcessor implements IntProcessor {
             @Override
             public Subject finish() {
                 Subject sub = super.finish();
-                if(sub.is()) {
-                    strings.add(sub.get());
+                if(sub.settled()) {
+                    strings.add(sub.asExpected());
                 }
                 return Suite.set();
             }
@@ -90,13 +90,13 @@ public class GlyphProcessor implements IntProcessor {
     private void setState(State state) {
         switch (state) {
             case QUOTED:
-                processors.gms(state, this::quotedProcessor).ready();
+                processors.getDone(state, this::quotedProcessor).asGiven(IntProcessor.class).ready();
                 return;
             case UNQUOTED:
-                processors.gms(state, this::unquotedProcessor).ready();
+                processors.getDone(state, this::unquotedProcessor).asGiven(IntProcessor.class).ready();
                 return;
             default:
-                processors.gms(state, this::defaultProcessor).ready();
+                processors.getDone(state, this::defaultProcessor).asGiven(IntProcessor.class).ready();
         }
     }
 
@@ -109,8 +109,8 @@ public class GlyphProcessor implements IntProcessor {
 
     @Override
     public Subject advance(int codePoint) throws ProcessorException {
-        IntProcessor processor = processors.get();
-        if(processor.advance(codePoint).is()) {
+        IntProcessor processor = processors.asExpected();
+        if(processor.advance(codePoint).settled()) {
             processor.finish();
             setState(State.DEFAULT);
         }
@@ -119,7 +119,7 @@ public class GlyphProcessor implements IntProcessor {
 
     @Override
     public Subject finish() throws ProcessorException {
-        processors.getAs(IntProcessor.class).finish();
+        processors.asGiven(IntProcessor.class).finish();
         return Suite.set(ResultType.RESULT, strings);
     }
 

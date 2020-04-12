@@ -2,27 +2,32 @@ package app.modules.model;
 
 public class Reference {
 
-    private String subject;
+    private Object label;
 
-    public Reference(String subject) {
-        this.subject = subject;
+    public Reference(Object label) {
+        this.label = label;
     }
 
-    public String getSubject() {
-        return subject;
+    public Object getLabel() {
+        return label;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setLabel(Object label) {
+        this.label = label;
     }
 
     @Override
     public int hashCode() {
-        return subject.hashCode();
+        return label.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Reference && subject.equals(((Reference) obj).subject);
+        return obj instanceof Reference && label.equals(((Reference) obj).label);
+    }
+
+    @Override
+    public String toString() {
+        return "@" + label;
     }
 }

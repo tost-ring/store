@@ -1,27 +1,30 @@
 package app.modules.model;
 
-import app.core.flow.FlowArrayList;
 import app.core.suite.Subject;
 import app.core.suite.Subjective;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Store implements Subjective {
 
-    private FlowArrayList<String> columns;
-    private FlowArrayList<Subject> stored = new FlowArrayList<>();
+    private List<String> columns;
+    private List<Subject> stored = new ArrayList<>();
 
     public Store() {
-        columns = new FlowArrayList<>();
+        columns = new ArrayList<>();
     }
 
     public Store(String ... columns) {
-        this.columns = new FlowArrayList<>(columns);
+        this.columns = Arrays.asList(columns);
     }
 
-    public FlowArrayList<Subject> getStored() {
+    public List<Subject> getStored() {
         return stored;
     }
 
-    public FlowArrayList<String> getColumns() {
+    public List<String> getColumns() {
         return columns;
     }
 }

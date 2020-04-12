@@ -1,6 +1,5 @@
 package app.core.suite;
 
-import app.core.flow.FlowCollection;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.TableColumn;
 
@@ -68,25 +67,6 @@ public abstract class Glass<C, G extends C> implements Serializable {
             @Override
             public ObjectProperty<B> cast(Object o) {
                 return (ObjectProperty<B>)o;
-            }
-
-            @Override
-            public Glass[] getGenerics() {
-                return new Glass[]{brand};
-            }
-        };
-    }
-
-    public static<B> Glass<FlowCollection, FlowCollection<B>> flowCollection(Class<B> brand) {
-        return flowCollection(Glass.of(brand));
-    }
-
-    public static<B> Glass<FlowCollection, FlowCollection<B>> flowCollection(Glass<B, B> brand) {
-        return new Glass<>(FlowCollection.class) {
-
-            @Override
-            public FlowCollection<B> cast(Object o) {
-                return (FlowCollection<B>)o;
             }
 
             @Override

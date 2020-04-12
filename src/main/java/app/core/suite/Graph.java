@@ -1,206 +1,165 @@
 package app.core.suite;
 
-import java.util.Collections;
-import java.util.Iterator;
+import app.core.flow.FlowIterable;
 
-public class Graph {
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-//    private static Subject fakeSub = ZeroSubject.getInstance();
-//    private Subject sub = Suite.set();
-//
-//    public void putNode(Object node) {
-//        sub.sit(node);
-//    }
-//
-//    public void removeNode(Object node) {
-//        sub.unset(node);
-//        sub.forEach(s -> s.getAs(Subject.class).unset(node));
-//    }
-//
-//    public Iterable<Subject> getNodes() {
-//        return () -> new Iterator<>() {
-//            Iterator<Subject> origin = sub.iterator();
-//
-//            @Override
-//            public boolean hasNext() {
-//                return origin.hasNext();
-//            }
-//
-//            @Override
-//            public Subject next() {
-//                return Suite.set(origin.next().getKey());
-//            }
-//        };
-//    }
-//
-//    public Iterable<Subject> getNodes(Object node) {
-//        return () -> new Iterator<>() {
-//            Iterator<Subject> origin = sub.god(node, fakeSub).iterator();
-//
-//            @Override
-//            public boolean hasNext() {
-//                return origin.hasNext();
-//            }
-//
-//            @Override
-//            public Subject next() {
-//                return Suite.set(origin.next().getKey());
-//            }
-//        };
-//    }
-//
-//    public Subject getNode() {
-//        return sub.iterator().nod(null);
-//    }
-//
-//    public Subject getNode(Object node) {
-//        return sub.god(node, fakeSub).iterator().nod(null);
-//    }
-//
-//    public int countNodes() {
-//        return sub.size();
-//    }
-//
-//    public int countNodes(Object node) {
-//        return sub.god(node, fakeSub).size();
-//    }
-//
-//    public boolean containsNode(Object node) {
-//        return sub.is(node);
-//    }
-//
-//    public Iterable<Subject> getLinks() {
-//        return () -> new Iterator<>() {
-//            Iterator<Subject> lowerIterator = getNodes().iterator();
-//            Iterator<Subject> higherIterator = Collections.emptyIterator();
-//
-//            @Override
-//            public boolean hasNext() {
-//                if(higherIterator.hasNext()) return true;
-//                while(lowerIterator.hasNext()) {
-//                    higherIterator = getLinks(lowerIterator.next()).iterator();
-//                    if(higherIterator.hasNext()) {
-//                        return true;
-//                    }
-//                }
-//                return false;
-//            }
-//
-//            @Override
-//            public Subject next() {
-//                return higherIterator.next();
-//            }
-//        };
-//    }
-//
-//    public Iterable<Subject> getLinks(Object node) {
-//        return () -> new Iterator<>() {
-//            Iterator<Subject> lowerIterator = sub.god(node, fakeSub).iterator();
-//            Iterator<Subject> higherIterator = Collections.emptyIterator();
-//
-//            @Override
-//            public boolean hasNext() {
-//                if(higherIterator.hasNext()) return true;
-//                while(lowerIterator.hasNext()) {
-//                    higherIterator = lowerIterator.next().getAs(Subject.class).iterator();
-//                    if(higherIterator.hasNext()) {
-//                        return true;
-//                    }
-//                }
-//                return false;
-//            }
-//
-//            @Override
-//            public Subject next() {
-//                return Suite.set(higherIterator.next().getKey());
-//            }
-//        };
-//    }
-//
-//    public Subject getLinks(Object from, Object to) {
-//        return sub.god(from, fakeSub).gom(to, Suite::set).fuse();
-//    }
-//
-//    public Iterator<Subject> iterator() {
-//        return new Iterator<>() {
-//            Iterator<Subject> fromIterator = sub.iterator();
-//            Iterator<Subject> viaToIterator = Collections.emptyIterator();
-//            Object from = null;
-//
-//            @Override
-//            public boolean hasNext() {
-//                if (viaToIterator.hasNext()) return true;
-//                if (fromIterator.hasNext()) {
-//                    Subject next = fromIterator.next();
-//                    from = next.getKey();
-//                    viaToIterator = from(from).iterator();
-//                    return true;
-//                }
-//                return false;
-//            }
-//
-//            @Override
-//            public Subject next() {
-//                return viaToIterator.next().set("from", from);
-//            }
-//        };
-//    }
-//
-//    public Iterable<Subject> from(Object from) {
-//        return () -> new Iterator<>() {
-//            Iterator<Subject> toIterator = sub.god(from, fakeSub).iterator();
-//            Iterator<Subject> viaIterator = Collections.emptyIterator();
-//            Object to = null;
-//
-//            @Override
-//            public boolean hasNext() {
-//                if (viaIterator.hasNext()) return true;
-//                if (toIterator.hasNext()) {
-//                    Subject next = toIterator.next();
-//                    to = next.getKey();
-//                    viaIterator = getLinks(from, to).iterator();
-//                    return true;
-//                }
-//                return false;
-//            }
-//
-//            @Override
-//            public Subject next() {
-//                return Suite.set("to", to).set("via", viaIterator.next().getKey());
-//            }
-//        };
-//    }
-//
-//    public void connect(Object from, Object to) {
-//        sub.gs(from, Suite.set()).gs(to, Suite.set());
-//    }
-//
-//    public void connect(Object from, Object to, Object via) {
-//        sub.gs(from, Suite.set()).gs(to, Suite.set()).set(via);
-//    }
-//
-//    public void disconnect(Object from, Object to) {
-//        sub.gom(from, Suite::set).unset(to);
-//    }
-//
-//    public void disconnect(Object from, Object to, Object via) {
-//        sub.gom(from, Suite::set).gom(to, Suite::set).unset(via);
-//    }
-//
-//    public boolean connected(Object from, Object to) {
-//        return sub.gom(from, Suite::set).is(to);
-//    }
-//
-//    public boolean connected(Object from, Object to, Object via) {
-//        return sub.gom(from, Suite::set).gom(to, Suite::set).is(via);
-//    }
-//
-//    public void merge(Graph that) {
-//        sub.met(that.sub);
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return sub.toString();
-//    }
+public class Graph implements Subject {
+
+    private Subject sub = Suite.set();
+
+    public Graph set(Object node) {
+        sub.set(node, Suite.set());
+        return this;
+    }
+
+    public Graph set(Object from, Object viaTo) {
+        sub.set(from, Suite.set(viaTo));
+        return this;
+    }
+
+    public Graph set(Object from, Object via, Object to) {
+        sub.set(from, Suite.set(via, to));
+        return this;
+    }
+
+    public Graph put(Object node) {
+        sub.put(node, Suite.set());
+        return this;
+    }
+
+    public Graph put(Object from, Object viaTo) {
+        sub.getDone(from, Suite::set).asGiven(Subject.class).put(viaTo);
+        return this;
+    }
+
+    public Graph put(Object from, Object via, Object to) {
+        sub.getDone(from, Suite::set).asGiven(Subject.class).put(via, to);
+        return this;
+    }
+
+    @Override
+    public Subject add(Object element) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Graph add(Object from, Object to) {
+        sub.getDone(from, Suite::set).asGiven(Subject.class).add(to);
+        return this;
+    }
+
+    public Graph unset() {
+        sub.unset();
+        return this;
+    }
+
+    public Graph unset(Object node) {
+        sub.unset(node);
+        return this;
+    }
+
+    public Graph unset(Object from, Object via) {
+        sub.unset(from, via);
+        return this;
+    }
+
+    public Subject get(Object key) {
+        return sub.get(key).orDo(Suite::set);
+    }
+
+    @Override
+    public Subject key() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Subject prime() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Subject recent() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object direct() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B asExpected() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B asGiven(Class<B> requestedType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B asGiven(Glass<? super B, B> requestedType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B asGiven(Class<B> requestedType, B substitute) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B asGiven(Glass<? super B, B> requestedType, B substitute) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B orGiven(B substitute) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <B> B orDo(Supplier<B> supplier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isIn(Class<?> type) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean settled() {
+        return sub.settled();
+    }
+
+    @Override
+    public int size() {
+        return sub.size();
+    }
+
+    @Override
+    public Stream<Subject> stream() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FlowIterable<Subject> front() {
+        return sub.front().map(s -> Suite.set(s.key().direct(), s.asGiven(Subject.class).direct()));
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return sub.keys(lastFirst);
+    }
 }

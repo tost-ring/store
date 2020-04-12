@@ -34,7 +34,7 @@ public class DetailPerformer implements Performer{
         return constructRouter;
     }
 
-    public<T> void addType(Class<T> type, Function subjectively, Impression objectively, Supplier<T> constructor) {
+    public<T> void addType(Class<T> type, Action subjectively, Impression objectively, Supplier<T> constructor) {
         subjectiveRouter.set(type, subjectively);
         objectiveRouter.set(type, objectively);
         constructRouter.set(type, Expression.fromSupplier(constructor));
@@ -45,9 +45,9 @@ public class DetailPerformer implements Performer{
         if(object instanceof Subjective) {
             return ((Subjective) object).toSubject();
         } else {
-            Function function = subjectiveRouter.god(object.getClass(), null);
-            if(function == null)return null;
-            return function.play(Suite.set(object));
+            Action action = subjectiveRouter.get(object.getClass()).orGiven(null);
+            if(action == null)return null;
+            return action.play(Suite.set(object));
         }
     }
 
@@ -56,7 +56,7 @@ public class DetailPerformer implements Performer{
         if(object instanceof Subjective) {
             ((Subjective) object).fromSubject(subject);
         } else {
-            Impression impression = objectiveRouter.god(object.getClass(), null);
+            Impression impression = objectiveRouter.get(object.getClass()).orGiven(null);
             if(impression == null) return false;
             impression.revel(Suite.set(Object.class, object).set(Subject.class, subject));
         }
@@ -65,8 +65,8 @@ public class DetailPerformer implements Performer{
 
     @Override
     public Object construct(Class<?> type) {
-        Expression expression = constructRouter.god(type, null);
+        Expression expression = constructRouter.get(type).orGiven(null);
         if(expression == null) return null;
-        return expression.play().god(null);
+        return expression.play().direct();
     }
 }

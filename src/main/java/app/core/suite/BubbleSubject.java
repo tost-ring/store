@@ -3,223 +3,141 @@ package app.core.suite;
 import app.core.flow.FlowIterable;
 import app.core.flow.FlowIterator;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unchecked")
 class BubbleSubject implements Subject {
 
-    private Object value;
+    private final Object bubbled;
 
-    public BubbleSubject(Object value) {
-        this.value = value;
-    }
-
-    protected Subject upgrade() {
-        return new ChainSubject().set(this, value);
+    BubbleSubject(Object bubbled) {
+        this.bubbled = bubbled;
     }
 
     @Override
     public Subject set(Object element) {
-        return set(element, element);
+        return Objects.equals(bubbled, element) ? new BubbleSubject(element) :
+                new ChainSubject().set(bubbled).set(element, element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        if(equals(key)) {
-            this.value = value;
-            return this;
-        } else {
-            return upgrade().set(key, value);
-        }
+        return Objects.equals(bubbled, key) ? new CoupleSubject(key, value) :
+                new ChainSubject().set(bubbled).set(key, value);
     }
 
     @Override
-    public Subject sit(Object element) {
-        return sit(element, element);
+    public Subject put(Object element) {
+        return Objects.equals(bubbled, element) ? this :
+                new ChainSubject().set(bubbled).set(element, element);
     }
 
     @Override
-    public Subject sit(Object key, Object value) {
-        if(equals(key)) {
-            return this;
-        } else {
-            return upgrade().set(key, value);
-        }
-    }
-
-    @Override
-    public <B> Subject setNew(Class<B> key) {
-        try {
-            return set(key, key.getConstructor().newInstance());
-        } catch (Exception e) {
-            throw new NullPointerException("Failed instance creation of " + key);
-        }
+    public Subject put(Object key, Object value) {
+        return Objects.equals(bubbled, key) ? this :
+                new ChainSubject().set(bubbled).set(key, value);
     }
 
     @Override
     public Subject add(Object element) {
-        return upgrade().add(element);
-    }
-
-    @Override
-    public Subject unset() {
-        return ZeroSubject.getInstance();
+        return new ChainSubject().set(bubbled).add(element);
     }
 
     @Override
     public Subject unset(Object key) {
-        if(equals(key)) {
-            return ZeroSubject.getInstance();
-        } else {
-            return this;
-        }
+        return Objects.equals(bubbled, key) ? ZeroSubject.getInstance() : this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <B> B get() {
-        if(value == null) {
-            throw new NullPointerException("Missing first value");
-        }
-        return (B)value;
+    public Subject unset(Object key, Object value) {
+        return Objects.equals(bubbled, key) && Objects.equals(bubbled, value) ? ZeroSubject.getInstance() : this;
     }
 
     @Override
-    public <B> B get(Object key) {
-        if(equals(key)) {
-            return get();
-        } else {
-            throw new NullPointerException("Missing value associated with key " + key);
-        }
+    public Subject key() {
+        return this;
     }
 
     @Override
-    public<B> B getAs(Class<B> requestedType) {
-        return get();
+    public Subject prime() {
+        return this;
     }
 
     @Override
-    public <B> B getAs(Glass<? super B, B> requestedType) {
-        return get();
+    public Subject recent() {
+        return this;
     }
 
     @Override
-    public<B> B getAs(Object key, Class<B> requestedType) {
-        return get(key);
+    public Subject get(Object key) {
+        return Objects.equals(bubbled, key) ? this : ZeroSubject.getInstance();
     }
 
     @Override
-    public<B> B getAs(Object key, Glass<? super B, B> requestedType) {
-        return get(key);
+    public Object direct() {
+        return bubbled;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public<B> B god(B substitute) {
-        return value != null ? (B)value : substitute;
+    public <B> B asExpected() {
+        return (B)bubbled;
     }
 
     @Override
-    public<B> B god(Object key, B substitute) {
-        return equals(key) ? god(substitute) : substitute;
+    public <B> B asGiven(Class<B> requestedType) {
+        return (B)bubbled;
     }
 
     @Override
-    public <B> B godAs(B substitute, Class<B> requestedType) {
-        return requestedType.isInstance(value) ? requestedType.cast(value) : substitute;
+    public <B> B asGiven(Glass<? super B, B> requestedType) {
+        return (B)bubbled;
     }
 
     @Override
-    public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
-        return requestedType.isInstance(value) ? requestedType.cast(value) : substitute;
+    public <B> B asGiven(Class<B> requestedType, B substitute) {
+        return requestedType.isInstance(bubbled) ? requestedType.cast(bubbled) : substitute;
     }
 
     @Override
-    public<B> B godAs(Object key, B substitute, Class<B> requestedType) {
-        return equals(key) ? godAs(substitute, requestedType) : substitute;
+    public <B> B asGiven(Glass<? super B, B> requestedType, B substitute) {
+        return requestedType.isInstance(bubbled) ? requestedType.cast(bubbled) : substitute;
     }
 
     @Override
-    public<B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
-        return equals(key) ? godAs(substitute, requestedType) : substitute;
+    public <B> B orGiven(B substitute) {
+        return bubbled == null ? substitute : (B)bubbled;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <B> B goMake(Supplier<B> supplier) {
-        return value != null ? (B)value : supplier.get();
+    public <B> B orDo(Supplier<B> supplier) {
+        return bubbled == null ? supplier.get() : (B)bubbled;
     }
 
     @Override
-    public <B> B goMake(Object key, Supplier<B> supplier) {
-        return equals(key) ? goMake(supplier) : supplier.get();
+    public boolean isIn(Class<?> type) {
+        return type.isInstance(bubbled);
     }
 
     @Override
-    public <B> B getAsGiven(Class<B> key) {
-        return get(key);
-    }
-
-    @Override
-    public<B> B goNew(Class<B> classKey) {
-        try {
-            return classKey.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new NullPointerException("Failed instance creation of " + classKey);
-        }
-    }
-
-    @Override
-    public boolean is() {
-        return value != null;
-    }
-
-    @Override
-    public boolean isAsStated(Class<?> checkedType) {
-        return checkedType.isInstance(value);
-    }
-
-    @Override
-    public boolean is(Object key) {
-        return equals(key) && value != null;
-    }
-
-    @Override
-    public boolean isAsStated(Object key, Class<?> classFilter){
-        return equals(key) && classFilter.isInstance(value);
-    }
-
-    @Override
-    public boolean are(Object ... keys) {
-        for(Object key : keys) {
-            if(!is(key))return false;
-        }
+    public boolean settled() {
         return true;
     }
 
+    @Override
     public int size() {
         return 1;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <K> K getKey() {
-        return (K)this;
+    public Stream<Subject> stream() {
+        return Stream.of(this);
     }
 
     @Override
-    public <K> K godKey(K substitute, Class<K> requestedType) {
-        return requestedType.isInstance(this) ? requestedType.cast(this) : substitute;
-    }
-
-    @Override
-    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
-        return requestedType.isInstance(this) ? requestedType.cast(this) : substitute;
-    }
-
-    @Override
-    public FlowIterator<Subject> iterator() {
-        return new FlowIterator<>() {
+    public FlowIterable<Subject> front() {
+        return () -> new FlowIterator<>() {
             boolean available = true;
 
             @Override
@@ -230,9 +148,19 @@ class BubbleSubject implements Subject {
             @Override
             public Subject next() {
                 available = false;
-                return Suite.set(this, value);
+                return BubbleSubject.this;
             }
         };
+    }
+
+    @Override
+    public FlowIterable<Subject> reverse() {
+        return front();
+    }
+
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return keys(lastFirst);
     }
 
     @Override
@@ -248,40 +176,13 @@ class BubbleSubject implements Subject {
             @Override
             public Object next() {
                 available = false;
-                return BubbleSubject.this;
+                return bubbled;
             }
         };
-    }
-
-    @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-            boolean available = true;
-
-            @Override
-            public boolean hasNext() {
-                return available;
-            }
-
-            @Override
-            public Object next() {
-                available = false;
-                return value;
-            }
-        };
-    }
-
-    @Override
-    public FlowIterable<Subject> reverse() {
-        return this;
-    }
-
-    public Stream<Subject> stream() {
-        return Stream.of(Suite.set(this, value));
     }
 
     @Override
     public String toString() {
-        return "$[" + super.toString() + "=" + value + "]";
+        return "$[" + bubbled + "=" + bubbled + "]";
     }
 }

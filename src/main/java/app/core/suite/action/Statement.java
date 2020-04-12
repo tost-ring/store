@@ -8,43 +8,22 @@ public interface Statement extends Action {
 
     void revel();
 
-    @Override
-    default void revel(Subject state, Subject in) {
-        revel();
-    }
-
-    @Override
     default Subject play() {
         revel();
         return Suite.set();
     }
 
-    @Override
     default Subject play(Subject in) {
         revel();
         return Suite.set();
     }
 
-    @Override
-    default Subject play(Subject state, Subject in) {
+    default Subject gamble() {
         revel();
         return Suite.set();
     }
 
-    @Override
-    default Subject gamble() throws Exception {
-        revel();
-        return Suite.set();
-    }
-
-    @Override
-    default Subject gamble(Subject in) throws Exception {
-        revel();
-        return Suite.set();
-    }
-
-    @Override
-    default Subject gamble(Subject state, Subject in) throws Exception {
+    default Subject gamble(Subject in) {
         revel();
         return Suite.set();
     }

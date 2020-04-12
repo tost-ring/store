@@ -1,7 +1,6 @@
 package app.core.suite;
 
 import app.core.flow.FlowIterable;
-import app.core.flow.FlowIterator;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -9,188 +8,134 @@ import java.util.stream.Stream;
 class FuseSubject implements Subject {
 
     private Subject subject;
+    private boolean active = true;
 
     FuseSubject(Subject subject) {
         this.subject = subject;
     }
 
+    private void safe() {
+        if(active) {
+            subject = ZeroSubject.getInstance().setAll(subject.front());
+            active = false;
+        }
+    }
+
     @Override
     public Subject set(Object element) {
-        return ZeroSubject.getInstance().met(subject).set(element);
+        safe();
+        return subject.set(element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        return ZeroSubject.getInstance().met(subject).set(key, value);
+        safe();
+        return subject.set(key, value);
     }
 
     @Override
-    public Subject sit(Object value) {
-        return ZeroSubject.getInstance().met(subject).sit(value);
+    public Subject put(Object element) {
+        safe();
+        return subject.put(element);
     }
 
     @Override
-    public Subject sit(Object key, Object value) {
-        return ZeroSubject.getInstance().met(subject).sit(key, value);
-    }
-
-    @Override
-    public <B> Subject setNew(Class<B> key) {
-        return ZeroSubject.getInstance().met(subject).setNew(key);
+    public Subject put(Object key, Object value) {
+        safe();
+        return subject.put(key, value);
     }
 
     @Override
     public Subject add(Object element) {
-        return ZeroSubject.getInstance().met(subject).add(element);
-    }
-
-    @Override
-    public Subject unset() {
-        return ZeroSubject.getInstance().met(subject).unset();
+        safe();
+        return subject.add(element);
     }
 
     @Override
     public Subject unset(Object key) {
-        return ZeroSubject.getInstance().met(subject).unset(key);
+        safe();
+        return subject.unset(key);
     }
 
     @Override
-    public <B> B get() {
-        return subject.get();
+    public Subject unset(Object key, Object value) {
+        safe();
+        return subject.unset(key, value);
     }
 
     @Override
-    public <B> B get(Object key) {
+    public Subject prime() {
+        return subject.prime();
+    }
+
+    @Override
+    public Subject recent() {
+        return subject.recent();
+    }
+
+    @Override
+    public Subject get(Object key) {
         return subject.get(key);
     }
 
     @Override
-    public <B> B getAs(Class<B> requestedType) {
-        return subject.getAs(requestedType);
+    public Subject key() {
+        return subject.key();
     }
 
     @Override
-    public <B> B getAs(Glass<? super B, B> requestedType) {
-        return subject.getAs(requestedType);
+    public Object direct() {
+        return subject.direct();
+    }
+    
+    @Override
+    public <B> B asExpected() {
+        return subject.asExpected();
     }
 
     @Override
-    public <B> B getAs(Object key, Class<B> requestedType) {
-        return subject.getAs(key, requestedType);
+    public <B> B asGiven(Class<B> requestedType) {
+        return subject.asGiven(requestedType);
     }
 
     @Override
-    public <B> B getAs(Object key, Glass<? super B, B> requestedType) {
-        return subject.getAs(key, requestedType);
+    public <B> B asGiven(Glass<? super B, B> requestedType) {
+        return subject.asGiven(requestedType);
     }
 
     @Override
-    public <B> B god(B substitute) {
-        return subject.god(substitute);
+    public <B> B asGiven(Class<B> requestedType, B reserve) {
+        return subject.asGiven(requestedType, reserve);
     }
 
     @Override
-    public <B> B god(Object key, B substitute) {
-        return subject.god(key, substitute);
+    public <B> B asGiven(Glass<? super B, B> requestedType, B reserve) {
+        return subject.asGiven(requestedType, reserve);
     }
 
     @Override
-    public <B> B godAs(B substitute, Class<B> requestedType) {
-        return subject.godAs(substitute, requestedType);
+    public <B> B orGiven(B reserve) {
+        return subject.orGiven(reserve);
     }
 
     @Override
-    public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
-        return subject.godAs(substitute, requestedType);
+    public <B> B orDo(Supplier<B> supplier) {
+        return subject.orDo(supplier);
     }
 
     @Override
-    public <B> B godAs(Object key, B substitute, Class<B> requestedType) {
-        return subject.godAs(key, substitute, requestedType);
+    public boolean isIn(Class<?> type) {
+        return subject.isIn(type);
     }
 
     @Override
-    public <B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
-        return subject.godAs(key, substitute, requestedType);
+    public boolean settled() {
+        return subject.settled();
     }
 
     @Override
-    public <B> B goMake(Supplier<B> supplier) {
-        return subject.goMake(supplier);
-    }
-
-    @Override
-    public <B> B goMake(Object key, Supplier<B> supplier) {
-        return subject.goMake(key, supplier);
-    }
-
-    @Override
-    public <B> B getAsGiven(Class<B> key) {
-        return subject.getAsGiven(key);
-    }
-
-    @Override
-    public <B> B goNew(Class<B> classKey) {
-        return subject.goNew(classKey);
-    }
-
-    @Override
-    public boolean is() {
-        return subject.is();
-    }
-
-    @Override
-    public boolean isAsStated(Class<?> checkedType) {
-        return subject.isAsStated(checkedType);
-    }
-
-    @Override
-    public boolean is(Object key) {
-        return subject.is(key);
-    }
-
-    @Override
-    public boolean isAsStated(Object key, Class<?> classFilter) {
-        return subject.isAsStated(key, classFilter);
-    }
-
-    @Override
-    public boolean are(Object... keys) {
-        return subject.are(keys);
-    }
-
     public int size() {
         return subject.size();
-    }
-
-    @Override
-    public <K> K getKey() {
-        return subject.getKey();
-    }
-
-    @Override
-    public <K> K godKey(K substitute, Class<K> requestedType) {
-        return subject.godKey(substitute, requestedType);
-    }
-
-    @Override
-    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
-        return subject.godKey(substitute, requestedType);
-    }
-
-    @Override
-    public Subject met(Subject that) {
-        return ZeroSubject.getInstance().met(subject).met(that);
-    }
-
-    @Override
-    public Subject met(Subject that, Object... keys) {
-        return ZeroSubject.getInstance().met(subject).met(that, keys);
-    }
-
-    @Override
-    public Subject mix(Subject source, Object... keys) {
-        return ZeroSubject.getInstance().met(subject).mix(source, keys);
     }
 
     @Override
@@ -199,13 +144,13 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public FlowIterator<Subject> iterator() {
-        return subject.iterator();
+    public FlowIterable<Subject> front() {
+        return subject.front();
     }
 
     @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return subject.keys(lastFirst);
+    public FlowIterable<Subject> reverse() {
+        return subject.reverse();
     }
 
     @Override
@@ -214,7 +159,12 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public FlowIterable<Subject> reverse() {
-        return subject.reverse();
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return subject.keys(lastFirst);
+    }
+
+    @Override
+    public boolean fused() {
+        return true;
     }
 }

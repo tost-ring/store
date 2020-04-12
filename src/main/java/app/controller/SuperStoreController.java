@@ -4,7 +4,6 @@ import app.controller.tool.ActionTableColumn;
 import app.controller.tool.ParentHelper;
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
-import app.core.flow.FlowArrayList;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.dealer.StoreDealer;
@@ -22,7 +21,9 @@ import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class SuperStoreController extends Controller {
 
@@ -43,7 +44,7 @@ public class SuperStoreController extends Controller {
     @Override
     protected Subject employ(Subject subject) {
 
-        storeDealer = subject.gon(StoreDealer.class);
+        storeDealer = subject.get(StoreDealer.class).orDo(StoreDealer::new);
         storeFile = new File("super-store.jorg");
         store = storeDealer.loadStore(storeFile);
         if(store == null) {
@@ -84,7 +85,7 @@ public class SuperStoreController extends Controller {
         if(searchString != null) {
             String[] glyphs = GlyphProcessor.process(searchString, false);
             for(int i = 0;i < glyphs.length && i < tableView.getVisibleLeafColumns().size(); ++i) {
-                sub.sos(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
+                sub.put(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
             }
         }
         store.getStored().add(sub);
@@ -98,7 +99,7 @@ public class SuperStoreController extends Controller {
     }
 
     private void resetTable() {
-        FlowArrayList<TableColumn<Subject, String>> list = new FlowArrayList<>();
+        List<TableColumn<Subject, String>> list = new ArrayList<>();
         for(String it : store.getColumns()) {
             TableColumn<Subject, String> column = new TableColumn<>(it);
             column.setMaxWidth(Double.MAX_VALUE);
@@ -106,7 +107,7 @@ public class SuperStoreController extends Controller {
             column.setCellValueFactory(subjectStringCellDataFeatures -> new StringBinding() {
                 @Override
                 protected String computeValue() {
-                    return subjectStringCellDataFeatures.getValue().god(it, "");
+                    return subjectStringCellDataFeatures.getValue().get(it).orGiven("");
                 }
             });
             column.setOnEditCommit(subjectStringCellEditEvent -> {
@@ -126,13 +127,13 @@ public class SuperStoreController extends Controller {
                         set("open", aproot().getString("open")).
                         set("delete", aproot().getString("delete")),
                 s -> {
-                    switch(s.getAs("value", String.class)) {
+                    switch(s.get("value").orGiven("")) {
                         case "open":
-                            tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
+                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             enterSelected();
                             break;
                         case "delete":
-                            tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
+                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             deleteSelected();
                             break;
                     }
@@ -141,9 +142,9 @@ public class SuperStoreController extends Controller {
         TableColumn<Subject, String> protectedActionColumn = ActionTableColumn.make("Akcja admin", Suite.
                         set("create", aproot().getString("create")),
                 s -> {
-                    switch(s.getAs("value", String.class)) {
+                    switch(s.get("value").orGiven("")) {
                         case "create":
-                            tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
+                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             createSelected();
                             break;
                     }
@@ -155,7 +156,7 @@ public class SuperStoreController extends Controller {
     }
 
     private void resetTableItems() {
-        FlowArrayList<Subject> items = new FlowArrayList<>();
+        List<Subject> items = new ArrayList<>();
         boolean pass, halt;
         String[] glyphs = GlyphProcessor.process(searchString, true);
         for(Subject it : store.getStored()) {
@@ -163,7 +164,7 @@ public class SuperStoreController extends Controller {
             for(String glyph : glyphs) {
                 halt = true;
                 for(TableColumn<Subject, ?> column : tableView.getVisibleLeafColumns()) {
-                    String str = it.god(column.getText(), "").toLowerCase();
+                    String str = it.get(column.getText()).orGiven("").toLowerCase();
                     if(str.contains(glyph)) {
                         halt = false;
                         break;
@@ -233,9 +234,9 @@ public class SuperStoreController extends Controller {
     private void enterSelected() {
         Subject subject = tableView.getSelectionModel().getSelectedItem();
         if(subject != null) {
-            String path = subject.god("Lokalizacja", null);
+            String path = subject.get("Lokalizacja").orGiven(null);
             if(path != null) {
-                String name = subject.god("Nazwa", "Magazyn bez nazwy");
+                String name = subject.get("Nazwa").orGiven("Magazyn bez nazwy");
                 File storeFile = new File(path);
                 Store store = storeDealer.loadStore(storeFile);
 
@@ -259,15 +260,15 @@ public class SuperStoreController extends Controller {
     private void createSelected() {
         Subject subject = tableView.getSelectionModel().getSelectedItem();
         if(subject != null) {
-            String path = subject.god("Lokalizacja", null);
+            String path = subject.get("Lokalizacja").orGiven(null);
             if( path == null || path.isBlank()) {
                 new Alert(Alert.AlertType.ERROR, aproot().getString("emptyFileLocationError")).show();
             } else {
-                String name = subject.god("Nazwa", "Magazyn bez nazwy");
+                String name = subject.get("Nazwa").orGiven("Magazyn bez nazwy");
                 File storeFile = new File(path);
                 try {
                     if(storeFile.createNewFile()) {
-                        Store store = new Store(GlyphProcessor.process(subject.godAs("Kolumny", "", String.class), false));
+                        Store store = new Store(GlyphProcessor.process(subject.get("Kolumny").orGiven(""), false));
                         order(Suite.
                                 set(Aproot.Please.showView).
                                 set(Controller.fxml, "store").

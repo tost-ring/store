@@ -4,31 +4,35 @@ import app.core.suite.Subject;
 import app.core.suite.Suite;
 
 @FunctionalInterface
-public interface Impression extends Action {
+public interface DiceyStatement extends Action {
 
-    void revel(Subject in);
+    void strive() throws Exception;
 
-    @Override
     default Subject play() {
-        revel(Suite.set());
+        try {
+            strive();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return Suite.set();
     }
 
-    @Override
     default Subject play(Subject in) {
-        revel(in);
+        try {
+            strive();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return Suite.set();
     }
 
-    @Override
     default Subject gamble() throws Exception {
-        revel(Suite.set());
+        strive();
         return Suite.set();
     }
 
-    @Override
     default Subject gamble(Subject in) throws Exception {
-        revel(in);
+        strive();
         return Suite.set();
     }
 }

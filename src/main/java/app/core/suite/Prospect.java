@@ -11,7 +11,7 @@ import java.util.Map;
 public class Prospect {
 
     public static Subject classpathSubjectively(Subject subject) {
-        Object object = subject.get();
+        Object object = subject.direct();
         Subject sub = Suite.set();
         for(Class<?> aClass = object.getClass(); aClass != Object.class; aClass = aClass.getSuperclass()) {
             Field[] fields = aClass.getDeclaredFields();
@@ -20,7 +20,7 @@ public class Prospect {
                     int modifiers = field.getModifiers();
                     if (!Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers)) {
                         field.setAccessible(true);
-                        sub.sos(field, field.get(object));
+                        sub.put(field, field.get(object));
                     }
                 } catch (Exception ex) {
                     System.err.println("Cant get '" + field.getName() + "' from " + field.getDeclaringClass());
@@ -31,15 +31,15 @@ public class Prospect {
     }
 
     public static void classpathObjectively(Subject subject) {
-        Object object = subject.get(Object.class);
-        Subject sub = subject.get(Subject.class);
+        Object object = subject.get(Object.class).asExpected();
+        Subject sub = subject.get(Subject.class).asExpected();
         for(Class<?> aClass = object.getClass(); aClass != Object.class; aClass = aClass.getSuperclass()) {
             try {
                 Field[] fields = aClass.getDeclaredFields();
                 for (Field field : fields) {
-                    if (sub.is(field.getName())) {
+                    if (sub.get(field.getName()).settled()) {
                         field.setAccessible(true);
-                        field.set(object, sub.get(field.getName()));
+                        field.set(object, sub.get(field.getName()).direct());
                     }
                 }
             } catch (Exception e) {
@@ -49,7 +49,7 @@ public class Prospect {
     }
 
     public static Subject collectionSubjectively(Subject subject) {
-        Collection<?> collection = subject.get();
+        Collection<?> collection = subject.prime().asExpected();
         Subject sub = Suite.set();
         int i = 0;
         for(Object it : collection) {
@@ -59,32 +59,32 @@ public class Prospect {
     }
 
     public static void collectionObjectively(Subject subject) {
-        Collection<?> collection = subject.getAs(Object.class, Collection.class);
-        Subject sub = subject.get(Subject.class);
-        for(int i = 0;sub.is(i);++i) {
-            collection.add(sub.get(i));
+        Collection<?> collection = subject.get(Object.class).asExpected();
+        Subject sub = subject.get(Subject.class).asExpected();
+        for(Subject s : sub.front()) {
+            collection.add(s.asExpected());
         }
     }
 
     public static Subject mapSubjectively(Subject subject) {
-        Map<?, ?> map = subject.get();
+        Map<?, ?> map = subject.prime().asExpected();
         Subject sub = Suite.set();
-        for(Map.Entry<?, ?> entry : map.entrySet()) {
+        for(var entry : map.entrySet()) {
             sub.set(entry.getKey(), entry.getValue());
         }
         return sub;
     }
 
     public static void mapObjectively(Subject subject) {
-        Map<Object, Object> map = subject.getAs(Object.class, Glass.map(Object.class, Object.class));
-        Subject sub = subject.get(Subject.class);
-        for(Subject it : sub) {
-            map.put(it.getKey(), it.get());
+        Map<?, ?> map = subject.get(Object.class).asExpected();
+        Subject sub = subject.get(Subject.class).asExpected();
+        for(Subject it : sub.front()) {
+            map.put(it.key().asExpected(), it.asExpected());
         }
     }
 
     public static Subject fileSubjectively(Subject subject) {
-        File file = subject.get();
+        File file = subject.prime().asExpected();
         return Suite.set("path", file.getPath());
     }
 

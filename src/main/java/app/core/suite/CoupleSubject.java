@@ -7,10 +7,11 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unchecked")
 class CoupleSubject implements Subject {
 
-    private Object primeKey;
-    private Object primeValue;
+    private final Object primeKey;
+    private final Object primeValue;
 
     CoupleSubject(Object prime) {
         this(prime, prime);
@@ -21,220 +22,127 @@ class CoupleSubject implements Subject {
         this.primeValue = primeValue;
     }
 
-    protected Subject upgrade() {
-        return new ChainSubject().set(primeKey, primeValue);
-    }
-
     @Override
     public Subject set(Object element) {
-        return set(element, element);
+        return Objects.equals(primeKey, element) ? new BubbleSubject(element) :
+                new ChainSubject().set(primeKey, primeValue).set(element, element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
-        if(Objects.equals(primeKey, key)) {
-            primeKey = key;
-            primeValue = value;
-            return this;
-        } else {
-            return upgrade().set(key, value);
-        }
+        return Objects.equals(primeKey, key) ? new CoupleSubject(key, value) :
+                new ChainSubject().set(primeKey, primeValue).set(key, value);
     }
 
     @Override
-    public Subject sit(Object element) {
-        return sit(element, element);
+    public Subject put(Object element) {
+        return Objects.equals(primeKey, element) ? this : new ChainSubject().set(primeKey, primeValue).put(element, element);
     }
 
     @Override
-    public Subject sit(Object key, Object value) {
-        if(Objects.equals(primeKey, key)) {
-            return this;
-        } else {
-            return upgrade().set(key, value);
-        }
-    }
-
-    @Override
-    public <B> Subject setNew(Class<B> key) {
-        try {
-            return set(key, key.getConstructor().newInstance());
-        } catch (Exception e) {
-            throw new NullPointerException("Failed instance creation of " + key);
-        }
+    public Subject put(Object key, Object value) {
+        return Objects.equals(primeKey, key) ? this : new ChainSubject().set(primeKey, primeValue).put(key, value);
     }
 
     @Override
     public Subject add(Object element) {
-        return upgrade().add(element);
-    }
-
-    @Override
-    public Subject unset() {
-        return ZeroSubject.getInstance();
+        return new ChainSubject().set(primeKey, primeValue).add(element);
     }
 
     @Override
     public Subject unset(Object key) {
-        if(Objects.equals(primeKey, key)) {
-            return ZeroSubject.getInstance();
-        } else {
-            return this;
-        }
+        return Objects.equals(primeKey, key) ? ZeroSubject.getInstance() : this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <B> B get() {
-        if(primeValue == null) {
-            throw new NullPointerException("Missing first value");
-        }
+    public Subject unset(Object key, Object value) {
+        return Objects.equals(primeKey, key) && Objects.equals(primeValue, value) ?
+                ZeroSubject.getInstance() : this;
+    }
+
+    @Override
+    public Subject key() {
+        return new BubbleSubject(primeKey);
+    }
+
+    @Override
+    public Subject prime() {
+        return this;
+    }
+
+    @Override
+    public Subject recent() {
+        return this;
+    }
+
+    @Override
+    public Subject get(Object key) {
+        return Objects.equals(primeKey, key) ? new BubbleSubject(primeValue) : ZeroSubject.getInstance();
+    }
+
+    @Override
+    public Object direct() {
+        return primeValue;
+    }
+
+    @Override
+    public <B> B asExpected() {
         return (B)primeValue;
     }
 
     @Override
-    public <B> B get(Object key) {
-        if(Objects.equals(primeKey, key)) {
-            return get();
-        } else {
-            throw new NullPointerException("Missing value associated with key " + key);
-        }
+    public <B> B asGiven(Class<B> requestedType) {
+        return (B)primeValue;
     }
 
     @Override
-    public<B> B getAs(Class<B> requestedType) {
-        return get();
+    public <B> B asGiven(Glass<? super B, B> requestedType) {
+        return (B)primeValue;
     }
 
     @Override
-    public <B> B getAs(Glass<? super B, B> requestedType) {
-        return get();
-    }
-
-    @Override
-    public<B> B getAs(Object key, Class<B> requestedType) {
-        return get(key);
-    }
-
-    @Override
-    public<B> B getAs(Object key, Glass<? super B, B> requestedType) {
-        return get(key);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public<B> B god(B substitute) {
-        return primeValue != null ? (B)primeValue : substitute;
-    }
-
-    @Override
-    public<B> B god(Object key, B substitute) {
-        return Objects.equals(primeKey, key) ? god(substitute) : substitute;
-    }
-
-    @Override
-    public <B> B godAs(B substitute, Class<B> requestedType) {
+    public <B> B asGiven(Class<B> requestedType, B substitute) {
         return requestedType.isInstance(primeValue) ? requestedType.cast(primeValue) : substitute;
     }
 
     @Override
-    public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
+    public <B> B asGiven(Glass<? super B, B> requestedType, B substitute) {
         return requestedType.isInstance(primeValue) ? requestedType.cast(primeValue) : substitute;
     }
 
     @Override
-    public<B> B godAs(Object key, B substitute, Class<B> requestedType) {
-        return Objects.equals(primeKey, key) ? godAs(substitute, requestedType) : substitute;
+    public <B> B orGiven(B substitute) {
+        return primeValue == null ? substitute : (B)primeValue;
     }
 
     @Override
-    public<B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
-        return Objects.equals(primeKey, key) ? godAs(substitute, requestedType) : substitute;
+    public <B> B orDo(Supplier<B> supplier) {
+        return primeValue == null ? supplier.get() : (B)primeValue;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <B> B goMake(Supplier<B> supplier) {
-        return primeValue != null ? (B)primeValue : supplier.get();
+    public boolean isIn(Class<?> type) {
+        return type.isInstance(primeValue);
     }
 
     @Override
-    public <B> B goMake(Object key, Supplier<B> supplier) {
-        return Objects.equals(primeKey, key) ? goMake(supplier) : supplier.get();
-    }
-
-    @Override
-    public <B> B getAsGiven(Class<B> key) {
-        return get(key);
-    }
-
-    @Override
-    public<B> B goNew(Class<B> classKey) {
-        if(Objects.equals(primeKey, classKey) && classKey.isInstance(primeValue)) {
-            return classKey.cast(primeValue);
-        } else {
-            try {
-                return classKey.getConstructor().newInstance();
-            } catch (Exception e) {
-                throw new NullPointerException("Failed instance creation of " + classKey);
-            }
-        }
-    }
-
-    @Override
-    public boolean is() {
-        return primeValue != null;
-    }
-
-    @Override
-    public boolean isAsStated(Class<?> checkedType) {
-        return checkedType.isInstance(primeValue);
-    }
-
-    @Override
-    public boolean is(Object key) {
-        return Objects.equals(primeKey, key) && primeValue != null;
-    }
-
-    @Override
-    public boolean isAsStated(Object key, Class<?> classFilter){
-        return Objects.equals(primeKey, key) && classFilter.isInstance(primeValue);
-    }
-
-    @Override
-    public boolean are(Object ... keys) {
-        for(Object key : keys) {
-            if(!is(key))return false;
-        }
+    public boolean settled() {
         return true;
     }
 
+    @Override
     public int size() {
         return 1;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <K> K getKey() {
-        if(primeKey == null) {
-            throw new NullPointerException("Missing first key");
-        }
-        return (K)primeKey;
+    public Stream<Subject> stream() {
+        return Stream.of(this);
     }
 
     @Override
-    public <K> K godKey(K substitute, Class<K> requestedType) {
-        return requestedType.isInstance(primeKey) ? requestedType.cast(primeKey) : substitute;
-    }
-
-    @Override
-    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
-        return requestedType.isInstance(primeKey) ? requestedType.cast(primeKey) : substitute;
-    }
-
-    @Override
-    public FlowIterator<Subject> iterator() {
-        return new FlowIterator<>() {
+    public FlowIterable<Subject> front() {
+        return () -> new FlowIterator<>() {
             boolean available = true;
 
             @Override
@@ -245,27 +153,14 @@ class CoupleSubject implements Subject {
             @Override
             public Subject next() {
                 available = false;
-                return Suite.set(primeKey, primeValue);
+                return CoupleSubject.this;
             }
         };
     }
 
     @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-            boolean available = true;
-
-            @Override
-            public boolean hasNext() {
-                return available;
-            }
-
-            @Override
-            public Object next() {
-                available = false;
-                return primeKey;
-            }
-        };
+    public FlowIterable<Subject> reverse() {
+        return front();
     }
 
     @Override
@@ -287,12 +182,21 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public FlowIterable<Subject> reverse() {
-        return this;
-    }
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return () -> new FlowIterator<>() {
+            boolean available = true;
 
-    public Stream<Subject> stream() {
-        return Stream.of(Suite.set(primeKey, primeValue));
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public Object next() {
+                available = false;
+                return primeKey;
+            }
+        };
     }
 
     @Override

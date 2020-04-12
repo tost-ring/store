@@ -1,8 +1,8 @@
 package app.core.suite;
 
 import app.core.flow.FlowIterable;
-import app.core.flow.FlowIterator;
 
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -18,7 +18,7 @@ class ZeroSubject implements Subject {
 
     @Override
     public Subject set(Object element) {
-        return new CoupleSubject(element, element);
+        return new BubbleSubject(element);
     }
 
     @Override
@@ -27,32 +27,18 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject sit(Object element) {
+    public Subject put(Object element) {
         return set(element);
     }
 
     @Override
-    public Subject sit(Object key, Object value) {
+    public Subject put(Object key, Object value) {
         return set(key, value);
     }
 
     @Override
-    public <B> Subject setNew(Class<B> key) {
-        try {
-            return set(key, key.getConstructor().newInstance());
-        } catch (Exception e) {
-            throw new NullPointerException("Failed instance creation of " + key);
-        }
-    }
-
-    @Override
     public Subject add(Object element) {
-        return new BubbleSubject(element);
-    }
-
-    @Override
-    public Subject unset() {
-        return this;
+        return new CoupleSubject(new Object(), element);
     }
 
     @Override
@@ -61,187 +47,108 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public<B> B get() {
-        throw new NullPointerException("ZeroSubject contains no values");
+    public Subject unset(Object key, Object value) {
+        return this;
     }
 
     @Override
-    public<B> B get(Object key) {
-        throw new NullPointerException("ZeroSubject contains no values");
+    public Subject prime() {
+        return this;
     }
 
     @Override
-    public<B> B getAs(Class<B> requestedType) {
-        throw new NullPointerException("ZeroSubject contains no values");
+    public Subject recent() {
+        return this;
     }
 
     @Override
-    public <B> B getAs(Glass<? super B, B> requestedType) {
-        throw new NullPointerException("ZeroSubject contains no values");
+    public Subject get(Object key) {
+        return this;
     }
 
     @Override
-    public<B> B getAs(Object key, Class<B> requestedType) {
-        throw new NullPointerException("ZeroSubject contains no values");
+    public Subject key() {
+        return this;
     }
 
     @Override
-    public<B> B getAs(Object key, Glass<? super B, B> requestedType) {
-        throw new NullPointerException("ZeroSubject contains no values");
+    public Object direct() {
+        return null;
     }
 
     @Override
-    public<B> B god(B substitute) {
+    public <B> B asExpected() {
+        throw new NoSuchElementException("ZeroSubject contains no values");
+    }
+
+    @Override
+    public <B> B asGiven(Class<B> requestedType) {
+        throw new NoSuchElementException("ZeroSubject contains no values");
+    }
+
+    @Override
+    public <B> B asGiven(Glass<? super B, B> requestedType) {
+        throw new NoSuchElementException("ZeroSubject contains no values");
+    }
+
+    @Override
+    public <B> B asGiven(Class<B> requestedType, B substitute) {
         return substitute;
     }
 
     @Override
-    public<B> B god(Object key, B substitute) {
+    public <B> B asGiven(Glass<? super B, B> requestedType, B substitute) {
         return substitute;
     }
 
     @Override
-    public <B> B godAs(B substitute, Class<B> requestedType) {
-        return substitute;
+    public <B> B orGiven(B reserve) {
+        return reserve;
     }
 
     @Override
-    public <B> B godAs(B substitute, Glass<? super B, B> requestedType) {
-        return substitute;
-    }
-
-    @Override
-    public<B> B godAs(Object key, B substitute, Class<B> requestedType) {
-        return substitute;
-    }
-
-    @Override
-    public<B> B godAs(Object key, B substitute, Glass<? super B, B> requestedType) {
-        return substitute;
-    }
-
-    @Override
-    public <B> B goMake(Supplier<B> supplier) {
+    public <B> B orDo(Supplier<B> supplier) {
         return supplier.get();
     }
 
     @Override
-    public <B> B goMake(Object key, Supplier<B> supplier) {
-        return supplier.get();
-    }
-
-    @Override
-    public <B> B getAsGiven(Class<B> key) {
-        throw new NullPointerException("ZeroSubject contains no values");
-    }
-
-    @Override
-    public<B> B goNew(Class<B> key) {
-        try {
-            return key.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new NullPointerException("Failed instance creation of " + key);
-        }
-    }
-
-    @Override
-    public boolean is() {
+    public boolean isIn(Class<?> type) {
         return false;
     }
 
     @Override
-    public boolean isAsStated(Class<?> checkedType) {
+    public boolean settled() {
         return false;
     }
 
     @Override
-    public boolean is(Object key) {
-        return false;
-    }
-
-    @Override
-    public boolean isAsStated(Object key, Class<?> classFilter){
-        return false;
-    }
-
-    @Override
-    public boolean are(Object ... keys) {
-        return keys.length == 0;
-    }
-
     public int size() {
         return 0;
     }
 
     @Override
-    public <K> K getKey() {
-        throw new NullPointerException("ZeroSubject contains no keys");
+    public Stream<Subject> stream() {
+        return Stream.empty();
     }
 
     @Override
-    public <K> K godKey(K substitute, Class<K> requestedType) {
-        return substitute;
-    }
-
-    @Override
-    public <K> K godKey(K substitute, Glass<? super K, K> requestedType) {
-        return substitute;
-    }
-
-    @Override
-    public FlowIterator<Subject> iterator() {
-        return new FlowIterator<>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public Subject next() {
-                return Suite.set();
-            }
-        };
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public Object next() {
-                return null;
-            }
-        };
-    }
-
-    @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public Object next() {
-                return null;
-            }
-        };
+    public FlowIterable<Subject> front() {
+        return FlowIterable.empty();
     }
 
     @Override
     public FlowIterable<Subject> reverse() {
-        return this;
+        return FlowIterable.empty();
     }
 
-    public Stream<Subject> stream() {
-        return Stream.empty();
+    @Override
+    public FlowIterable<Object> values(boolean lastFirst) {
+        return FlowIterable.empty();
+    }
+
+    @Override
+    public FlowIterable<Object> keys(boolean lastFirst) {
+        return FlowIterable.empty();
     }
 
     @Override

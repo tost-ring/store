@@ -33,9 +33,9 @@ public abstract class Aproot extends Application {
     protected Broker secretary = new Broker() {
         @Override
         public Subject fulfil(Subject subject) {
-            Broker broker = subject.get(Client.source);
+            Broker broker = subject.get(Client.source).asExpected();
             Subject result = Aproot.this.fulfill(broker, subject);
-            return result.met(Aproot.this.fulfil(subject));
+            return result.setAll(Aproot.this.fulfil(subject).front());
         }
     };
     protected Subject suite;
@@ -48,13 +48,13 @@ public abstract class Aproot extends Application {
 
     @Override
     public final void start(Stage primaryStage) {
-        JorgReader reader = new JorgReader(new GeneralPerformer(Suite.set("", NativeString.class)));
-        if(reader.readWell(getResource("/jorg/dictionary.jorg"))) {
-            dictionary = reader.getObjects();
-        } else {
-            dictionary = Suite.set();
-        }
-        setNation("pl");
+//        JorgReader reader = new JorgReader(new GeneralPerformer(Suite.set("", NativeString.class)));
+//        if(reader.readWell(getResource("/jorg/dictionary.jorg"))) {
+//            dictionary = reader.getObjects();
+//        } else {
+//            dictionary = Suite.set();
+//        }
+//        setNation("pl");
         employ(primaryStage);
     }
 
@@ -72,18 +72,18 @@ public abstract class Aproot extends Application {
     }
 
     private Subject fulfill(Broker broker, Subject subject) {
-        if(subject.is(Please.loadView)) {
+        if(subject.get(Please.loadView).settled()) {
             return loadView(broker, subject);
-        }else if(subject.is(Please.showView)) {
+        }else if(subject.get(Please.showView).settled()) {
             return showView(broker, subject);
-        }else if(subject.is(Please.closeStage)) {
+        }else if(subject.get(Please.closeStage).settled()) {
             if(broker instanceof Controller) {
                 Window window = ((Controller) broker).window();
                 if(window instanceof Stage) {
                     ((Stage) window).close();
                 }
             }
-        } else if(subject.is("Suite")) {
+        } else if(subject.get("Suite").settled()) {
             return suite;
         }
         return Suite.set();
@@ -96,9 +96,9 @@ public abstract class Aproot extends Application {
     }
 
     public final Subject loadView(Broker broker, Subject subject){
-        Controller controller = subject.god(Controller.class, null);
+        Controller controller = subject.get(Controller.class).orGiven(null);
         if(controller == null) {
-            String fxml = subject.get(Controller.fxml);
+            String fxml = subject.get(Controller.fxml).asExpected();
             URL fxmlUrl = getFxmlResource(fxml);
             if (fxmlUrl == null) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -134,7 +134,7 @@ public abstract class Aproot extends Application {
         }
         controller.setAproot(this);
         controller.setBoss(broker);
-        Subject employ = subject.god(Controller.employStuff, Suite.set());
+        Subject employ = subject.get(Controller.employStuff);
         if(controller instanceof View) {
             controller.setParent(((View) controller).construct(employ));
         }
@@ -147,32 +147,33 @@ public abstract class Aproot extends Application {
     }
 
     public final Subject showView(Broker broker, Subject subject) {
-        if(!subject.is(Controller.class) || subject.gac(Controller.class).parent() == null) {
-            subject.met(loadView(broker, subject));
+        Controller controller = subject.get(Controller.class).orGiven(null);
+        if(controller == null || controller.parent() == null) {
+            subject.setAll(loadView(broker, subject).front());
+            controller = subject.get(Controller.class).asExpected();
         }
-        Controller controller = subject.get(Controller.class);
-        Scene scene = subject.god(Scene.class, controller.scene());
+
+        Scene scene = subject.get(Scene.class).orDo(controller::scene);
         if(scene == null) scene = new Scene(controller.parent());
         else scene.setRoot(controller.parent());
         Stage stage;
-        Window window = subject.god(Window.class, controller.window());
+        Window window = subject.get(Window.class).orDo(controller::window);
         if(window == null) {
             stage = new Stage();
             stage.setScene(scene);
-            if(subject.is("StageTitle")) {
-                stage.setTitle(subject.get("StageTitle"));
+            if(subject.get("StageTitle").settled()) {
+                stage.setTitle(subject.get("StageTitle").asExpected());
             }
         } else if(window instanceof Stage) {
             stage = (Stage)window;
             stage.setScene(scene);
-            if(subject.is("StageTitle")) {
-                stage.setTitle(subject.get("StageTitle"));
+            if(subject.get("StageTitle").settled()) {
+                stage.setTitle(subject.get("StageTitle").asExpected());
             }
         } else {
             throw new ClassCastException("Cannot show " + window);
         }
-        Subject dress = controller.internalDress(subject.god(Controller.dressStuff, Suite.set())
-                .set(Scene.class, scene).set(Stage.class, stage));
+        Subject dress = controller.internalDress(subject.get(Controller.dressStuff).set(Scene.class, scene).set(Stage.class, stage));
         stage.show();
         return subject.set(Controller.dressStuff, dress);
     }
@@ -202,16 +203,16 @@ public abstract class Aproot extends Application {
     public final URL getImageResource(String image){return getResource(getImagePrePath() + image);}
 
     public void setNation(String nation) {
-        for(var nstr : Suite.values(dictionary, NativeString.class)) {
-            nstr.setNation(nation);
+        for(var nativeString : dictionary.values().filter(NativeString.class)) {
+            nativeString.setNation(nation);
         }
     }
 
     public NativeString getNativeString(String id) {
-        return dictionary.get(id);
+        return dictionary.get(id).orGiven(null);
     }
 
     public String getString(String id) {
-        return dictionary.get(id).toString();
+        return dictionary.get(id).direct().toString();
     }
 }

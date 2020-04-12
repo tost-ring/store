@@ -1,6 +1,6 @@
 package app.core.agent;
 
-import app.core.suite.action.Function;
+import app.core.suite.action.Action;
 import app.core.suite.Subject;
 
 public class Order {
@@ -9,7 +9,7 @@ public class Order {
         return service.fulfil(subject);
     }
 
-    public static void fulfil(Service service, Subject subject, Function callback) {
+    public static void fulfil(Service service, Subject subject, Action callback) {
         new Thread(() -> callback.play(service.fulfil(subject))).start();
     }
 }

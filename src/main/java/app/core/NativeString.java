@@ -21,7 +21,7 @@ public class NativeString implements Subjective {
 
     @Override
     public void fromSubject(Subject sub) {
-        translations.met(sub);
+        translations.setAll(sub.front());
     }
 
     public String getValue() {
@@ -33,7 +33,7 @@ public class NativeString implements Subjective {
     }
 
     public void setNation(String nation) {
-        this.value.set(translations.is(nation) ? translations.get(nation) : translations.god(""));
+        this.value.set(translations.get(nation).orGiven(translations.prime().orGiven("???")));
     }
 
     @Override

@@ -6,7 +6,6 @@ import app.controller.tool.ParentHelper;
 import app.core.agent.Controller;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.core.flow.FlowArrayList;
 import app.modules.dealer.StoreDealer;
 import app.modules.model.Store;
 import javafx.beans.binding.StringBinding;
@@ -19,7 +18,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class StoreController extends Controller {
 
@@ -41,7 +42,7 @@ public class StoreController extends Controller {
     @Override
     protected Subject employ(Subject subject) {
 
-        storeDealer = subject.gon(StoreDealer.class);
+        storeDealer = subject.get(StoreDealer.class).orDo(StoreDealer::new);
 
         searchText.textProperty().addListener((observable, oldValue, newValue) -> {
             searchString = newValue;
@@ -67,8 +68,8 @@ public class StoreController extends Controller {
     @Override
     protected Subject dress(Subject subject) {
 
-        store = subject.get(Store.class);
-        storeFile = subject.get(File.class);
+        store = subject.get(Store.class).asExpected();
+        storeFile = subject.get(File.class).asExpected();
 
         resetSearch();
         resetTable();
@@ -90,7 +91,7 @@ public class StoreController extends Controller {
         if(searchString != null) {
             String[] glyphs = stringToGlyphs(searchString, false);
             for(int i = 0;i < glyphs.length && i < tableView.getVisibleLeafColumns().size(); ++i) {
-                sub.sos(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
+                sub.put(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
             }
         }
         store.getStored().add(sub);
@@ -109,7 +110,7 @@ public class StoreController extends Controller {
     }
 
     private void resetTable() {
-        FlowArrayList<TableColumn<Subject, String>> list = new FlowArrayList<>();
+        List<TableColumn<Subject, String>> list = new ArrayList<>();
         for(String it : store.getColumns()) {
             TableColumn<Subject, String> column = new TableColumn<>(it);
             column.setMaxWidth(Double.MAX_VALUE);
@@ -117,7 +118,7 @@ public class StoreController extends Controller {
             column.setCellValueFactory(subjectStringCellDataFeatures -> new StringBinding() {
                 @Override
                 protected String computeValue() {
-                    return subjectStringCellDataFeatures.getValue().god(it, "");
+                    return subjectStringCellDataFeatures.getValue().get(it).orGiven("");
                 }
             });
             column.setOnEditCommit(subjectStringCellEditEvent -> {
@@ -133,9 +134,9 @@ public class StoreController extends Controller {
         }
         TableColumn<Subject, String> actionColumn = ActionTableColumn.make("Akcja", Suite.set("delete", aproot().getString("delete")),
                 s -> {
-                    switch(s.getAs("value", String.class)) {
+                    switch(s.get("value").orGiven("")) {
                         case "delete":
-                            tableView.getSelectionModel().clearAndSelect(s.getAs("row", Integer.class));
+                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             deleteSelected();
                             break;
                     }
@@ -147,7 +148,7 @@ public class StoreController extends Controller {
     }
 
     private void resetTableItems() {
-        FlowArrayList<Subject> items = new FlowArrayList<>();
+        List<Subject> items = new ArrayList<>();
         String[] glyphs = stringToGlyphs(searchString, true);
         boolean pass, halt;
         for(Subject it : store.getStored()) {
@@ -155,7 +156,7 @@ public class StoreController extends Controller {
             for(String glyph : glyphs) {
                 halt = true;
                 for(TableColumn<Subject, ?> column : tableView.getVisibleLeafColumns()) {
-                    String str = it.god(column.getText(), "").toLowerCase();
+                    String str = it.get(column.getText()).orGiven("").toLowerCase();
                     if(str.contains(glyph)) {
                         halt = false;
                         break;
