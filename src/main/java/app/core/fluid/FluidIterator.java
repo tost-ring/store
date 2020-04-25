@@ -1,10 +1,10 @@
-package app.core.flow;
+package app.core.fluid;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public interface FlowIterator<T> extends Iterator<T> {
+public interface FluidIterator<T> extends Iterator<T> {
     default T next(T substitute) {
         return hasNext() ? next() : substitute;
     }
@@ -15,8 +15,8 @@ public interface FlowIterator<T> extends Iterator<T> {
         return list;
     }
 
-    static<I> FlowIterator<I> empty() {
-        return new FlowIterator<>() {
+    static<I> FluidIterator<I> empty() {
+        return new FluidIterator<>() {
             @Override
             public boolean hasNext() {
                 return false;

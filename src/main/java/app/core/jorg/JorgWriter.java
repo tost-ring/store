@@ -3,7 +3,6 @@ package app.core.jorg;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
-import app.modules.graph.ReferenceHashGraph;
 
 import java.io.*;
 import java.lang.reflect.Field;

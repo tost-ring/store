@@ -9,6 +9,6 @@ open module store.main {
     exports app.core.suite;
     exports app.core.suite.action;
     exports app.core.agent;
-    exports app.core.flow;
+    exports app.core.fluid;
     exports app.core;
 }

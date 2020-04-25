@@ -1,6 +1,7 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
+import app.core.fluid.Fluid;
+import app.core.fluid.FluidSubject;
 
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
@@ -112,7 +113,7 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public boolean isIn(Class<?> type) {
+    public boolean assigned(Class<?> type) {
         return false;
     }
 
@@ -127,32 +128,17 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public Stream<Subject> stream() {
-        return Stream.empty();
+    public FluidSubject front() {
+        return FluidSubject.empty();
     }
 
     @Override
-    public FlowIterable<Subject> front() {
-        return FlowIterable.empty();
-    }
-
-    @Override
-    public FlowIterable<Subject> reverse() {
-        return FlowIterable.empty();
-    }
-
-    @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return FlowIterable.empty();
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return FlowIterable.empty();
+    public FluidSubject reverse() {
+        return FluidSubject.empty();
     }
 
     @Override
     public String toString() {
-        return "$[]";
+        return "[]";
     }
 }

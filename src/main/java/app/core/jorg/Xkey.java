@@ -9,14 +9,14 @@ import java.util.Objects;
 public class Xkey {
     private Object object;
     private Object label;
-    private Subject direct;
-    private Graph graph;
+    private Subject pre;
+    private Subject post;
 
     public Xkey(Object object, Object label) {
         this.object = object;
         this.label = label;
-        direct = Suite.set();
-        graph = new Graph();
+        this.pre = Suite.set();
+        this.post = Suite.set();
     }
 
     public Object getObject() {
@@ -35,12 +35,24 @@ public class Xkey {
         this.label = label;
     }
 
-    public Subject getDirect() {
-        return direct;
+    public Subject getPre() {
+        return pre;
     }
 
-    public Graph getGraph() {
-        return graph;
+    public Subject getPost() {
+        return post;
+    }
+
+    public void addPre(Xkey xkey) {
+        pre.add(xkey);
+    }
+
+    public void setPost(Xkey key, Xkey value) {
+        post.set(key, value);
+    }
+
+    public void addPost(Xkey xkey) {
+        post.add(xkey);
     }
 
     @Override
@@ -59,6 +71,6 @@ public class Xkey {
     }
 
     public String dataAsString() {
-        return " [ " + label + " ] " + direct.values().toString(" ] ") + "\n" + graph.toString();
+        return " [ " + label + " ] " + pre.front().values().toString(" ] ") + "\n" + post.toString();
     }
 }

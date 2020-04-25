@@ -1,18 +1,5 @@
 package app.core.jorg;
 
-import app.core.suite.Subject;
-import app.core.suite.Subjective;
-import app.core.suite.Suite;
-import app.core.suite.WrapSubject;
-import app.modules.graph.DupleGraph;
-import app.modules.graph.Graphs;
-import app.modules.graph.HashDupleGraph;
-import app.modules.model.Socket;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-
 public class GeneralPerformer /*implements Performer*/{
 //
 //    private DupleGraph<String, Class<?>> namingGraph;

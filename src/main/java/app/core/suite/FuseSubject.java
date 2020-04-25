@@ -1,9 +1,8 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
+import app.core.fluid.FluidSubject;
 
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 class FuseSubject implements Subject {
 
@@ -124,8 +123,8 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public boolean isIn(Class<?> type) {
-        return subject.isIn(type);
+    public boolean assigned(Class<?> type) {
+        return subject.assigned(type);
     }
 
     @Override
@@ -139,28 +138,13 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public Stream<Subject> stream() {
-        return subject.stream();
-    }
-
-    @Override
-    public FlowIterable<Subject> front() {
+    public FluidSubject front() {
         return subject.front();
     }
 
     @Override
-    public FlowIterable<Subject> reverse() {
+    public FluidSubject reverse() {
         return subject.reverse();
-    }
-
-    @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return subject.values(lastFirst);
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return subject.keys(lastFirst);
     }
 
     @Override

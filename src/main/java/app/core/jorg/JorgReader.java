@@ -2,9 +2,6 @@ package app.core.jorg;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.core.suite.WrapSubject;
-import app.modules.graph.Graphs;
-import app.modules.graph.ReferenceHashGraph;
 import app.modules.model.JorgProcessor;
 import app.modules.model.ProcessorException;
 import app.modules.model.Reference;
@@ -12,12 +9,7 @@ import app.modules.model.Reference;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class JorgReader {
 
@@ -42,8 +34,8 @@ public class JorgReader {
         return reader.loadWell(inputStream) ? reader.getObjects() : Suite.set();
     }
 
-    private GeneralPerformer2 performer;
-    private Subject objects;
+    private final GeneralPerformer2 performer;
+    private final Subject objects;
 
     public JorgReader() {
         this(new GeneralPerformer2());
@@ -108,10 +100,10 @@ public class JorgReader {
         } finally {
             inputStream.close();
         }
-        for(Xkey xkey : xkeys.values().filter(Xkey.class).filter(x -> x.getObject() == null)) {
+        for(Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getObject() == null)) {
             performer.construct(xkey);
         }
-        for(Xkey xkey : xkeys.values().filter(Xkey.class).filter(x -> x.getLabel() instanceof Reference)) {
+        for(Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getLabel() instanceof Reference)) {
             performer.initialize(xkey);
             Reference ref = (Reference)xkey.getLabel();
             objects.set(ref.getLabel(), xkey.getObject());

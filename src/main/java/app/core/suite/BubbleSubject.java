@@ -1,7 +1,8 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
-import app.core.flow.FlowIterator;
+import app.core.fluid.Fluid;
+import app.core.fluid.FluidIterator;
+import app.core.fluid.FluidSubject;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -19,30 +20,30 @@ class BubbleSubject implements Subject {
     @Override
     public Subject set(Object element) {
         return Objects.equals(bubbled, element) ? new BubbleSubject(element) :
-                new ChainSubject().set(bubbled).set(element, element);
+                new MultiSubject().set(bubbled).set(element, element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
         return Objects.equals(bubbled, key) ? new CoupleSubject(key, value) :
-                new ChainSubject().set(bubbled).set(key, value);
+                new MultiSubject().set(bubbled).set(key, value);
     }
 
     @Override
     public Subject put(Object element) {
         return Objects.equals(bubbled, element) ? this :
-                new ChainSubject().set(bubbled).set(element, element);
+                new MultiSubject().set(bubbled).set(element, element);
     }
 
     @Override
     public Subject put(Object key, Object value) {
         return Objects.equals(bubbled, key) ? this :
-                new ChainSubject().set(bubbled).set(key, value);
+                new MultiSubject().set(bubbled).set(key, value);
     }
 
     @Override
     public Subject add(Object element) {
-        return new ChainSubject().set(bubbled).add(element);
+        return new MultiSubject().set(bubbled).add(element);
     }
 
     @Override
@@ -116,7 +117,7 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public boolean isIn(Class<?> type) {
+    public boolean assigned(Class<?> type) {
         return type.isInstance(bubbled);
     }
 
@@ -131,13 +132,8 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public Stream<Subject> stream() {
-        return Stream.of(this);
-    }
-
-    @Override
-    public FlowIterable<Subject> front() {
-        return () -> new FlowIterator<>() {
+    public FluidSubject front() {
+        return () -> new FluidIterator<>() {
             boolean available = true;
 
             @Override
@@ -154,35 +150,12 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public FlowIterable<Subject> reverse() {
+    public FluidSubject reverse() {
         return front();
     }
 
     @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return keys(lastFirst);
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-            boolean available = true;
-
-            @Override
-            public boolean hasNext() {
-                return available;
-            }
-
-            @Override
-            public Object next() {
-                available = false;
-                return bubbled;
-            }
-        };
-    }
-
-    @Override
     public String toString() {
-        return "$[" + bubbled + "=" + bubbled + "]";
+        return "[" + bubbled + "]" + bubbled;
     }
 }

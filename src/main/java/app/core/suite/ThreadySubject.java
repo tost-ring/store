@@ -1,16 +1,16 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
+import app.core.fluid.FluidIterator;
+import app.core.fluid.FluidSubject;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 class ThreadySubject implements Subject {
 
     private static class ThreadyLock implements AutoCloseable {
-        private Lock lock;
+        private final Lock lock;
 
         public ThreadyLock(Lock lock) {
             this.lock = lock;
@@ -28,7 +28,7 @@ class ThreadySubject implements Subject {
     }
 
     private Subject subject;
-    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final ThreadyLock writeLock = new ThreadyLock(lock.writeLock());
     private final ThreadyLock readLock = new ThreadyLock(lock.readLock());
 
@@ -214,10 +214,10 @@ class ThreadySubject implements Subject {
     }
 
     @Override
-    public boolean isIn(Class<?> type) {
+    public boolean assigned(Class<?> type) {
         boolean is;
         try(var ignored = readLock.lock()) {
-            is = subject.isIn(type);
+            is = subject.assigned(type);
         }
         return is;
     }
@@ -277,28 +277,53 @@ class ThreadySubject implements Subject {
     }
 
     @Override
-    public Stream<Subject> stream() {
-        return subject.stream().map(WrapSubject::new);
+    public FluidSubject front() {
+        return () -> new FluidIterator<>() {
+            final FluidIterator<Subject> subIt = subject.front().iterator();
+            Subject next;
+
+            @Override
+            public boolean hasNext() {
+                boolean hasNext;
+                try(var ignored = readLock.lock()) {
+                    hasNext = subIt.hasNext();
+                    if(hasNext) {
+                        next = subIt.next();
+                    }
+                }
+                return hasNext;
+            }
+
+            @Override
+            public Subject next() {
+                return next;
+            }
+        };
     }
 
     @Override
-    public FlowIterable<Subject> front() {
-        return subject.front().map(WrapSubject::new);
-    }
+    public FluidSubject reverse() {
+        return () -> new FluidIterator<>() {
+            final FluidIterator<Subject> subIt = subject.reverse().iterator();
+            Subject next;
 
-    @Override
-    public FlowIterable<Subject> reverse() {
-        return subject.reverse().map(WrapSubject::new);
-    }
+            @Override
+            public boolean hasNext() {
+                boolean hasNext;
+                try(var ignored = readLock.lock()) {
+                    hasNext = subIt.hasNext();
+                    if(hasNext) {
+                        next = subIt.next();
+                    }
+                }
+                return hasNext;
+            }
 
-    @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return subject.values(lastFirst);
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return subject.keys(lastFirst);
+            @Override
+            public Subject next() {
+                return next;
+            }
+        };
     }
 
     @Override
@@ -334,7 +359,7 @@ class ThreadySubject implements Subject {
     @Override
     public String toString() {
         String string;
-        try(var ignored = writeLock.lock()) {
+        try(var ignored = readLock.lock()) {
             string = subject.toString();
         }
         return string;

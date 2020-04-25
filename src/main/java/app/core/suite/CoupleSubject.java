@@ -1,11 +1,10 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
-import app.core.flow.FlowIterator;
+import app.core.fluid.FluidIterator;
+import app.core.fluid.FluidSubject;
 
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 class CoupleSubject implements Subject {
@@ -25,28 +24,28 @@ class CoupleSubject implements Subject {
     @Override
     public Subject set(Object element) {
         return Objects.equals(primeKey, element) ? new BubbleSubject(element) :
-                new ChainSubject().set(primeKey, primeValue).set(element, element);
+                new MultiSubject().set(primeKey, primeValue).set(element, element);
     }
 
     @Override
     public Subject set(Object key, Object value) {
         return Objects.equals(primeKey, key) ? new CoupleSubject(key, value) :
-                new ChainSubject().set(primeKey, primeValue).set(key, value);
+                new MultiSubject().set(primeKey, primeValue).set(key, value);
     }
 
     @Override
     public Subject put(Object element) {
-        return Objects.equals(primeKey, element) ? this : new ChainSubject().set(primeKey, primeValue).put(element, element);
+        return Objects.equals(primeKey, element) ? this : new MultiSubject().set(primeKey, primeValue).put(element, element);
     }
 
     @Override
     public Subject put(Object key, Object value) {
-        return Objects.equals(primeKey, key) ? this : new ChainSubject().set(primeKey, primeValue).put(key, value);
+        return Objects.equals(primeKey, key) ? this : new MultiSubject().set(primeKey, primeValue).put(key, value);
     }
 
     @Override
     public Subject add(Object element) {
-        return new ChainSubject().set(primeKey, primeValue).add(element);
+        return new MultiSubject().set(primeKey, primeValue).add(element);
     }
 
     @Override
@@ -121,7 +120,7 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public boolean isIn(Class<?> type) {
+    public boolean assigned(Class<?> type) {
         return type.isInstance(primeValue);
     }
 
@@ -136,13 +135,8 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public Stream<Subject> stream() {
-        return Stream.of(this);
-    }
-
-    @Override
-    public FlowIterable<Subject> front() {
-        return () -> new FlowIterator<>() {
+    public FluidSubject front() {
+        return () -> new FluidIterator<>() {
             boolean available = true;
 
             @Override
@@ -159,48 +153,12 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public FlowIterable<Subject> reverse() {
+    public FluidSubject reverse() {
         return front();
     }
 
     @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-            boolean available = true;
-
-            @Override
-            public boolean hasNext() {
-                return available;
-            }
-
-            @Override
-            public Object next() {
-                available = false;
-                return primeValue;
-            }
-        };
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return () -> new FlowIterator<>() {
-            boolean available = true;
-
-            @Override
-            public boolean hasNext() {
-                return available;
-            }
-
-            @Override
-            public Object next() {
-                available = false;
-                return primeKey;
-            }
-        };
-    }
-
-    @Override
     public String toString() {
-        return "$[" + primeKey + "=" + primeValue + "]";
+        return "[" + primeKey + "]" + primeValue;
     }
 }

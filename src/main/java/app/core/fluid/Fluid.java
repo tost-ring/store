@@ -1,4 +1,4 @@
-package app.core.flow;
+package app.core.fluid;
 
 import app.core.suite.Glass;
 import app.core.suite.Subject;
@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface FlowIterable<T> extends Iterable<T>{
-    FlowIterator<T> iterator();
+public interface Fluid<T> extends Iterable<T>{
+    FluidIterator<T> iterator();
 
-    default <F extends T> FlowIterable<F> filter(Class<F> requestedType) {
-        return () -> new FlowIterator<F>() {
-            Iterator<T> origin = iterator();
+    default <F extends T> Fluid<F> filter(Class<F> requestedType) {
+        return () -> new FluidIterator<F>() {
+            final Iterator<T> origin = iterator();
             F lastFound = null;
 
             @Override
@@ -37,9 +37,9 @@ public interface FlowIterable<T> extends Iterable<T>{
         };
     }
 
-    default <F extends T> FlowIterable<F> filter(Glass<? super F, F> requestedType) {
-        return () -> new FlowIterator<>() {
-            Iterator<T> origin = iterator();
+    default <F extends T> Fluid<F> filter(Glass<? super F, F> requestedType) {
+        return () -> new FluidIterator<>() {
+            final Iterator<T> origin = iterator();
             F lastFound = null;
 
             @Override
@@ -61,9 +61,9 @@ public interface FlowIterable<T> extends Iterable<T>{
         };
     }
 
-    default FlowIterable<T> filter(Predicate<T> predicate) {
-        return () -> new FlowIterator<>() {
-            Iterator<T> origin = iterator();
+    default Fluid<T> filter(Predicate<T> predicate) {
+        return () -> new FluidIterator<>() {
+            final Iterator<T> origin = iterator();
             T lastFound = null;
 
             @Override
@@ -85,13 +85,13 @@ public interface FlowIterable<T> extends Iterable<T>{
         };
     }
 
-    static<I> FlowIterable<I> empty() {
-        return FlowIterator::empty;
+    static<I> Fluid<I> empty() {
+        return FluidIterator::empty;
     }
 
-    default<O> FlowIterable<O> map(Function<T, O> function) {
-        return () -> new FlowIterator<>() {
-            Iterator<T> origin = iterator();
+    default<O> Fluid<O> map(Function<T, O> function) {
+        return () -> new FluidIterator<>() {
+            final Iterator<T> origin = iterator();
 
             @Override
             public boolean hasNext() {
@@ -105,7 +105,7 @@ public interface FlowIterable<T> extends Iterable<T>{
         };
     }
 
-    default FlowIterable<T> skip(int from, int to) {
+    default Fluid<T> skip(int from, int to) {
         return filter(new Predicate<T>() {
             int counter = 0;
 

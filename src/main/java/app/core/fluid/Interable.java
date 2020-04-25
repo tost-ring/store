@@ -1,9 +1,9 @@
-package app.core.flow;
+package app.core.fluid;
 
 public class Interable {
 
-    public static FlowIterable<Integer> indexes() {
-        return () -> new FlowIterator<>() {
+    public static Fluid<Integer> indexes() {
+        return () -> new FluidIterator<>() {
             int current = 0;
 
             @Override

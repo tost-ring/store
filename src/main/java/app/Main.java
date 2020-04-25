@@ -2,21 +2,15 @@ package app;
 
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
-import app.core.flow.Chain;
 import app.core.jorg.JorgReader;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.dealer.StoreDealer;
-import app.modules.graph.Graphs;
-import app.modules.graph.ReferenceHashGraph;
-import app.modules.model.JorgProcessor;
-import app.modules.model.ProcessorException;
-import app.modules.model.Store;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import java.io.*;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class Main extends Aproot {
 
@@ -32,8 +26,14 @@ public class Main extends Aproot {
 
         this.primaryStage = primaryStage;
 
-        String jorg = "@[a]#java.lang.Object# @[b]#java.lang.Object# @[xkey]#app.core.jorg.Xkey#]@a]@b";
-        System.out.println(JorgReader.parse(jorg));
+        String jorg = "#[7]java.lang.String   ]a   [2]b   [4]A tutaj moze cos dluzszego   ]c" +
+                "@[druga tablica] #[4]java.lang.Integer ]4]3]2]10000" +
+                "@[obiekt]  [parametr]wartosc   [ilosc]20";
+        var parsed = JorgReader.parse(jorg);
+        System.out.println(Arrays.toString(parsed.orGiven(new String[0])));
+        System.out.println(Arrays.toString(parsed.get("druga tablica").orGiven(new Integer[0])));
+        System.out.println("\nObiekt:\n" + parsed.get("obiekt").direct());
+
 
 //        order(Please.showSuperStore);
     }

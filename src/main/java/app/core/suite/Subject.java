@@ -1,9 +1,7 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
-
+import app.core.fluid.FluidSubject;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public interface Subject extends Subjective {
 
@@ -34,7 +32,7 @@ public interface Subject extends Subjective {
     <B> B asGiven(Glass<? super B, B> requestedType, B substitute);
     <B> B orGiven(B substitute);
     <B> B orDo(Supplier<B> supplier);
-    boolean isIn(Class<?> type);
+    boolean assigned(Class<?> type);
 
     default Subject getSaved(Object key, Object substitute) {
         throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
@@ -49,22 +47,8 @@ public interface Subject extends Subjective {
     boolean settled();
     int size();
 
-    Stream<Subject> stream();
-
-    FlowIterable<Subject> front();
-    FlowIterable<Subject> reverse();
-
-    FlowIterable<Object> values(boolean lastFirst);
-
-    FlowIterable<Object> keys(boolean lastFirst);
-
-    default FlowIterable<Object> values() {
-        return values(false);
-    }
-
-    default FlowIterable<Object> keys() {
-        return keys(false);
-    }
+    FluidSubject front();
+    FluidSubject reverse();
 
 //    default<K, V> Sub<K, V> sub(Class<K> keyType, Class<V> valueType) {
 //        return new Sub<>(keyType, valueType).setAll(this.front());

@@ -1,6 +1,8 @@
 package app.core.suite;
 
-import app.core.flow.FlowIterable;
+import app.core.fluid.Fluid;
+import app.core.fluid.FluidIterator;
+import app.core.fluid.FluidSubject;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -126,8 +128,8 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public boolean isIn(Class<?> type) {
-        return subject.isIn(type);
+    public boolean assigned(Class<?> type) {
+        return subject.assigned(type);
     }
 
     @Override
@@ -164,28 +166,37 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Stream<Subject> stream() {
-        return subject.stream();
+    public FluidSubject front() {
+        return () -> new FluidIterator<>() {
+            final FluidIterator<Subject> subIt = subject.front().iterator();
+
+            @Override
+            public boolean hasNext() {
+                return subIt.hasNext();
+            }
+
+            @Override
+            public Subject next() {
+                return subIt.next();
+            }
+        };
     }
 
     @Override
-    public FlowIterable<Subject> front() {
-        return subject.front().map(WrapSubject::new);
-    }
+    public FluidSubject reverse() {
+        return () -> new FluidIterator<>() {
+            final FluidIterator<Subject> subIt = subject.front().iterator();
 
-    @Override
-    public FlowIterable<Subject> reverse() {
-        return subject.reverse().map(WrapSubject::new);
-    }
+            @Override
+            public boolean hasNext() {
+                return subIt.hasNext();
+            }
 
-    @Override
-    public FlowIterable<Object> values(boolean lastFirst) {
-        return subject.values(lastFirst);
-    }
-
-    @Override
-    public FlowIterable<Object> keys(boolean lastFirst) {
-        return subject.keys(lastFirst);
+            @Override
+            public Subject next() {
+                return subIt.next();
+            }
+        };
     }
 
     @Override

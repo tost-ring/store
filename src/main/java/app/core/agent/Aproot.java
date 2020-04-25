@@ -203,7 +203,7 @@ public abstract class Aproot extends Application {
     public final URL getImageResource(String image){return getResource(getImagePrePath() + image);}
 
     public void setNation(String nation) {
-        for(var nativeString : dictionary.values().filter(NativeString.class)) {
+        for(var nativeString : dictionary.front().values().filter(NativeString.class)) {
             nativeString.setNation(nation);
         }
     }
