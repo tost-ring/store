@@ -1,13 +1,16 @@
 package app.modules.model;
 
-public class TablePort {
+public class TablePort extends Port {
 
     private int size;
-    private String label;
 
     public TablePort(int size, String label) {
+        super(label);
         this.size = size;
-        this.label = label;
+    }
+
+    public TablePort(int size, Port port) {
+        this(size, port.getLabel());
     }
 
     public int getSize() {
@@ -18,26 +21,18 @@ public class TablePort {
         this.size = size;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
     @Override
     public int hashCode() {
-        return label.hashCode() + size;
+        return getLabel().hashCode() + size;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof TablePort && label.equals(((TablePort) obj).label) && size == ((TablePort) obj).size;
+        return obj instanceof TablePort && getLabel().equals(((TablePort) obj).getLabel()) && size == ((TablePort) obj).size;
     }
 
     @Override
     public String toString() {
-        return "#[" + size + "]" + label;
+        return "#[" + size + "]" + getLabel();
     }
 }

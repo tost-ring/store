@@ -1,6 +1,5 @@
 package app.core.jorg;
 
-import app.core.fluid.Fluid;
 import app.core.fluid.Interable;
 import app.core.suite.Subject;
 import app.core.suite.Subjective;
@@ -12,22 +11,20 @@ import app.modules.model.TablePort;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Iterator;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-public class GeneralPerformer2 {
+public class JorgReformer {
 
     private final Subject constructors = Suite.set();
     private final Subject initializers = Suite.set();
     private final Subject adapters = Suite.set();
 
-    public GeneralPerformer2() {
+    public JorgReformer() {
         this(true, true, true);
     }
 
-    public GeneralPerformer2(boolean allowDefaultConstructors, boolean allowDefaultInitializers, boolean allowDefaultAdapters) {
+    public JorgReformer(boolean allowDefaultConstructors, boolean allowDefaultInitializers, boolean allowDefaultAdapters) {
         if(allowDefaultConstructors) {
             constructors.add((DiceyAction) s -> {
                 if(s.size() == 1) {
@@ -52,7 +49,7 @@ public class GeneralPerformer2 {
                     ((Subjective) o).fromSubject(s);
                     return true;
                 } else if(o.getClass().isArray()) {
-                    return initilaizeArray(o, s);
+                    return initializeArray(o, s);
                 }
                 return !s.settled();
             });
@@ -88,26 +85,15 @@ public class GeneralPerformer2 {
 
         //  Podłączenie do portu
         if(xkey.getLabel() instanceof Port) {
+            Port port = (Port)xkey.getLabel();
             for(var adapter : adapters.reverse()) {
                 Function<String, Object> function = adapter.asExpected();
-                Object r = function.apply(((Port) xkey.getLabel()).getLabel());
+                Object r = function.apply(port.getLabel());
                 if(r != null) {
-                    xkey.setObject(r);
-                    return r;
-                }
-            }
-            throw new NullPointerException();
-        }
-
-        // Podłączenie do tableportu
-        if(xkey.getLabel() instanceof TablePort) {
-            TablePort tablePort = (TablePort)xkey.getLabel();
-            for(var adapter : adapters.reverse()) {
-                Function<String, Object> function = adapter.asExpected();
-                Object r = function.apply(tablePort.getLabel());
-                if(r != null) {
-                    if(!(r instanceof Class)) throw new IllegalArgumentException("Non class port given as TablePort source");
-                    r = Array.newInstance((Class<?>)r, tablePort.getSize());
+                    if(port instanceof TablePort) {
+                        if(!(r instanceof Class)) throw new IllegalArgumentException("Non class port given as TablePort source");
+                        r = Array.newInstance((Class<?>)r, ((TablePort) port).getSize());
+                    }
                     xkey.setObject(r);
                     return r;
                 }
@@ -152,7 +138,7 @@ public class GeneralPerformer2 {
         throw new NullPointerException();
     }
 
-    private boolean initilaizeArray(Object o, Subject s) {
+    private boolean initializeArray(Object o, Subject s) {
         Object[] a = (Object[]) o;
         int i = 0;
         for(var sub : s.front()) {

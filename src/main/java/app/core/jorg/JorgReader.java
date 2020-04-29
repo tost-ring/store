@@ -34,14 +34,14 @@ public class JorgReader {
         return reader.loadWell(inputStream) ? reader.getObjects() : Suite.set();
     }
 
-    private final GeneralPerformer2 performer;
+    private final JorgReformer performer;
     private final Subject objects;
 
     public JorgReader() {
-        this(new GeneralPerformer2());
+        this(new JorgReformer());
     }
 
-    public JorgReader(GeneralPerformer2 performer) {
+    public JorgReader(JorgReformer performer) {
         this.performer = performer;
         objects = Suite.set();
     }
@@ -85,7 +85,7 @@ public class JorgReader {
         }
     }
 
-    public void load(InputStream inputStream) throws IOException, ProcessorException, NoSuchMethodException {
+    public void load(InputStream inputStream) throws IOException, ProcessorException {
         Subject xkeys;
         JorgProcessor processor = new JorgProcessor();
         processor.ready();

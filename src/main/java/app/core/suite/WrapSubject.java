@@ -4,6 +4,7 @@ import app.core.fluid.Fluid;
 import app.core.fluid.FluidIterator;
 import app.core.fluid.FluidSubject;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -145,6 +146,14 @@ public class WrapSubject implements Subject {
         Subject done = subject.get(key);
         if(done.settled())return new WrapSubject(done);
         subject = subject.set(key, supplier.get());
+        return get(key);
+    }
+
+    @Override
+    public Subject getDone(Object key, Function<Subject, ?> function, Subject argument) {
+        Subject done = subject.get(key);
+        if(done.settled())return new WrapSubject(done);
+        subject = subject.set(key, function.apply(argument));
         return get(key);
     }
 

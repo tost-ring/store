@@ -3,6 +3,9 @@ package app.core.jorg;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.core.suite.WrapSubject;
+import app.modules.model.JorgProcessor;
+import app.modules.model.Port;
+import app.modules.model.TablePort;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -159,26 +162,39 @@ public class JorgWriter {
 //        return "@" + xray.getTrace();
 //    }
 //
-//    private String stringify(Object object) throws JorgWriteException {
-//        if(object instanceof String) {
-//            String str = (String)object;
-//            return isHumbleString(str) ? str : "\"" + str + "\"";
-//        } else if(object instanceof Integer) {
-//            return "" + object;
-//        } else if(object instanceof Double) {
-//            return "" + object;
-//        } else if(object instanceof Class) {
-//            return "#" + performer.getAlias((Class<?>)object);
-//        } else if(object instanceof Field) {
-//            return ((Field) object).getName();
-//        } else if(object == null) {
-//            return "?";
-//        } else {
-//            throw new JorgWriteException("Unrecognized object type " + object.getClass());
-//        }
-//    }
-//
-//    boolean isHumbleString(String str) {
-//        return humbleString.matcher(str).matches();
-//    }
+    private String stringify(Object object) throws JorgWriteException {
+        if(object instanceof String) {
+            return escapedString((String)object);
+        } else if(object instanceof Integer) {
+            return "" + object;
+        } else if(object instanceof Double) {
+            return "" + object;
+        } else if(object instanceof Port) {
+            if(object instanceof TablePort) {
+                return "#[" + ((TablePort) object).getSize() + "]" +  escapedString(((TablePort) object).getLabel());
+            } else {
+                return "#" + escapedString(((Port) object).getLabel());
+            }
+        } else if(object == null) {
+            return "";
+        } else {
+            throw new JorgWriteException("Unrecognized object type " + object.getClass());
+        }
+    }
+
+    private String escapedString(String str) { 
+        if(!Character.isJavaIdentifierStart(str.codePointAt(0)) ||
+                Character.isWhitespace(str.codePointAt(str.length() - 1))) {
+            return escapedQuotedString(str);
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        str.chars().forEach(cp -> {
+            if(JorgProcessor.isJorgControlCharacter(cp)) {
+                stringBuilder.append('`');
+            }
+            stringBuilder.append(cp);
+        });
+        return stringBuilder.toString();
+    }
+
 }

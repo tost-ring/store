@@ -5,6 +5,8 @@ import java.util.Objects;
 
 public final class Suite {
 
+    public static class Add {}
+
     public static final Object OK = new Object();
 
     public static Subject set() {
@@ -17,7 +19,7 @@ public final class Suite {
         return new WrapSubject(new CoupleSubject(key, value));
     }
     public static Subject add(Object element) {
-        return new WrapSubject(new CoupleSubject(new Object(), element));
+        return new WrapSubject(new CoupleSubject(new Add(), element));
     }
     public static Subject setAll(Subject source) {
         return new WrapSubject(ZeroSubject.getInstance().setAll(source.front()));

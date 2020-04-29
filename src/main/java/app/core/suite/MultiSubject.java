@@ -2,7 +2,6 @@ package app.core.suite;
 
 import app.core.fluid.*;
 
-import java.util.*;
 import java.util.function.Supplier;
 
 class MultiSubject implements Subject {
@@ -37,7 +36,7 @@ class MultiSubject implements Subject {
 
     @Override
     public Subject add(Object element) {
-        chain.put(new Object(), element);
+        chain.put(new Suite.Add(), element);
         return this;
     }
 
@@ -55,88 +54,67 @@ class MultiSubject implements Subject {
 
     @Override
     public Subject key() {
-        var link = chain.getFirstLink();
-        return link == null ? ZeroSubject.getInstance() : link.key();
+        return chain.getFirst().key();
     }
 
     @Override
     public Subject prime() {
-        var link = chain.getFirstLink();
-        return link == null ? ZeroSubject.getInstance() : link;
+        return chain.getFirst();
     }
 
     @Override
     public Subject recent() {
-        var link = chain.getLastLink();
-        return link == null ? ZeroSubject.getInstance() : link;
+        return chain.getLast();
     }
 
     @Override
     public Subject get(Object key) {
-        var link = chain.getLink(key);
-        return link == null ? ZeroSubject.getInstance() : link;
+        return chain.get(key);
     }
 
     @Override
     public Object direct() {
-        var link = chain.getFirstLink();
-        return link == null ? null : link.direct();
+        return chain.getFirst().direct();
     }
     
     @Override
     public <B> B asExpected() {
-        var link = chain.getFirstLink();
-        if(link == null) throw new NoSuchElementException();
-        return link.asExpected();
+        return chain.getFirst().asExpected();
     }
 
     @Override
     public <B> B asGiven(Class<B> requestedType) {
-        var link = chain.getFirstLink();
-        if(link == null) throw new NoSuchElementException();
-        return link.asGiven(requestedType);
+        return chain.getFirst().asGiven(requestedType);
     }
 
     @Override
     public <B> B asGiven(Glass<? super B, B> requestedType) {
-        var link = chain.getFirstLink();
-        if(link == null) throw new NoSuchElementException();
-        return link.asGiven(requestedType);
+        return chain.getFirst().asGiven(requestedType);
     }
 
     @Override
     public <B> B asGiven(Class<B> requestedType, B reserve) {
-        var link = chain.getFirstLink();
-        if(link == null)return reserve;
-        return link.asGiven(requestedType, reserve);
+        return chain.getFirst().asGiven(requestedType, reserve);
     }
 
     @Override
     public <B> B asGiven(Glass<? super B, B> requestedType, B reserve) {
-        var link = chain.getFirstLink();
-        if(link == null)return reserve;
-        return link.asGiven(requestedType);
+        return chain.getFirst().asGiven(requestedType, reserve);
     }
 
     @Override
     public <B> B orGiven(B reserve) {
-        var link = chain.getFirstLink();
-        if(link == null)return reserve;
-        return link.orGiven(reserve);
+        return chain.getFirst().orGiven(reserve);
     }
 
     @Override
     public <B> B orDo(Supplier<B> supplier) {
-        var link = chain.getFirstLink();
-        if(link == null)return supplier.get();
-        return link.orDo(supplier);
+        return chain.getFirst().orDo(supplier);
     }
 
     @Override
     public boolean assigned(Class<?> type) {
-        var link = chain.getFirstLink();
-        if(link == null)return false;
-        return link.assigned(type);
+        return chain.getFirst().assigned(type);
     }
 
     @Override

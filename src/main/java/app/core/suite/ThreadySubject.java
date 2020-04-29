@@ -5,6 +5,7 @@ import app.core.fluid.FluidSubject;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 class ThreadySubject implements Subject {
@@ -242,6 +243,19 @@ class ThreadySubject implements Subject {
             spared = subject.get(key);
             if(!spared.settled()) {
                 subject = subject.set(key, supplier.get());
+                spared = subject.get(key);
+            }
+        }
+        return new WrapSubject(spared);
+    }
+
+    @Override
+    public Subject getDone(Object key, Function<Subject, ?> function, Subject argument) {
+        Subject spared;
+        try(var ignored = writeLock.lock()) {
+            spared = subject.get(key);
+            if(!spared.settled()) {
+                subject = subject.set(key, function.apply(argument));
                 spared = subject.get(key);
             }
         }

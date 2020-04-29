@@ -1,6 +1,8 @@
 package app.core.suite;
 
 import app.core.fluid.FluidSubject;
+
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface Subject extends Subjective {
@@ -38,6 +40,9 @@ public interface Subject extends Subjective {
         throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
     }
     default Subject getDone(Object key, Supplier<?> supplier) {
+        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+    }
+    default Subject getDone(Object key, Function<Subject, ?> function, Subject argument) {
         throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
     }
     default Subject take(Object key) {

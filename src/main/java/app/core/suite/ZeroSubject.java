@@ -1,15 +1,13 @@
 package app.core.suite;
 
-import app.core.fluid.Fluid;
 import app.core.fluid.FluidSubject;
 
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 class ZeroSubject implements Subject {
 
-    private static ZeroSubject instance = new ZeroSubject();
+    private static final ZeroSubject instance = new ZeroSubject();
 
     static ZeroSubject getInstance() {
         return instance;
@@ -39,7 +37,7 @@ class ZeroSubject implements Subject {
 
     @Override
     public Subject add(Object element) {
-        return new CoupleSubject(new Object(), element);
+        return new CoupleSubject(new Suite.Add(), element);
     }
 
     @Override
