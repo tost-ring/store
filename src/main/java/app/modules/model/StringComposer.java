@@ -2,6 +2,7 @@ package app.modules.model;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
+import app.modules.model.processor.IntProcessor;
 
 public abstract class StringComposer implements IntProcessor {
 

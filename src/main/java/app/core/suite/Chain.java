@@ -7,28 +7,6 @@ import java.util.*;
 
 public class Chain implements FluidSubject {
 
-    static class Link {
-        Link front;
-        Link back;
-        Subject subject;
-
-        Link(Link front, Link back, Subject subject) {
-            this.subject = subject;
-            this.front = front;
-            this.back = back;
-        }
-
-        Link(Link front, Link back, Object key, Object value) {
-            subject = new CoupleSubject(key, value);
-            this.front = front;
-            this.back = back;
-        }
-
-        void setValue(Object value) {
-            subject.set(subject.key().direct(), value);
-        }
-    }
-
     class ChainIterator implements FluidIterator<Subject> {
 
         private final boolean reverse;
@@ -43,11 +21,11 @@ public class Chain implements FluidSubject {
         }
 
         public boolean hasNext() {
-            return current.front != ward;
+            return (reverse ? current.front : current.back) != ward;
         }
 
         public Subject next() {
-            current = reverse ? current.back : current.front;
+            current = reverse ? current.front : current.back;
             return current.subject;
         }
     }

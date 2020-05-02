@@ -148,6 +148,12 @@ class FuseSubject implements Subject {
     }
 
     @Override
+    public Subject iterable() {
+        subject =  subject.iterable();
+        return this;
+    }
+
+    @Override
     public boolean fused() {
         return true;
     }

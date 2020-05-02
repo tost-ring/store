@@ -5,6 +5,7 @@ import app.core.agent.Controller;
 import app.core.jorg.Fusible;
 import app.core.jorg.JorgPerformer;
 import app.core.jorg.JorgWriteException;
+import app.core.jorg.JorgWriter;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import javafx.scene.Scene;
@@ -25,14 +26,8 @@ public class Main extends Aproot {
 
         this.primaryStage = primaryStage;
 
-        JorgPerformer performer = new JorgPerformer();
-        Fusible c = () -> Suite.set("a", "B");
-        Fusible c1 = () -> Suite.set("a", c);
-        try {
-            System.out.println(performer.melt(Suite.set("c1",c1)));
-        } catch (JorgWriteException e) {
-            e.printStackTrace();
-        }
+        Fusible f = () -> Suite.set("/XD");
+        System.out.println(JorgWriter.encode((Fusible) () -> Suite.set(1, f).set("255", 255)));
 
 
 //        order(Please.showSuperStore);

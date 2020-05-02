@@ -1,12 +1,10 @@
 package app.core.suite;
 
-import app.core.fluid.Fluid;
 import app.core.fluid.FluidIterator;
 import app.core.fluid.FluidSubject;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class WrapSubject implements Subject {
 
@@ -176,6 +174,7 @@ public class WrapSubject implements Subject {
 
     @Override
     public FluidSubject front() {
+        subject = subject.iterable();
         return () -> new FluidIterator<>() {
             final FluidIterator<Subject> subIt = subject.front().iterator();
 
@@ -186,15 +185,16 @@ public class WrapSubject implements Subject {
 
             @Override
             public Subject next() {
-                return subIt.next();
+                return new WrapSubject(subIt.next());
             }
         };
     }
 
     @Override
     public FluidSubject reverse() {
+        subject = subject.iterable();
         return () -> new FluidIterator<>() {
-            final FluidIterator<Subject> subIt = subject.front().iterator();
+            final FluidIterator<Subject> subIt = subject.reverse().iterator();
 
             @Override
             public boolean hasNext() {
@@ -203,9 +203,14 @@ public class WrapSubject implements Subject {
 
             @Override
             public Subject next() {
-                return subIt.next();
+                return new WrapSubject(subIt.next());
             }
         };
+    }
+
+    @Override
+    public Subject iterable() {
+        return this;
     }
 
     @Override

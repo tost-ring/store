@@ -1,198 +1,252 @@
 package app.core.jorg;
 
+import app.core.fluid.Cascade;
+import app.core.fluid.Fluid;
+import app.core.fluid.FluidIterator;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.core.suite.WrapSubject;
-import app.modules.model.JorgProcessor;
+import app.modules.model.processor.JorgProcessor;
 import app.modules.model.Port;
 import app.modules.model.TablePort;
+import app.modules.model.processor.ProcessorException;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class JorgWriter {
 
-//    private static final Xray nullObject = new Xray(null);
-//    private static final Pattern humbleString = Pattern.compile("^[\\p{Alpha}_]\\w*$");
-//
-//    public static boolean write(Object object, String filePath) {
-//        JorgWriter writer = new JorgWriter();
-//        writer.objects.set(new Xray(object, "0"));
-//        try {
-//            return writer.write(new FileOutputStream(filePath));
-//        } catch (FileNotFoundException e) {
-//            return false;
-//        }
-//    }
-//
-//    public static boolean write(Object object, File file) {
-//        JorgWriter writer = new JorgWriter();
-//        writer.objects.set(new Xray(object, "0"));
-//        try {
-//            return writer.write(new FileOutputStream(file));
-//        } catch (FileNotFoundException e) {
-//            return false;
-//        }
-//    }
-//
-//    public static boolean write(Object object, URL url) {
-//        JorgWriter writer = new JorgWriter();
-//        writer.objects.set(new Xray(object, "0"));
-//        try {
-//            URLConnection connection = url.openConnection();
-//            return writer.write(connection.getOutputStream());
-//        } catch (IOException e) {
-//            return false;
-//        }
-//    }
-//
-//    private Subject objects;
-//    private GeneralPerformer performer;
-//
-//    public JorgWriter() {
-////        this(new GeneralPerformer(Suite.
-////                set(WrapSubject.class, "Subject")));
-//    }
-//
-//    public JorgWriter(GeneralPerformer performer) {
-//        this.performer = performer;
-//        objects = Suite.set();
-//    }
-//
-//    public void addObject(Object object) {
-//        objects.set(new Xray(object, true));
-//    }
-//    public void addObject(Object object, String trace) {
-//        if(humbleString.matcher(trace).matches())
-//            objects.set(new Xray(object, trace));
-//        else {
-//            throw new IllegalArgumentException("Trace pattern is " + humbleString.pattern());
-//        }
-//    }
-//
-//    public boolean write(OutputStream output) {
-//        ReferenceHashGraph<Xray, Xray> referenceGraph = formReferenceGraph();
-//
-//        int id = 1;
-//        for(Xray it : referenceGraph.getNodes()) {
-//            if(it.getTrace() == null && (it.isForceTrace() || performer.isComplex(it.getObject()))) {
-//                it.setTrace("" + id++);
-//            }
-//        }
-//        OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-//
-//        try {
-//            for(Xray it : referenceGraph.getNodes()) {
-//                if(it.getTrace() != null) {
-//                    writer.write(encodeHeader(it) + "\n");
-//                    for(Xray pipe : referenceGraph.getLinks(it)) {
-//                        writer.write(encodeField(pipe, referenceGraph.getNode(it, pipe)) + "\n");
-//                    }
-//                    writer.write("\n");
-//                }
-//            }
-//            writer.flush();
-//            output.close();
-//            return true;
-//        } catch (IOException | JorgWriteException e) {
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
-//
-//    private ReferenceHashGraph<Xray, Xray> formReferenceGraph() {
-//        ReferenceHashGraph<Xray, Xray> referenceGraph = new ReferenceHashGraph<>();
-////        referenceGraph.putNode(nullObject);
-////        Set<Xray> examined = new FlowHashSet<>();
-////        Set<Xray> toExamine = Suite.keys(objects, Xray.class).toFHS();
-////        Set<Xray> examining;
-////        while (toExamine.size() > 0) {
-////            examining = toExamine;
-////            toExamine = new HashSet<>();
-////            for(Xray it : examining) {
-////                referenceGraph.putNode(it);
-////                examined.add(it);
-////            }
-////            for(Xray it : examining) {
-////                if(performer.isComplex(it.getObject())) {
-////                    Subject subject = performer.subjectively(it.getObject());
-////                    for (Subject itt : subject) {
-////                        Xray pipe = referenceGraph.putNode(new Xray(itt.key()));
-////                        if (performer.isComplex(pipe.getObject()) && !examined.contains(pipe)) {
-////                            toExamine.add(pipe);
-////                        }
-////                        Xray dart = referenceGraph.putNode(new Xray(itt.god( null)));
-////                        referenceGraph.link(it, pipe, dart);
-////                        if (performer.isComplex(dart.getObject()) && !examined.contains(dart)) {
-////                            toExamine.add(dart);
-////                        }
-////                    }
-////                }
-////            }
-////        }
-//        return referenceGraph;
-//    }
-//
-//    private String encodeHeader(Xray xray) throws JorgWriteException {
-//
-//        Object object = xray.getObject();
-//        if(performer.isPrimitive(object)) {
-//            return stringify(xray) + " ] " + stringify(object);
-//        } else if(object instanceof Subject) {
-//            return stringify(xray);
-//        } else {
-//            String typeName = performer.getTypeAlias(object);
-//            return stringify(xray) + " #" + typeName;
-//        }
-//
-//    }
-//
-//    private String encodeField(Xray pipe, Xray dart) throws JorgWriteException {
-//        return "  [ " + stringify(pipe) + " ] " + stringify(dart);
-//    }
-//
-//    private String stringify(Xray xray) throws JorgWriteException {
-//        if(xray.getTrace() == null) return stringify(xray.getObject());
-//        return "@" + xray.getTrace();
-//    }
-//
+    private static final int escapeCharacter = '`';
+
+    public static boolean write(Object object, String filePath) {
+        JorgWriter writer = new JorgWriter();
+        writer.objects.set("0", object);
+        try {
+            writer.save(new FileOutputStream(filePath));
+        } catch (JorgWriteException | IOException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean write(Object object, File file) {
+        JorgWriter writer = new JorgWriter();
+        writer.objects.set("0", object);
+        try {
+            writer.save(new FileOutputStream(file));
+        } catch (JorgWriteException | IOException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean write(Object object, URL url) {
+        JorgWriter writer = new JorgWriter();
+        writer.objects.set("0", object);
+        try {
+            URLConnection connection = url.openConnection();
+            writer.save(connection.getOutputStream());
+        } catch (IOException | JorgWriteException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static String encode(Object o) {
+        JorgWriter writer = new JorgWriter();
+        writer.objects.set("0", o);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        return writer.saveWell(outputStream) ? outputStream.toString() : "";
+    }
+
+    private final Subject objects;
+    private final JorgPerformer performer;
+    private boolean compactMode;
+
+    public JorgWriter() {
+        this(new JorgPerformer());
+    }
+
+    public JorgWriter(JorgPerformer performer) {
+        this.performer = performer;
+        objects = Suite.set();
+        compactMode = false;
+    }
+
+    public boolean isCompactMode() {
+        return compactMode;
+    }
+
+    public void setCompactMode(boolean compactMode) {
+        this.compactMode = compactMode;
+    }
+
+    public void addObject(String id, Object object) {
+        if(id.matches("^\\w")) {
+            objects.set(id, object);
+        } else {
+            throw new IllegalArgumentException("Trace pattern is ^\\w");
+        }
+    }
+
+    public boolean saveWell(File file) {
+        try {
+            save(file);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void save(File file) throws IOException, JorgWriteException {
+        save(new FileOutputStream(file));
+    }
+
+    public boolean saveWell(URL url) {
+        try {
+            save(url);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void save(URL url) throws IOException, JorgWriteException {
+        URLConnection connection = url.openConnection();
+        save(connection.getOutputStream());
+    }
+
+    public boolean saveWell(OutputStream output) {
+        try {
+            save(output);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void save(OutputStream output) throws JorgWriteException, IOException {
+
+        OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+
+        Cascade<Crystal> crystals = performer.melt(objects);
+
+        for(Crystal c : crystals.toEnd()) {
+            if(crystals.getFalls() > 1 || !"0".equals(c.getId())) {
+                writer.write(compactMode ? "@[" : "@ [ ");
+                writer.write(c.getId());
+                writer.write(compactMode ? "]" : " ] ");
+            }
+            Cascade<Subject> cascade = c.getBody().front().cascade();
+
+            for(var ref : cascade.until(s -> s.key().asGiven(Crystal.class).getGerm() instanceof Suite.Add)) {
+                if(cascade.getFalls() > 1) {
+                    writer.write(compactMode ? "]" : " ] ");
+                }
+                Crystal c1 = ref.asExpected();
+                if(c1.getId() == null) {
+                    writer.write(stringify(c1.getGerm()));
+                } else {
+                    writer.write("@");
+                    writer.write(escapedHumble(c1.getId(), false));
+                }
+            }
+            for(var ref : cascade.toEnd()) {
+                Crystal c1 = ref.key().asExpected();
+                writer.write(compactMode ? "[" : "\n [ ");
+                if(c1.getId() == null) {
+                    writer.write(stringify(c1.getGerm()));
+                } else {
+                    writer.write("@");
+                    writer.write(escapedHumble(c1.getId(), false));
+                }
+                writer.write(compactMode ? "]" : " ] ");
+
+                Crystal c2 = ref.asExpected();
+                if(c2.getId() == null) {
+                    writer.write(stringify(c2.getGerm()));
+                } else {
+                    writer.write("@");
+                    writer.write(escapedHumble(c2.getId(), false));
+                }
+            }
+            if(!compactMode)writer.write("\n\n");
+        }
+        writer.flush();
+        output.close();
+    }
+
     private String stringify(Object object) throws JorgWriteException {
         if(object instanceof String) {
-            return escapedString((String)object);
+            return escaped((String)object);
         } else if(object instanceof Integer) {
             return "" + object;
         } else if(object instanceof Double) {
             return "" + object;
         } else if(object instanceof Port) {
-            if(object instanceof TablePort) {
-                return "#[" + ((TablePort) object).getSize() + "]" +  escapedString(((TablePort) object).getLabel());
+            if (object instanceof TablePort) {
+                return "#[" + ((TablePort) object).getSize() + "]" + escapedHumble(((TablePort) object).getLabel(), false);
             } else {
-                return "#" + escapedString(((Port) object).getLabel());
+                return "#" + escapedHumble(((Port) object).getLabel(), false);
             }
-        } else if(object == null) {
+        } else if(object == null || object instanceof Suite.Add) {
             return "";
         } else {
             throw new JorgWriteException("Unrecognized object type " + object.getClass());
         }
     }
 
-    private String escapedString(String str) { 
-        if(!Character.isJavaIdentifierStart(str.codePointAt(0)) ||
-                Character.isWhitespace(str.codePointAt(str.length() - 1))) {
-            return escapedQuotedString(str);
-        }
-        StringBuilder stringBuilder = new StringBuilder();
-        str.chars().forEach(cp -> {
-            if(JorgProcessor.isJorgControlCharacter(cp)) {
-                stringBuilder.append('`');
+    private String escaped(String str) {
+        String humble = escapedHumble(str, true);
+        int humbleLength = humble.length();
+        if(humbleLength > 0) {
+            if(humbleLength <= str.length() + 2) {
+                return humble;
             }
-            stringBuilder.append(cp);
+            StringBuilder stringBuilder = new StringBuilder("\"");
+            str.chars().forEach(cp -> {
+                if(cp == '"' || JorgProcessor.isEscapeCharacter(cp)) {
+                    stringBuilder.appendCodePoint(escapeCharacter);
+                }
+                stringBuilder.appendCodePoint(cp);
+            });
+            stringBuilder.append('"');
+            String quoted = stringBuilder.toString();
+            return humbleLength < quoted.length() ? humble : quoted;
+
+        } else return "\"\"";
+    }
+
+    private String escapedHumble(String str, boolean escapeNonHumbleEntry) {
+        if(str == null || str.isEmpty())return "";
+        StringBuilder stringBuilder = new StringBuilder(str.length());
+        if(escapeNonHumbleEntry) {
+            int startCodePoint = str.codePointAt(0);
+            if(!Character.isJavaIdentifierStart(startCodePoint) &&
+                    !JorgProcessor.isControlCharacter(startCodePoint) &&
+                    !JorgProcessor.isEscapeCharacter(startCodePoint)) {
+                stringBuilder.appendCodePoint(escapeCharacter);
+            }
+        }
+        AtomicReference<StringBuilder> endSpaces = new AtomicReference<>(new StringBuilder());
+        str.chars().forEach(cp -> {
+            if(Character.isWhitespace(cp)) {
+                endSpaces.get().appendCodePoint(cp);
+            } else {
+                if(endSpaces.get().length() > 0) {
+                    endSpaces.get().chars().forEach(ws -> stringBuilder.appendCodePoint(escapeCharacter).appendCodePoint(ws));
+                    endSpaces.set(new StringBuilder());
+                }
+                if (JorgProcessor.isControlCharacter(cp) || JorgProcessor.isEscapeCharacter(cp)) {
+                    stringBuilder.appendCodePoint(escapeCharacter);
+                }
+                stringBuilder.appendCodePoint(cp);
+            }
         });
         return stringBuilder.toString();
     }

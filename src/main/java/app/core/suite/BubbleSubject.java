@@ -155,6 +155,11 @@ class BubbleSubject implements Subject {
     }
 
     @Override
+    public Subject iterable() {
+        return new MultiSubject().set(bubbled);
+    }
+
+    @Override
     public String toString() {
         return "[" + bubbled + "]" + bubbled;
     }

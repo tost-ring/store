@@ -11,7 +11,7 @@ public class Crystal {
         return new Crystal(germ);
     }
 
-    private Object id;
+    private String id;
     private final Object germ;
     private final Subject body;
     private boolean ready = false;
@@ -21,7 +21,7 @@ public class Crystal {
         body = Suite.set();
     }
 
-    public Crystal(Object id, Object germ) {
+    public Crystal(String id, Object germ) {
         this(germ);
         this.id = id;
     }
@@ -34,12 +34,8 @@ public class Crystal {
         return body;
     }
 
-    public Object getId() {
+    public String getId() {
         return id;
-    }
-
-    public void setId(Object id) {
-        this.id = id;
     }
 
     public boolean isReady() {
@@ -62,7 +58,7 @@ public class Crystal {
 
     @Override
     public String toString() {
-        return "@[" + id + "]" + germ;
+        return "(" + id + ")" + germ;
     }
 
 }

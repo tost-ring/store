@@ -1,5 +1,7 @@
 package app.core.jorg;
 
+import app.core.fluid.Cascade;
+import app.core.fluid.Fluid;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.model.Port;
@@ -23,8 +25,10 @@ public class JorgPerformer {
                     return ((Fusible) o).melt();
                 } else if(o.getClass().isArray()) {
                     return meltArray(o);
+                } else {
+                    Subject s = simple(o);
+                    return s.settled() ? s : null;
                 }
-                return null;
             });
         }
 
@@ -46,13 +50,13 @@ public class JorgPerformer {
         ports.add(port);
     }
 
-    public Subject melt(Subject solid) throws JorgWriteException {
+    public Cascade<Crystal> melt(Subject solid) throws JorgWriteException {
         Subject solution = Suite.set();
         int automaticIndex = 0;
 
         for(var s : solid.front()) {
 
-            Crystal germ = new Crystal(s.key().direct(), s.direct());
+            Crystal germ = new Crystal(s.key().asExpected(), s.direct());
             Subject sub = solution.get(s.direct());
             if(sub.settled()) {
                 Crystal crystal = sub.asExpected();
@@ -80,7 +84,7 @@ public class JorgPerformer {
                             if(s1.settled()) {
                                 keyGerm = s1.asExpected();
                             } else {
-                                keyGerm = new Crystal(++automaticIndex, s.key().direct());
+                                keyGerm = new Crystal("" + ++automaticIndex, s.key().direct());
                                 solution.set(keyGerm);
                             }
                         }
@@ -94,7 +98,7 @@ public class JorgPerformer {
                             if(s1.settled()) {
                                 germ = s1.asExpected();
                             } else {
-                                germ = new Crystal(++automaticIndex, s.direct());
+                                germ = new Crystal("" + ++automaticIndex, s.direct());
                                 solution.set(germ);
                             }
                         }
@@ -104,18 +108,20 @@ public class JorgPerformer {
                     break;
                 }
             }
-            if(!c.isReady()) throw new JorgWriteException();
+            if(!c.isReady()) throw new JorgWriteException("Uninitialized: " + c);
         }
 
-        return solution;
+        return solution.front().keys().filter(Crystal.class).cascade();
     }
 
     private Subject simple(Object o) {
-        if(o instanceof Port) return Suite.set(o);
+        if(o instanceof Port) return Suite.add(o);
         Port port = port(o);
-        if(port != null) return Suite.set(port);
-        if(o.getClass().isPrimitive() || o instanceof String || o instanceof Suite.Add) {
-            return Suite.set(o);
+        if(port != null) return Suite.add(port);
+        if(o instanceof Boolean || o instanceof Character || o instanceof Byte || o instanceof Short ||
+                o instanceof Integer || o instanceof Long || o instanceof Float || o instanceof Double ||
+                o instanceof String || o instanceof Suite.Add) {
+            return Suite.add(o);
         }
         return Suite.set();
     }

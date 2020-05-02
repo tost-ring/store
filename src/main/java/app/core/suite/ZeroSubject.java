@@ -126,13 +126,8 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public FluidSubject front() {
-        return FluidSubject.empty();
-    }
-
-    @Override
-    public FluidSubject reverse() {
-        return FluidSubject.empty();
+    public Subject iterable() {
+        return new MultiSubject();
     }
 
     @Override

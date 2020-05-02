@@ -1,14 +1,11 @@
-package app.modules.model;
+package app.modules.model.processor;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
+import app.modules.model.processor.ProcessorException;
 
 @FunctionalInterface
 public interface IntProcessor {
-
-    enum ResultType {
-        RESULT, UNSUPPORTED, RESULT_READY
-    }
 
     default Subject ready() {
         return Suite.set();

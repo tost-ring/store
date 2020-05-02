@@ -158,6 +158,11 @@ class CoupleSubject implements Subject {
     }
 
     @Override
+    public Subject iterable() {
+        return new MultiSubject().set(primeKey, primeValue);
+    }
+
+    @Override
     public String toString() {
         return "[" + primeKey + "]" + primeValue;
     }

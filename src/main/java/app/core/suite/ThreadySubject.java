@@ -291,53 +291,68 @@ class ThreadySubject implements Subject {
     }
 
     @Override
-    public FluidSubject front() {
-        return () -> new FluidIterator<>() {
-            final FluidIterator<Subject> subIt = subject.front().iterator();
-            Subject next;
+    public FluidSubject front() { // TODO przerobic na wielokrotne hasnext
+        FluidSubject fluid;
+        try(var ignored = writeLock.lock()) {
+            subject = subject.iterable();
+            fluid = () -> new FluidIterator<>() {
+                final FluidIterator<Subject> subIt = subject.front().iterator();
+                Subject next;
 
-            @Override
-            public boolean hasNext() {
-                boolean hasNext;
-                try(var ignored = readLock.lock()) {
-                    hasNext = subIt.hasNext();
-                    if(hasNext) {
-                        next = subIt.next();
+                @Override
+                public boolean hasNext() {
+                    boolean hasNext;
+                    try(var ignored = readLock.lock()) {
+                        hasNext = subIt.hasNext();
+                        if(hasNext) {
+                            next = subIt.next();
+                        }
                     }
+                    return hasNext;
                 }
-                return hasNext;
-            }
 
-            @Override
-            public Subject next() {
-                return next;
-            }
-        };
+                @Override
+                public Subject next() {
+                    return next;
+                }
+            };
+        }
+        return fluid;
     }
 
     @Override
-    public FluidSubject reverse() {
-        return () -> new FluidIterator<>() {
-            final FluidIterator<Subject> subIt = subject.reverse().iterator();
-            Subject next;
+    public FluidSubject reverse() { // TODO przerobic na wielokrotne hasnext
+        FluidSubject fluid;
+        try(var ignored = writeLock.lock()) {
+            subject = subject.iterable();
+            fluid = () -> new FluidIterator<>() {
+                final FluidIterator<Subject> subIt = subject.reverse().iterator();
+                Subject next;
 
-            @Override
-            public boolean hasNext() {
-                boolean hasNext;
-                try(var ignored = readLock.lock()) {
-                    hasNext = subIt.hasNext();
-                    if(hasNext) {
-                        next = subIt.next();
+                @Override
+                public boolean hasNext() {
+                    boolean hasNext;
+                    try(var ignored = readLock.lock()) {
+                        hasNext = subIt.hasNext();
+                        if(hasNext) {
+                            next = subIt.next();
+                        }
                     }
+                    return hasNext;
                 }
-                return hasNext;
-            }
 
-            @Override
-            public Subject next() {
-                return next;
-            }
-        };
+                @Override
+                public Subject next() {
+                    return new WrapSubject(next);
+                }
+            };
+        }
+        return fluid;
+    }
+
+    @Override
+    public Subject iterable() {
+        return this;
     }
 
     @Override

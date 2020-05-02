@@ -52,8 +52,15 @@ public interface Subject extends Subjective {
     boolean settled();
     int size();
 
-    FluidSubject front();
-    FluidSubject reverse();
+    default FluidSubject front() {
+        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+    }
+
+    default FluidSubject reverse() {
+        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+    }
+
+    Subject iterable();
 
 //    default<K, V> Sub<K, V> sub(Class<K> keyType, Class<V> valueType) {
 //        return new Sub<>(keyType, valueType).setAll(this.front());

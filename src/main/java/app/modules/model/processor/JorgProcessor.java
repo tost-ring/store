@@ -1,8 +1,9 @@
-package app.modules.model;
+package app.modules.model.processor;
 
 import app.core.jorg.Xkey;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
+import app.modules.model.*;
 
 public class JorgProcessor implements IntProcessor {
 
@@ -91,20 +92,28 @@ public class JorgProcessor implements IntProcessor {
         } else if(i == '.' || i == ',') {
             dataState = DataState.REAL_NUMBER;
             dataBuilder.append("0.");
+        } else if(isEscapeCharacter(i)) {
+            dataState = DataState.HUMBLE_STRING;
+            lastEscapeCharacter = true;
         } else if(!Character.isWhitespace(i)){
             throw new ProcessorException("Invalid input");
         }
     }
 
-    public static boolean isJorgControlCharacter(int codePoint) {
+    public static boolean isControlCharacter(int codePoint) {
         return codePoint == '[' || codePoint == ']' || codePoint == '@' || codePoint == '#';
+    }
+
+    public static boolean isEscapeCharacter(int codePoint) {
+        return codePoint == '`';
     }
 
     @Override
     public Subject ready() {
         keys = Suite.set();
-        from = new Xkey(null, new Reference(""));
-        keys.set(0, from);
+        Reference zero = new Reference("0");
+        from = new Xkey(null, zero);
+        keys.set(zero, from);
         state = State.DIRECT_PRE;
         dataState = DataState.PENDING;
         resetDataBuilder();
@@ -122,8 +131,12 @@ public class JorgProcessor implements IntProcessor {
                     throw new ProcessorException("Invalid input");
                 }
                 break;
+
             case FROM_NODE:
-                if(isJorgControlCharacter(i)) {
+                if(lastEscapeCharacter) {
+                    dataBuilder.appendCodePoint(i);
+                    lastEscapeCharacter = false;
+                } else if(isControlCharacter(i)) {
                     String string = dataBuilder.toString().trim();
                     if(string.isEmpty()) throw new ProcessorException("Empty reference");
                     Reference reference = new Reference(dataBuilder.toString().trim());
@@ -136,10 +149,13 @@ public class JorgProcessor implements IntProcessor {
                         case '@' -> State.BEFORE_FROM_NODE;
                         default -> throw new ProcessorException();
                     };
+                } else if(isEscapeCharacter(i)) {
+                    lastEscapeCharacter = true;
                 } else {
                     dataBuilder.appendCodePoint(i);
                 }
                 break;
+
             case DIRECT_PRE:
                 switch (dataState) {
                     case PENDING:
@@ -158,6 +174,9 @@ public class JorgProcessor implements IntProcessor {
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append("0.");
+                        } else if(isEscapeCharacter(i)) {
+                            dataState = DataState.HUMBLE_STRING;
+                            lastEscapeCharacter = true;
                         } else if(i == '[') {
                             state = State.VIA_NODE;
                         } else if(i == ']') {
@@ -168,20 +187,28 @@ public class JorgProcessor implements IntProcessor {
                         break;
 
                     case HUMBLE_STRING:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             to = keys.getSaved(string, new Xkey(string, null)).asExpected();
                             directPreFinish(i);
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case REFERENCE:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
-                            if(string.isEmpty()) {
-                                if(i == '[') {
+                            if (string.isEmpty()) {
+                                if (i == '[') {
                                     state = State.FROM_NODE;
                                 } else {
                                     throw new ProcessorException();
@@ -191,68 +218,52 @@ public class JorgProcessor implements IntProcessor {
                                 to = keys.getSaved(reference, new Xkey(null, reference)).asExpected();
                                 directPreFinish(i);
                             }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case STRING:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(i == '"') {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString();
-                                    to = keys.getSaved(string, new Xkey(string, null)).asExpected();
-                                    from.addPre(to);
-                                    dataState = DataState.PENDING;
-                                    resetDataBuilder();
-                                    state = State.AFTER_DIRECT_PRE;
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(i == '"') {
+                            String string = dataBuilder.toString();
+                            to = keys.getSaved(string, new Xkey(string, null)).asExpected();
+                            from.addPre(to);
+                            dataState = DataState.PENDING;
+                            resetDataBuilder();
+                            state = State.AFTER_DIRECT_PRE;
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case PORT:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(isJorgControlCharacter(i)) {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
+                            String string = dataBuilder.toString().trim();
+                            if (string.isEmpty()) {
+                                if (i == '[') {
+                                    state = State.TABLE_PORT_SIZE;
                                 } else {
-                                    String string = dataBuilder.toString().trim();
-                                    if(string.isEmpty()) {
-                                        if(i == '[') {
-                                            state = State.TABLE_PORT_SIZE;
-                                        } else {
-                                            throw new ProcessorException();
-                                        }
-                                    } else {
-                                        Port port = new Port(string);
-                                        to = keys.getSaved(port, new Xkey(null, port)).asExpected();
-                                        directPreFinish(i);
-                                    }
+                                    throw new ProcessorException();
                                 }
                             } else {
-                                dataBuilder.appendCodePoint(i);
+                                Port port = new Port(string);
+                                to = keys.getSaved(port, new Xkey(null, port)).asExpected();
+                                directPreFinish(i);
                             }
-                            lastEscapeCharacter = false;
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
@@ -262,7 +273,7 @@ public class JorgProcessor implements IntProcessor {
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append('.');
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             int integer = Integer.parseInt(dataBuilder.toString());
                             to = keys.getSaved(integer, new Xkey(integer, null)).asExpected();
                             directPreFinish(i);
@@ -274,7 +285,7 @@ public class JorgProcessor implements IntProcessor {
                     case REAL_NUMBER:
                         if(Character.isDigit(i)) {
                             dataBuilder.appendCodePoint(i);
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             double d = Double.parseDouble(dataBuilder.toString());
                             to = keys.getSaved(d, new Xkey(d, null)).asExpected();
                             directPreFinish(i);
@@ -317,6 +328,9 @@ public class JorgProcessor implements IntProcessor {
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append("0.");
+                        } else if(isEscapeCharacter(i)) {
+                            dataState = DataState.HUMBLE_STRING;
+                            lastEscapeCharacter = true;
                         } else if(i == ']') {
                             state = State.DIRECT_POST;
                         } else if(!Character.isWhitespace(i)){
@@ -325,17 +339,25 @@ public class JorgProcessor implements IntProcessor {
                         break;
 
                     case HUMBLE_STRING:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             via = keys.getSaved(string, new Xkey(string, null)).asExpected();
                             viaFinish(i);
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case REFERENCE:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             if(string.isEmpty()) {
                                 throw new ProcessorException();
@@ -344,63 +366,47 @@ public class JorgProcessor implements IntProcessor {
                                 via = keys.getSaved(reference, new Xkey(null, reference)).asExpected();
                                 viaFinish(i);
                             }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case STRING:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(i == '"') {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString();
-                                    via = keys.getSaved(string, new Xkey(string, null)).asExpected();
-                                    dataState = DataState.PENDING;
-                                    resetDataBuilder();
-                                    state = State.AFTER_VIA_NODE;
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(i == '"') {
+                            String string = dataBuilder.toString();
+                            via = keys.getSaved(string, new Xkey(string, null)).asExpected();
+                            dataState = DataState.PENDING;
+                            resetDataBuilder();
+                            state = State.AFTER_VIA_NODE;
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case PORT:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(isJorgControlCharacter(i)) {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString().trim();
-                                    if(string.isEmpty()) {
-                                        throw new ProcessorException();
-                                    } else {
-                                        Port port = new Port(string);
-                                        via = keys.getSaved(port, new Xkey(null, port)).asExpected();
-                                        viaFinish(i);
-                                    }
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
+                            String string = dataBuilder.toString().trim();
+                            if(string.isEmpty()) {
+                                throw new ProcessorException();
+                            } else {
+                                Port port = new Port(string);
+                                via = keys.getSaved(port, new Xkey(null, port)).asExpected();
+                                viaFinish(i);
+                            }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
@@ -410,7 +416,7 @@ public class JorgProcessor implements IntProcessor {
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append('.');
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             int integer = Integer.parseInt(dataBuilder.toString());
                             via = keys.getSaved(integer, new Xkey(integer, null)).asExpected();
                             viaFinish(i);
@@ -422,7 +428,7 @@ public class JorgProcessor implements IntProcessor {
                     case REAL_NUMBER:
                         if(Character.isDigit(i)) {
                             dataBuilder.appendCodePoint(i);
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             double d = Double.parseDouble(dataBuilder.toString());
                             via = keys.getSaved(d, new Xkey(d, null)).asExpected();
                             viaFinish(i);
@@ -455,17 +461,25 @@ public class JorgProcessor implements IntProcessor {
                         break;
 
                     case HUMBLE_STRING:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             to = keys.getSaved(string, new Xkey(string, null)).asExpected();
                             toFinish(i);
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case REFERENCE:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             if(string.isEmpty()) {
                                 throw new ProcessorException();
@@ -474,64 +488,48 @@ public class JorgProcessor implements IntProcessor {
                                 to = keys.getSaved(reference, new Xkey(null, reference)).asExpected();
                                 toFinish(i);
                             }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case STRING:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(i == '"') {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString();
-                                    to = keys.getSaved(string, new Xkey(string, null)).asExpected();
-                                    from.setPost(via, to);
-                                    dataState = DataState.PENDING;
-                                    resetDataBuilder();
-                                    state = State.AFTER_TO_NODE;
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(i == '"') {
+                            String string = dataBuilder.toString();
+                            to = keys.getSaved(string, new Xkey(string, null)).asExpected();
+                            from.setPost(via, to);
+                            dataState = DataState.PENDING;
+                            resetDataBuilder();
+                            state = State.AFTER_TO_NODE;
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case PORT:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(isJorgControlCharacter(i)) {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString().trim();
-                                    if(string.isEmpty()) {
-                                        throw new ProcessorException();
-                                    } else {
-                                        Port port = new Port(string);
-                                        to = keys.getSaved(port, new Xkey(null, port)).asExpected();
-                                        toFinish(i);
-                                    }
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
+                            String string = dataBuilder.toString().trim();
+                            if(string.isEmpty()) {
+                                throw new ProcessorException();
+                            } else {
+                                Port port = new Port(string);
+                                to = keys.getSaved(port, new Xkey(null, port)).asExpected();
+                                toFinish(i);
+                            }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
@@ -541,7 +539,7 @@ public class JorgProcessor implements IntProcessor {
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append('.');
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             int integer = Integer.parseInt(dataBuilder.toString());
                             to = keys.getSaved(integer, new Xkey(integer, null)).asExpected();
                             toFinish(i);
@@ -553,7 +551,7 @@ public class JorgProcessor implements IntProcessor {
                     case REAL_NUMBER:
                         if(Character.isDigit(i)) {
                             dataBuilder.appendCodePoint(i);
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             double d = Double.parseDouble(dataBuilder.toString());
                             to = keys.getSaved(d, new Xkey(d, null)).asExpected();
                             toFinish(i);
@@ -582,7 +580,7 @@ public class JorgProcessor implements IntProcessor {
             case TABLE_PORT_SIZE:
                 if(Character.isDigit(i)) {
                     dataBuilder.appendCodePoint(i);
-                } else if(isJorgControlCharacter(i)) {
+                } else if(isControlCharacter(i)) {
                     tableSize = Integer.parseInt(dataBuilder.toString());
                     resetDataBuilder();
                     dataState = DataState.PORT;
@@ -597,39 +595,30 @@ public class JorgProcessor implements IntProcessor {
                 break;
 
             case TABLE_PORT:
-                if(i == '`') {
-                    if(lastEscapeCharacter) {
-                        dataBuilder.appendCodePoint(i);
-                        lastEscapeCharacter = false;
-                    } else {
-                        lastEscapeCharacter = true;
-                    }
-                } else {
-                    if(isJorgControlCharacter(i)) {
-                        if(lastEscapeCharacter) {
-                            dataBuilder.appendCodePoint(i);
-                        } else {
-                            String string = dataBuilder.toString().trim();
-                            if(string.isEmpty()) {
-                                throw new ProcessorException();
-                            } else {
-                                TablePort tablePort = new TablePort(tableSize, string);
-                                to = keys.getSaved(tablePort, new Xkey(null, tablePort)).asExpected();
-                                from.addPre(to);
-                                dataState = DataState.PENDING;
-                                resetDataBuilder();
-                                state = switch (i) {
-                                    case ']' -> State.DIRECT_POST;
-                                    case '[' -> State.VIA_NODE;
-                                    case '@' -> State.BEFORE_FROM_NODE;
-                                    default -> throw new ProcessorException();
-                                };
-                            }
-                        }
-                    } else {
-                        dataBuilder.appendCodePoint(i);
-                    }
+                if(lastEscapeCharacter) {
+                    dataBuilder.appendCodePoint(i);
                     lastEscapeCharacter = false;
+                } else if(isControlCharacter(i)) {
+                    String string = dataBuilder.toString().trim();
+                    if(string.isEmpty()) {
+                        throw new ProcessorException();
+                    } else {
+                        TablePort tablePort = new TablePort(tableSize, string);
+                        to = keys.getSaved(tablePort, new Xkey(null, tablePort)).asExpected();
+                        from.addPre(to);
+                        dataState = DataState.PENDING;
+                        resetDataBuilder();
+                        state = switch (i) {
+                            case ']' -> State.DIRECT_POST;
+                            case '[' -> State.VIA_NODE;
+                            case '@' -> State.BEFORE_FROM_NODE;
+                            default -> throw new ProcessorException();
+                        };
+                    }
+                } else if(isEscapeCharacter(i)) {
+                    lastEscapeCharacter = true;
+                } else {
+                    dataBuilder.appendCodePoint(i);
                 }
                 break;
 
@@ -640,17 +629,25 @@ public class JorgProcessor implements IntProcessor {
                         break;
 
                     case HUMBLE_STRING:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             to = keys.getSaved(string, new Xkey(string, null)).asExpected();
                             directPostFinish(i);
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case REFERENCE:
-                        if(isJorgControlCharacter(i)) {
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
+                            lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
                             String string = dataBuilder.toString().trim();
                             if(string.isEmpty()) {
                                 throw new ProcessorException();
@@ -659,64 +656,48 @@ public class JorgProcessor implements IntProcessor {
                                 to = keys.getSaved(reference, new Xkey(null, reference)).asExpected();
                                 directPostFinish(i);
                             }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
                         } else {
                             dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case STRING:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(i == '"') {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString();
-                                    to = keys.getSaved(string, new Xkey(string, null)).asExpected();
-                                    from.setPost(via, to);
-                                    dataState = DataState.PENDING;
-                                    resetDataBuilder();
-                                    state = State.AFTER_TO_NODE;
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(i == '"') {
+                            String string = dataBuilder.toString();
+                            to = keys.getSaved(string, new Xkey(string, null)).asExpected();
+                            from.setPost(via, to);
+                            dataState = DataState.PENDING;
+                            resetDataBuilder();
+                            state = State.AFTER_TO_NODE;
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
                     case PORT:
-                        if(i == '`') {
-                            if(lastEscapeCharacter) {
-                                dataBuilder.appendCodePoint(i);
-                                lastEscapeCharacter = false;
-                            } else {
-                                lastEscapeCharacter = true;
-                            }
-                        } else {
-                            if(isJorgControlCharacter(i)) {
-                                if(lastEscapeCharacter) {
-                                    dataBuilder.appendCodePoint(i);
-                                } else {
-                                    String string = dataBuilder.toString().trim();
-                                    if(string.isEmpty()) {
-                                        throw new ProcessorException();
-                                    } else {
-                                        Port port = new Port(string);
-                                        to = keys.getSaved(port, new Xkey(null, port)).asExpected();
-                                        directPostFinish(i);
-                                    }
-                                }
-                            } else {
-                                dataBuilder.appendCodePoint(i);
-                            }
+                        if(lastEscapeCharacter) {
+                            dataBuilder.appendCodePoint(i);
                             lastEscapeCharacter = false;
+                        } else if(isControlCharacter(i)) {
+                            String string = dataBuilder.toString().trim();
+                            if(string.isEmpty()) {
+                                throw new ProcessorException();
+                            } else {
+                                Port port = new Port(string);
+                                to = keys.getSaved(port, new Xkey(null, port)).asExpected();
+                                directPostFinish(i);
+                            }
+                        } else if(isEscapeCharacter(i)) {
+                            lastEscapeCharacter = true;
+                        } else {
+                            dataBuilder.appendCodePoint(i);
                         }
                         break;
 
@@ -726,7 +707,7 @@ public class JorgProcessor implements IntProcessor {
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append('.');
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             int integer = Integer.parseInt(dataBuilder.toString());
                             to = keys.getSaved(integer, new Xkey(integer, null)).asExpected();
                             directPostFinish(i);
@@ -738,7 +719,7 @@ public class JorgProcessor implements IntProcessor {
                     case REAL_NUMBER:
                         if(Character.isDigit(i)) {
                             dataBuilder.appendCodePoint(i);
-                        } else if(isJorgControlCharacter(i)) {
+                        } else if(isControlCharacter(i)) {
                             double d = Double.parseDouble(dataBuilder.toString());
                             to = keys.getSaved(d, new Xkey(d, null)).asExpected();
                             directPostFinish(i);

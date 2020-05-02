@@ -13,17 +13,24 @@ import java.util.function.Predicate;
 public interface Fluid<T> extends Iterable<T>{
     FluidIterator<T> iterator();
 
+    default Cascade<T> cascade() {
+        return new Cascade<>(iterator());
+    }
+
     default <F extends T> Fluid<F> filter(Class<F> requestedType) {
         return () -> new FluidIterator<F>() {
             final Iterator<T> origin = iterator();
-            F lastFound = null;
+            F next = null;
+            boolean nextFound = false;
 
             @Override
             public boolean hasNext() {
+                if(nextFound) return true;
                 while (origin.hasNext()) {
                     Object o = origin.next();
                     if(requestedType.isInstance(o)) {
-                        lastFound = requestedType.cast(o);
+                        next = requestedType.cast(o);
+                        nextFound = true;
                         return true;
                     }
                 }
@@ -32,7 +39,8 @@ public interface Fluid<T> extends Iterable<T>{
 
             @Override
             public F next() {
-                return lastFound;
+                nextFound = false;
+                return next;
             }
         };
     }
@@ -40,14 +48,17 @@ public interface Fluid<T> extends Iterable<T>{
     default <F extends T> Fluid<F> filter(Glass<? super F, F> requestedType) {
         return () -> new FluidIterator<>() {
             final Iterator<T> origin = iterator();
-            F lastFound = null;
+            F next = null;
+            boolean nextFound = false;
 
             @Override
             public boolean hasNext() {
+                if(nextFound) return true;
                 while (origin.hasNext()) {
                     Object o = origin.next();
                     if(requestedType.isInstance(o)) {
-                        lastFound = requestedType.cast(o);
+                        next = requestedType.cast(o);
+                        nextFound = true;
                         return true;
                     }
                 }
@@ -56,7 +67,8 @@ public interface Fluid<T> extends Iterable<T>{
 
             @Override
             public F next() {
-                return lastFound;
+                nextFound = false;
+                return next;
             }
         };
     }
@@ -64,14 +76,17 @@ public interface Fluid<T> extends Iterable<T>{
     default Fluid<T> filter(Predicate<T> predicate) {
         return () -> new FluidIterator<>() {
             final Iterator<T> origin = iterator();
-            T lastFound = null;
+            T next = null;
+            boolean nextFound = false;
 
             @Override
             public boolean hasNext() {
+                if(nextFound) return true;
                 while (origin.hasNext()) {
                     T t = origin.next();
                     if(predicate.test(t)) {
-                        lastFound = t;
+                        next = t;
+                        nextFound = true;
                         return true;
                     }
                 }
@@ -80,7 +95,8 @@ public interface Fluid<T> extends Iterable<T>{
 
             @Override
             public T next() {
-                return lastFound;
+                nextFound = false;
+                return next;
             }
         };
     }

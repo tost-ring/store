@@ -138,6 +138,11 @@ class MultiSubject implements Subject {
     }
 
     @Override
+    public Subject iterable() {
+        return this;
+    }
+
+    @Override
     public String toString() {
         return chain.toString();
     }
