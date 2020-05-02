@@ -12,6 +12,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main extends Aproot {
 
     private Stage primaryStage;
@@ -26,8 +30,16 @@ public class Main extends Aproot {
 
         this.primaryStage = primaryStage;
 
-        Fusible f = () -> Suite.set("/XD");
-        System.out.println(JorgWriter.encode((Fusible) () -> Suite.set(1, f).set("255", 255)));
+//        System.out.println(JorgWriter.encode(new File("filet")));
+        List<String> list = new ArrayList<>();
+        list.add("str");
+        list.add("123");
+        JorgWriter writer = new JorgWriter();
+        writer.getPerformer().addPort(ArrayList.class, "List");
+        writer.getPerformer().addPort("str", "ported");
+        writer.addObject("obj", list);
+        writer.addObject("fil", new File("filet"));
+        writer.saveWell(new File("nowy.jorg"));
 
 
 //        order(Please.showSuperStore);

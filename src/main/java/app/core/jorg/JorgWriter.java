@@ -26,6 +26,7 @@ public class JorgWriter {
         try {
             writer.save(new FileOutputStream(filePath));
         } catch (JorgWriteException | IOException e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -37,6 +38,7 @@ public class JorgWriter {
         try {
             writer.save(new FileOutputStream(file));
         } catch (JorgWriteException | IOException e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -49,6 +51,7 @@ public class JorgWriter {
             URLConnection connection = url.openConnection();
             writer.save(connection.getOutputStream());
         } catch (IOException | JorgWriteException e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -62,8 +65,9 @@ public class JorgWriter {
     }
 
     private final Subject objects;
-    private final JorgPerformer performer;
+    private JorgPerformer performer;
     private boolean compactMode;
+    private boolean rootMode;
 
     public JorgWriter() {
         this(new JorgPerformer());
@@ -73,6 +77,15 @@ public class JorgWriter {
         this.performer = performer;
         objects = Suite.set();
         compactMode = false;
+        rootMode = true;
+    }
+
+    public JorgPerformer getPerformer() {
+        return performer;
+    }
+
+    public void setPerformer(JorgPerformer performer) {
+        this.performer = performer;
     }
 
     public boolean isCompactMode() {
@@ -83,11 +96,19 @@ public class JorgWriter {
         this.compactMode = compactMode;
     }
 
+    public boolean isRootMode() {
+        return rootMode;
+    }
+
+    public void setRootMode(boolean rootMode) {
+        this.rootMode = rootMode;
+    }
+
     public void addObject(String id, Object object) {
-        if(id.matches("^\\w")) {
+        if(id.matches("^\\p{Alpha}.+")) {
             objects.set(id, object);
         } else {
-            throw new IllegalArgumentException("Trace pattern is ^\\w");
+            throw new IllegalArgumentException("Trace pattern is ^\\p{Alpha}");
         }
     }
 
@@ -135,14 +156,75 @@ public class JorgWriter {
         OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
 
         Cascade<Crystal> crystals = performer.melt(objects);
+        boolean dartWritten;
 
         for(Crystal c : crystals.toEnd()) {
-            if(crystals.getFalls() > 1 || !"0".equals(c.getId())) {
-                writer.write(compactMode ? "@[" : "@ [ ");
+            if(crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
+                writer.write(compactMode ? "@[" : "@[ ");
                 writer.write(c.getId());
                 writer.write(compactMode ? "]" : " ] ");
             }
+            dartWritten = true;
             Cascade<Subject> cascade = c.getBody().front().cascade();
+
+            for(var ref : cascade.until(s -> s.key().asGiven(Crystal.class).getGerm() instanceof Suite.Add)) {
+                if(!dartWritten) {
+                    writer.write(compactMode ? "]" : " ] ");
+                }
+                Crystal c1 = ref.asExpected();
+                if(c1.getId() == null) {
+                    writer.write(stringify(c1.getGerm()));
+                } else {
+                    writer.write("@");
+                    writer.write(escapedHumble(c1.getId(), false));
+                }
+                dartWritten = false;
+            }
+            for(var ref : cascade.toEnd()) {
+                Crystal c1 = ref.key().asExpected();
+                if(c1.getGerm() instanceof Suite.Add) {
+                    if(!dartWritten) {
+                        writer.write(compactMode ? "]" : " ] ");
+                    }
+                    Crystal c2 = ref.asExpected();
+                    if(c2.getId() == null) {
+                        writer.write(stringify(c2.getGerm()));
+                    } else {
+                        writer.write("@");
+                        writer.write(escapedHumble(c2.getId(), false));
+                    }
+                    dartWritten = false;
+                } else {
+                    if(!compactMode) {
+                        if (crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
+                            writer.write("\n ");
+                        } else {
+                            writer.write("\n");
+                        }
+                    }
+                    if(c1.getGerm() == null) {
+                        writer.write(compactMode ? "[]" : "[] ");
+                        dartWritten = true;
+                    } else {
+                        writer.write(compactMode ? "[" : "[ ");
+                        if (c1.getId() == null) {
+                            writer.write(stringify(c1.getGerm()));
+                        } else {
+                            writer.write("@");
+                            writer.write(escapedHumble(c1.getId(), false));
+                        }
+                        writer.write(compactMode ? "]" : " ] ");
+
+                        Crystal c2 = ref.asExpected();
+                        if (c2.getId() == null) {
+                            writer.write(stringify(c2.getGerm()));
+                        } else {
+                            writer.write("@");
+                            writer.write(escapedHumble(c2.getId(), false));
+                        }
+                    }
+                }
+            }
 
             for(var ref : cascade.until(s -> s.key().asGiven(Crystal.class).getGerm() instanceof Suite.Add)) {
                 if(cascade.getFalls() > 1) {
@@ -158,7 +240,11 @@ public class JorgWriter {
             }
             for(var ref : cascade.toEnd()) {
                 Crystal c1 = ref.key().asExpected();
-                writer.write(compactMode ? "[" : "\n [ ");
+                if(crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
+                    writer.write(compactMode ? "[" : "\n [ ");
+                } else {
+                    writer.write(compactMode ? "[" : "\n[ ");
+                }
                 if(c1.getId() == null) {
                     writer.write(stringify(c1.getGerm()));
                 } else {

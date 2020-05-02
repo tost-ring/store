@@ -1,12 +1,14 @@
 package app.core.jorg;
 
 import app.core.fluid.Cascade;
-import app.core.fluid.Fluid;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.model.Port;
 import app.modules.model.TablePort;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Map;
 import java.util.function.Function;
 
 public class JorgPerformer {
@@ -21,14 +23,20 @@ public class JorgPerformer {
     public JorgPerformer(boolean allowDefaultSolvents, boolean allowDefaultPorts) {
         if(allowDefaultSolvents) {
             solvents.add((Function<Object, Subject>) o -> {
+                Subject s = simple(o);
+                if(s.settled())return s;
                 if(o instanceof Fusible) {
                     return ((Fusible) o).melt();
                 } else if(o.getClass().isArray()) {
                     return meltArray(o);
-                } else {
-                    Subject s = simple(o);
-                    return s.settled() ? s : null;
+                } else if(o instanceof Collection) {
+                    return StandardSolvent.meltCollection((Collection<?>) o);
+                } else if(o instanceof Map) {
+                    return StandardSolvent.meltMap((Map<?, ?>) o);
+                } else if(o instanceof File) {
+                    return StandardSolvent.meltFile((File)o);
                 }
+                return null;
             });
         }
 
@@ -48,6 +56,10 @@ public class JorgPerformer {
 
     public void addPort(Function<Object, String> port) {
         ports.add(port);
+    }
+
+    public void addPort(Object object, String id) {
+        ports.add((Function<Object, String>) o -> o == object ? id : null);
     }
 
     public Cascade<Crystal> melt(Subject solid) throws JorgWriteException {
@@ -115,6 +127,7 @@ public class JorgPerformer {
     }
 
     private Subject simple(Object o) {
+        if(o == null) return Suite.add(null);
         if(o instanceof Port) return Suite.add(o);
         Port port = port(o);
         if(port != null) return Suite.add(port);

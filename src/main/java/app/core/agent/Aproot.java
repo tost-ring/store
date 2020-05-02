@@ -1,8 +1,6 @@
 package app.core.agent;
 
 import app.core.NativeString;
-import app.core.jorg.GeneralPerformer;
-import app.core.jorg.JorgReader;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import javafx.application.Application;

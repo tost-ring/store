@@ -1,6 +1,8 @@
-package app.core.suite;
+package app.core.jorg;
 
 import app.controller.tool.ParentHelper;
+import app.core.suite.Subject;
+import app.core.suite.Suite;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -8,7 +10,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
 
-public class Prospect {
+public class StandardSolvent {
 
     public static Subject classpathSubjectively(Subject subject) {
         Object object = subject.direct();
@@ -48,44 +50,22 @@ public class Prospect {
         }
     }
 
-    public static Subject collectionSubjectively(Subject subject) {
-        Collection<?> collection = subject.prime().asExpected();
-        Subject sub = Suite.set();
-        int i = 0;
-        for(Object it : collection) {
-            sub.set(i++, it);
-        }
+    public static Subject meltCollection(Collection<?> collection) {
+        Subject sub = Suite.add(collection.getClass()).set(null);
+        collection.forEach(sub::add);
         return sub;
     }
 
-    public static void collectionObjectively(Subject subject) {
-        Collection<?> collection = subject.get(Object.class).asExpected();
-        Subject sub = subject.get(Subject.class).asExpected();
-        for(Subject s : sub.front()) {
-            collection.add(s.asExpected());
-        }
-    }
-
-    public static Subject mapSubjectively(Subject subject) {
-        Map<?, ?> map = subject.prime().asExpected();
-        Subject sub = Suite.set();
+    public static Subject meltMap(Map<?, ?> map) {
+        Subject sub = Suite.add(map.getClass());
         for(var entry : map.entrySet()) {
             sub.set(entry.getKey(), entry.getValue());
         }
         return sub;
     }
 
-    public static void mapObjectively(Subject subject) {
-        Map<?, ?> map = subject.get(Object.class).asExpected();
-        Subject sub = subject.get(Subject.class).asExpected();
-        for(Subject it : sub.front()) {
-            map.put(it.key().asExpected(), it.asExpected());
-        }
-    }
-
-    public static Subject fileSubjectively(Subject subject) {
-        File file = subject.prime().asExpected();
-        return Suite.set("path", file.getPath());
+    public static Subject meltFile(File file) {
+        return Suite.add(File.class).add(file.getPath());
     }
 
 }
