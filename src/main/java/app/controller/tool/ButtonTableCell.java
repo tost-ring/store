@@ -41,7 +41,7 @@ public class ButtonTableCell<S, T> extends TableCell<S, T> {
             Button button = new Button(it.asExpected());
             button.setMaxWidth(1.7976931348623157E308D);
             button.setOnAction(event -> {
-                impression.revel(Suite.set("value", it.key()).set("row", cell.getIndex()));
+                impression.revel(Suite.set("value", it.key().direct()).set("row", cell.getIndex()));
             });
             hbox.getChildren().add(button);
         }

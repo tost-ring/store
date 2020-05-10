@@ -1,144 +1,153 @@
 package app.core.jorg;
 
-import app.core.fluid.Interable;
 import app.core.suite.Subject;
-import app.core.suite.Subjective;
 import app.core.suite.Suite;
-import app.core.suite.action.Action;
-import app.core.suite.action.DiceyAction;
 import app.modules.model.Port;
-import app.modules.model.TablePort;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.util.function.BiPredicate;
+import java.lang.reflect.InvocationTargetException;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class JorgReformer {
 
     private final Subject constructors = Suite.set();
-    private final Subject initializers = Suite.set();
+    private final Subject reformers = Suite.set();
     private final Subject adapters = Suite.set();
 
     public JorgReformer() {
-        this(true, true, true);
+        this(true);
     }
 
-    public JorgReformer(boolean allowDefaultConstructors, boolean allowDefaultInitializers, boolean allowDefaultAdapters) {
-        if(allowDefaultConstructors) {
-            constructors.add((DiceyAction) s -> {
-                if(s.size() == 1) {
-                    if(s.assigned(Class.class)) {
-                        Class<?> type = s.asExpected();
-                        Constructor<?> c = type.getDeclaredConstructor();
-                        Object newInstance = c.newInstance();
-                        return Suite.set(newInstance);
-                    } else {
-                        return s; // Prymitywy i tablice bezposrednio zwrocic w subiekcie
-                    }
-                } else if(s.size() == 0) { // Domyslna klasa jest Subject
-                    return Suite.set(Suite.set());
-                }
-                return Suite.set();
-            });
-        }
+    public JorgReformer(boolean enableStandardReformers) {
 
-        if(allowDefaultInitializers) {
-            initializers.add((BiPredicate<Object, Subject>) (o, s) -> {
-                if(o instanceof Subjective) {
-                    ((Subjective) o).fromSubject(s);
-                    return true;
-                } else if(o.getClass().isArray()) {
-                    return initializeArray(o, s);
-                }
-                return !s.settled();
-            });
-        }
-
-        if(allowDefaultAdapters) {
-            adapters.add((Function<String, Object>) s -> {
-                try {
-                    return Class.forName(s);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            });
+        if(enableStandardReformers) {
+            reformers.insetAll(StandardReformer.getAllSupported().front());
         }
     }
 
 
-    public void addConstructor(DiceyAction action) {
-        constructors.add(action);
+    public void addConstructor(Function<Subject, Object> constructor) {
+        constructors.add(constructor);
     }
 
-    public void addInitializer(BiPredicate<Object, Subject> initializer) {
-        initializers.add(initializer);
+    public<T> void setReformer(Class<T> type, BiConsumer<T, Subject> reformer) {
+        reformers.set(type, reformer);
     }
 
-    public void addAdapter(Function<String, Object> adapter) {
-        adapters.add(adapter);
+    public void setAdapter(String s, Object o) {
+        adapters.set(s, o);
     }
 
-    public Object construct(Xkey xkey) {
-        if(xkey.getObject() != null)return xkey.getObject();
+    protected Object construct(Xkey xkey) throws JorgReadException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        if(xkey.isConstructed())return xkey.getObject();
+        Object o;
 
         //  Podłączenie do portu
         if(xkey.getLabel() instanceof Port) {
             Port port = (Port)xkey.getLabel();
-            for(var adapter : adapters.reverse()) {
-                Function<String, Object> function = adapter.asExpected();
-                Object r = function.apply(port.getLabel());
-                if(r != null) {
-                    if(port instanceof TablePort) {
-                        if(!(r instanceof Class)) throw new IllegalArgumentException("Non class port given as TablePort source");
-                        r = Array.newInstance((Class<?>)r, ((TablePort) port).getSize());
-                    }
-                    xkey.setObject(r);
-                    return r;
+            Subject sub = adapters.get(port.getLabel());
+            if(sub.settled()) {
+                o = sub.direct();
+            } else {
+                try {
+                    o = Class.forName(port.getLabel());
+                } catch (ClassNotFoundException e) {
+                    throw new JorgReadException("No adapter found for port " + port);
                 }
             }
-            throw new NullPointerException();
+            xkey.setObject(o);
+            xkey.setConstructed(true);
+            return o;
         }
 
         //  Konstrukcja obiektu
-        var params = xkey.getPre().front().values().filter(Xkey.class).
-                map(this::construct).toSubject(Interable.indexes());
+        xkey.setUnderConstruction(true);
 
-        for(var recipe : constructors.reverse()) {
-            Action action = recipe.asExpected();
-            var result = action.play(params);
-            if(result.settled()) {
-                xkey.setObject(result.direct());
-                return result.direct();
-            }
-        }
-
-        throw new NullPointerException();
-    }
-
-    public void initialize(Xkey xkey) {
-
+        Subject image = xkey.getImage();
         Subject params = Suite.set();
-        params.setAll(xkey.getPost().front().map(s -> {
-            if(s.key().assigned(Xkey.class)) {
-                return Suite.set(s.key().asGiven(Xkey.class).getObject(), s.asGiven(Xkey.class).getObject());
+        int paramIndex = 0;
+        // Parametry konstukcyjne to parametry do pierwszego oznaczonego lub do termiantora
+        for(var s : image.front()) {
+            Xkey key = s.key().asExpected();
+            if(!key.isConstructed())break;
+            if(key.getObject() instanceof Suite.Add) {
+                Xkey value = s.asExpected();
+                if(value.isUnderConstruction()) throw new JorgReadException("Construction loop");
+                if(!value.isConstructed()) construct(value);
+                image.take(key);
+                if(value.getObject() == Jorg.terminator) break;
+                params.set(paramIndex++, value.getObject());
             } else {
-                return Suite.set(s.key().direct(), s.asGiven(Xkey.class).getObject());
-            }
-        }));
-
-        for (var initializer : initializers.reverse()) {
-            BiPredicate<Object, Subject> predicate = initializer.asExpected();
-            if (predicate.test(xkey.getObject(), params)) {
-                return;
+                if(key.getObject() == Jorg.terminator) {
+                    image.take(key);
+                }
+                break;
             }
         }
 
-        throw new NullPointerException();
+        xkey.setUnderConstruction(false);
+
+        for(var s : constructors.reverse()) {
+            Function<Subject, Object> constructor = s.asExpected();
+            o = constructor.apply(params);
+            if(o != null) {
+                xkey.setObject(o);
+                xkey.setConstructed(true);
+                return o;
+            }
+        }
+
+        if(params.size() == 1) {
+            if (params.assigned(Class.class)) {
+                Class<?> type = params.asExpected();
+                Constructor<?> c = type.getDeclaredConstructor();
+                o = c.newInstance();
+            } else if (image.size() == 0) {
+                o = params.direct();
+            } else {
+                o = Suite.addAll(params.front().values());
+            }
+        } else if(params.size() == 2) {
+            if(params.get(0).assigned(Class.class) && params.get(1).assigned(Integer.class)) {
+                o = Array.newInstance(params.get(0).asExpected(), params.get(1).asExpected());
+            } else {
+                o = Suite.addAll(params.front().values());
+            }
+        } else {
+            o = Suite.addAll(params.front().values());
+        }
+        xkey.setObject(o);
+        xkey.setConstructed(true);
+
+        return o;
     }
 
-    private boolean initializeArray(Object o, Subject s) {
+    protected void reform(Xkey xkey) throws JorgReadException {
+
+        Object o = xkey.getObject();
+        if(o == null || o instanceof Boolean || o instanceof Character || o instanceof Byte || o instanceof Short ||
+                o instanceof Integer || o instanceof Long || o instanceof Float || o instanceof Double ||
+                o instanceof String) return;
+
+        Subject params = Suite.insetAll(xkey.getImage().front().
+                map(s -> Suite.set(s.key().asGiven(Xkey.class).getObject(), s.asGiven(Xkey.class).getObject())));
+
+        if(o instanceof Reformable) {
+            ((Reformable) o).reform(params);
+        } else if(o.getClass().isArray()) {
+            reformArray(o, params);
+        } else {
+            Subject sub = reformers.get(o.getClass());
+            if(sub.settled()) {
+                BiConsumer<Object, Subject> reformer = sub.asExpected();
+                reformer.accept(o, params);
+            } else throw new JorgReadException("Reformer for " + xkey.getObject() + " #" + xkey.getObject().getClass() + " not found");
+        }
+    }
+
+    protected void reformArray(Object o, Subject s) {
         Object[] a = (Object[]) o;
         int i = 0;
         for(var sub : s.front()) {
@@ -147,6 +156,5 @@ public class JorgReformer {
             }
             if(i < a.length)a[i++] = sub.direct();
         }
-        return true;
     }
 }

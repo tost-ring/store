@@ -18,11 +18,20 @@ public final class Suite {
     public static Subject set(Object key, Object value) {
         return new WrapSubject(new CoupleSubject(key, value));
     }
+    public static Add add() {
+        return new Add();
+    }
     public static Subject add(Object element) {
         return new WrapSubject(new CoupleSubject(new Add(), element));
     }
-    public static Subject setAll(Subject source) {
-        return new WrapSubject(ZeroSubject.getInstance().setAll(source.front()));
+    public static Subject insetAll(Iterable<Subject> source) {
+        return new WrapSubject(ZeroSubject.getInstance().insetAll(source));
+    }
+    public static Subject setAll(Iterable<Object> source) {
+        return new WrapSubject(ZeroSubject.getInstance().setAll(source));
+    }
+    public static Subject addAll(Iterable<Object> source) {
+        return new WrapSubject(ZeroSubject.getInstance().addAll(source));
     }
 
     public static Subject ok() {

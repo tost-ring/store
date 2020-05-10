@@ -1,14 +1,11 @@
 package app.core.jorg;
 
 import app.core.fluid.Cascade;
-import app.core.fluid.Fluid;
-import app.core.fluid.FluidIterator;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.model.processor.JorgProcessor;
 import app.modules.model.Port;
 import app.modules.model.TablePort;
-import app.modules.model.processor.ProcessorException;
 
 import java.io.*;
 import java.net.URL;
@@ -152,113 +149,57 @@ public class JorgWriter {
     }
 
     public void save(OutputStream output) throws JorgWriteException, IOException {
+        System.out.println("saving" + objects);
 
         OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
 
-        Cascade<Crystal> crystals = performer.melt(objects);
+        Cascade<Xray> crystals = performer.perform(objects);
         boolean dartWritten;
 
-        for(Crystal c : crystals.toEnd()) {
+        for(Xray c : crystals.toEnd()) {
             if(crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
                 writer.write(compactMode ? "@[" : "@[ ");
                 writer.write(c.getId());
                 writer.write(compactMode ? "]" : " ] ");
             }
             dartWritten = true;
-            Cascade<Subject> cascade = c.getBody().front().cascade();
+            Cascade<Subject> cascade = c.getImage().front().cascade();
 
-            for(var ref : cascade.until(s -> s.key().asGiven(Crystal.class).getGerm() instanceof Suite.Add)) {
-                if(!dartWritten) {
-                    writer.write(compactMode ? "]" : " ] ");
-                }
-                Crystal c1 = ref.asExpected();
-                if(c1.getId() == null) {
-                    writer.write(stringify(c1.getGerm()));
-                } else {
-                    writer.write("@");
-                    writer.write(escapedHumble(c1.getId(), false));
-                }
-                dartWritten = false;
-            }
             for(var ref : cascade.toEnd()) {
-                Crystal c1 = ref.key().asExpected();
-                if(c1.getGerm() instanceof Suite.Add) {
-                    if(!dartWritten) {
+                Xray key = ref.key().asExpected();
+                Xray value = ref.asExpected();
+                if(key.getObject() == Jorg.terminator || value.getObject() == Jorg.terminator) {
+                    writer.write(compactMode ? "@]" : " @] ");
+                    dartWritten = true;
+                } else {
+                    if(key.getObject() instanceof Suite.Add) {
+                        if(!dartWritten) {
+                            writer.write(compactMode ? "]" : " ] ");
+                        }
+                    } else {
+                        if (!compactMode) {
+                            if (crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
+                                writer.write("\n ");
+                            } else {
+                                writer.write("\n");
+                            }
+                        }
+                        writer.write(compactMode ? "[" : "[ ");
+                        if (key.getId() == null) {
+                            writer.write(stringify(key.getObject()));
+                        } else {
+                            writer.write("@");
+                            writer.write(escapedHumble(key.getId(), false));
+                        }
                         writer.write(compactMode ? "]" : " ] ");
                     }
-                    Crystal c2 = ref.asExpected();
-                    if(c2.getId() == null) {
-                        writer.write(stringify(c2.getGerm()));
+                    if (value.getId() == null) {
+                        writer.write(stringify(value.getObject()));
                     } else {
                         writer.write("@");
-                        writer.write(escapedHumble(c2.getId(), false));
+                        writer.write(escapedHumble(value.getId(), false));
                     }
                     dartWritten = false;
-                } else {
-                    if(!compactMode) {
-                        if (crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
-                            writer.write("\n ");
-                        } else {
-                            writer.write("\n");
-                        }
-                    }
-                    if(c1.getGerm() == null) {
-                        writer.write(compactMode ? "[]" : "[] ");
-                        dartWritten = true;
-                    } else {
-                        writer.write(compactMode ? "[" : "[ ");
-                        if (c1.getId() == null) {
-                            writer.write(stringify(c1.getGerm()));
-                        } else {
-                            writer.write("@");
-                            writer.write(escapedHumble(c1.getId(), false));
-                        }
-                        writer.write(compactMode ? "]" : " ] ");
-
-                        Crystal c2 = ref.asExpected();
-                        if (c2.getId() == null) {
-                            writer.write(stringify(c2.getGerm()));
-                        } else {
-                            writer.write("@");
-                            writer.write(escapedHumble(c2.getId(), false));
-                        }
-                    }
-                }
-            }
-
-            for(var ref : cascade.until(s -> s.key().asGiven(Crystal.class).getGerm() instanceof Suite.Add)) {
-                if(cascade.getFalls() > 1) {
-                    writer.write(compactMode ? "]" : " ] ");
-                }
-                Crystal c1 = ref.asExpected();
-                if(c1.getId() == null) {
-                    writer.write(stringify(c1.getGerm()));
-                } else {
-                    writer.write("@");
-                    writer.write(escapedHumble(c1.getId(), false));
-                }
-            }
-            for(var ref : cascade.toEnd()) {
-                Crystal c1 = ref.key().asExpected();
-                if(crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
-                    writer.write(compactMode ? "[" : "\n [ ");
-                } else {
-                    writer.write(compactMode ? "[" : "\n[ ");
-                }
-                if(c1.getId() == null) {
-                    writer.write(stringify(c1.getGerm()));
-                } else {
-                    writer.write("@");
-                    writer.write(escapedHumble(c1.getId(), false));
-                }
-                writer.write(compactMode ? "]" : " ] ");
-
-                Crystal c2 = ref.asExpected();
-                if(c2.getId() == null) {
-                    writer.write(stringify(c2.getGerm()));
-                } else {
-                    writer.write("@");
-                    writer.write(escapedHumble(c2.getId(), false));
                 }
             }
             if(!compactMode)writer.write("\n\n");
@@ -275,11 +216,7 @@ public class JorgWriter {
         } else if(object instanceof Double) {
             return "" + object;
         } else if(object instanceof Port) {
-            if (object instanceof TablePort) {
-                return "#[" + ((TablePort) object).getSize() + "]" + escapedHumble(((TablePort) object).getLabel(), false);
-            } else {
-                return "#" + escapedHumble(((Port) object).getLabel(), false);
-            }
+            return "#" + escapedHumble(((Port) object).getLabel(), false);
         } else if(object == null || object instanceof Suite.Add) {
             return "";
         } else {
@@ -325,7 +262,7 @@ public class JorgWriter {
                 endSpaces.get().appendCodePoint(cp);
             } else {
                 if(endSpaces.get().length() > 0) {
-                    endSpaces.get().chars().forEach(ws -> stringBuilder.appendCodePoint(escapeCharacter).appendCodePoint(ws));
+                    endSpaces.get().chars().forEach(stringBuilder::appendCodePoint);
                     endSpaces.set(new StringBuilder());
                 }
                 if (JorgProcessor.isControlCharacter(cp) || JorgProcessor.isEscapeCharacter(cp)) {
@@ -334,6 +271,9 @@ public class JorgWriter {
                 stringBuilder.appendCodePoint(cp);
             }
         });
+        if(endSpaces.get().length() > 0) {
+            endSpaces.get().chars().forEach(ws -> stringBuilder.appendCodePoint(escapeCharacter).appendCodePoint(ws));
+        }
         return stringBuilder.toString();
     }
 

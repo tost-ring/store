@@ -2,19 +2,16 @@ package app;
 
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
-import app.core.jorg.Fusible;
-import app.core.jorg.JorgPerformer;
-import app.core.jorg.JorgWriteException;
+import app.core.jorg.JorgReader;
 import app.core.jorg.JorgWriter;
+import app.core.jorg.Performable;
+import app.core.suite.Chain;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
+import app.modules.model.Store;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main extends Aproot {
 
@@ -30,19 +27,7 @@ public class Main extends Aproot {
 
         this.primaryStage = primaryStage;
 
-//        System.out.println(JorgWriter.encode(new File("filet")));
-        List<String> list = new ArrayList<>();
-        list.add("str");
-        list.add("123");
-        JorgWriter writer = new JorgWriter();
-        writer.getPerformer().addPort(ArrayList.class, "List");
-        writer.getPerformer().addPort("str", "ported");
-        writer.addObject("obj", list);
-        writer.addObject("fil", new File("filet"));
-        writer.saveWell(new File("nowy.jorg"));
-
-
-//        order(Please.showSuperStore);
+        order(Please.showSuperStore);
     }
 
     @Override

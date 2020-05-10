@@ -1,23 +1,24 @@
 package app.modules.model;
 
+import app.core.jorg.Performable;
+import app.core.jorg.Reformable;
+import app.core.jorg.util.MoldList;
 import app.core.suite.Subject;
-import app.core.suite.Subjective;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class Store implements Subjective {
+public class Store implements Performable, Reformable {
 
-    private List<String> columns;
-    private List<Subject> stored = new ArrayList<>();
+    private final List<String> columns;
+    private final List<Subject> stored = new ArrayList<>();
 
     public Store() {
         columns = new ArrayList<>();
     }
 
     public Store(String ... columns) {
-        this.columns = Arrays.asList(columns);
+        this.columns = MoldList.of(columns);
     }
 
     public List<Subject> getStored() {
@@ -27,4 +28,5 @@ public class Store implements Subjective {
     public List<String> getColumns() {
         return columns;
     }
+
 }

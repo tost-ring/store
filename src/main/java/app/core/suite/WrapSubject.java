@@ -214,14 +214,14 @@ public class WrapSubject implements Subject {
     }
 
     @Override
-    public Subject setAll(Iterable<Subject> iterable) {
-        subject = subject.setAll(iterable);
+    public Subject insetAll(Iterable<Subject> iterable) {
+        subject = subject.insetAll(iterable);
         return this;
     }
 
     @Override
-    public Subject putAll(Iterable<Subject> iterable) {
-        subject = subject.putAll(iterable);
+    public Subject inputAll(Iterable<Subject> iterable) {
+        subject = subject.inputAll(iterable);
         return this;
     }
 

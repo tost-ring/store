@@ -2,10 +2,12 @@ package app.core.agent;
 
 import app.core.suite.Subject;
 import javafx.beans.value.ChangeListener;
+import javafx.event.EventHandler;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 public abstract class Controller extends Agent {
 
@@ -15,12 +17,11 @@ public abstract class Controller extends Agent {
     public static final Object tokenString = new Object();
 
     private Aproot aproot;
-    private ChangeListener<Scene> sceneChangeCallback = (observableValue, scene, t1) -> {
-        if(scene == scene()) {
-            undress();
-        }
-    };
+    private final ChangeListener<Scene> undressCallback = (observableValue, scene, t1) -> internalUndress();
+    private final EventHandler<WindowEvent> windowCloseCallback = event -> internalUndress();
     protected Parent parent;
+    protected Stage stage;
+    protected Scene scene;
     protected Subject suite;
 
 
@@ -37,8 +38,10 @@ public abstract class Controller extends Agent {
     protected void employ() {}
 
     protected final Subject internalDress(Subject subject) {
-        window().setOnHiding(event -> undress());
-        stage().sceneProperty().addListener(sceneChangeCallback);
+        stage = subject.get(Stage.class).asExpected();
+        scene = subject.get(Scene.class).asExpected();
+        parent.sceneProperty().addListener(undressCallback);
+        stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, windowCloseCallback);
         suite = subject;
         return dress(subject);
     }
@@ -51,7 +54,8 @@ public abstract class Controller extends Agent {
     protected void dress(){}
 
     protected final void internalUndress() {
-        stage().sceneProperty().removeListener(sceneChangeCallback);
+        parent.sceneProperty().removeListener(undressCallback);
+        stage.removeEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, windowCloseCallback);
         undress();
     }
 
@@ -71,12 +75,11 @@ public abstract class Controller extends Agent {
     }
 
     protected final Stage stage() {
-        Window window = window();
-        return window instanceof Stage ? (Stage)window : null;
+        return stage;
     }
 
     protected final Scene scene() {
-        return parent == null ? null : parent.getScene();
+        return scene;
     }
 
     public final Parent parent() {

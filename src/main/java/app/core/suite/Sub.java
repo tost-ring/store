@@ -99,7 +99,7 @@ public class Sub<K, V> /*implements Subjective*/ {
 //        return keys(false);
 //    }
 //
-//    public Sub<K, V> setAll(Iterable<Subject> iterable) {
+//    public Sub<K, V> insetAll(Iterable<Subject> iterable) {
 //        for(Subject it : iterable) {
 //            if(it.isIn(valueType) && it.key().isIn(keyType)) {
 //                subject = subject.set(it.key().direct(), it.direct());
@@ -108,7 +108,7 @@ public class Sub<K, V> /*implements Subjective*/ {
 //        return this;
 //    }
 //
-//    public Sub<K, V> putAll(Iterable<Subject> iterable) {
+//    public Sub<K, V> inputAll(Iterable<Subject> iterable) {
 //        for(Subject it : iterable) {
 //            if(it.isIn(valueType) && it.key().isIn(keyType)) {
 //                subject = subject.put(it.key().direct(), it.direct());
@@ -118,12 +118,12 @@ public class Sub<K, V> /*implements Subjective*/ {
 //    }
 //
 //    @Override
-//    public Subject toSubject() {
+//    public Subject perform() {
 //        return subject;
 //    }
 //
 //    @Override
 //    public void fromSubject(Subject subject) {
-//        putAll(subject);
+//        inputAll(subject);
 //    }
 }

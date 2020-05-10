@@ -43,11 +43,11 @@ public class Chain implements FluidSubject {
     }
 
     public Subject getFirst() {
-        return ward.front.subject;
+        return ward.back.subject;
     }
 
     public Subject getLast() {
-        return ward.back.subject;
+        return ward.front.subject;
     }
 
     public int size() {

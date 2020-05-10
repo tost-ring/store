@@ -3,7 +3,6 @@ package app.core.jorg;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.model.processor.JorgProcessor;
-import app.modules.model.processor.ProcessorException;
 import app.modules.model.Reference;
 
 import java.io.*;
@@ -34,15 +33,23 @@ public class JorgReader {
         return reader.loadWell(inputStream) ? reader.getObjects() : Suite.set();
     }
 
-    private final JorgReformer performer;
+    private JorgReformer reformer;
     private final Subject objects;
 
     public JorgReader() {
         this(new JorgReformer());
     }
 
-    public JorgReader(JorgReformer performer) {
-        this.performer = performer;
+    public JorgReformer getReformer() {
+        return reformer;
+    }
+
+    public void setReformer(JorgReformer reformer) {
+        this.reformer = reformer;
+    }
+
+    public JorgReader(JorgReformer reformer) {
+        this.reformer = reformer;
         objects = Suite.set();
     }
 
@@ -56,7 +63,7 @@ public class JorgReader {
         }
     }
 
-    public void load(File file) throws IOException, ProcessorException, NoSuchMethodException {
+    public void load(File file) throws IOException, JorgReadException {
         load(new FileInputStream(file));
     }
 
@@ -70,7 +77,7 @@ public class JorgReader {
         }
     }
 
-    public void load(URL url) throws IOException, ProcessorException {
+    public void load(URL url) throws IOException, JorgReadException {
         URLConnection connection = url.openConnection();
         load(connection.getInputStream());
     }
@@ -85,28 +92,29 @@ public class JorgReader {
         }
     }
 
-    public void load(InputStream inputStream) throws IOException, ProcessorException {
+    public void load(InputStream inputStream) throws JorgReadException {
         Subject xkeys;
         JorgProcessor processor = new JorgProcessor();
         processor.ready();
-        try {
+        try (inputStream) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             int code = reader.read();
-            while(code != -1) {
+            while (code != -1) {
                 processor.advance(code);
                 code = reader.read();
             }
             xkeys = processor.finish();
-        } finally {
-            inputStream.close();
-        }
-        for(Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getObject() == null)) {
-            performer.construct(xkey);
-        }
-        for(Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getLabel() instanceof Reference)) {
-            performer.initialize(xkey);
-            Reference ref = (Reference)xkey.getLabel();
-            objects.set(ref.getLabel(), xkey.getObject());
+
+            for (Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getObject() == null)) {
+                reformer.construct(xkey);
+            }
+            for (Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getLabel() instanceof Reference)) {
+                reformer.reform(xkey);
+                Reference ref = (Reference) xkey.getLabel();
+                objects.set(ref.getLabel(), xkey.getObject());
+            }
+        }catch(Exception e) {
+            throw new JorgReadException(e);
         }
     }
 

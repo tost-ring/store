@@ -356,17 +356,17 @@ class ThreadySubject implements Subject {
     }
 
     @Override
-    public Subject setAll(Iterable<Subject> iterable) {
+    public Subject insetAll(Iterable<Subject> iterable) {
         try(var ignored = writeLock.lock()) {
-            subject = subject.setAll(iterable);
+            subject = subject.insetAll(iterable);
         }
         return this;
     }
 
     @Override
-    public Subject putAll(Iterable<Subject> iterable) {
+    public Subject inputAll(Iterable<Subject> iterable) {
         try(var ignored = writeLock.lock()) {
-            subject = subject.putAll(iterable);
+            subject = subject.inputAll(iterable);
         }
         return this;
     }

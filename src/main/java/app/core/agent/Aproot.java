@@ -1,6 +1,7 @@
 package app.core.agent;
 
 import app.core.NativeString;
+import app.core.jorg.JorgReader;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import javafx.application.Application;
@@ -12,7 +13,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 public abstract class Aproot extends Application {
 
@@ -33,7 +33,7 @@ public abstract class Aproot extends Application {
         public Subject fulfil(Subject subject) {
             Broker broker = subject.get(Client.source).asExpected();
             Subject result = Aproot.this.fulfill(broker, subject);
-            return result.setAll(Aproot.this.fulfil(subject).front());
+            return result.insetAll(Aproot.this.fulfil(subject).front());
         }
     };
     protected Subject suite;
@@ -46,13 +46,14 @@ public abstract class Aproot extends Application {
 
     @Override
     public final void start(Stage primaryStage) {
-//        JorgReader reader = new JorgReader(new GeneralPerformer(Suite.set("", NativeString.class)));
-//        if(reader.readWell(getResource("/jorg/dictionary.jorg"))) {
-//            dictionary = reader.getObjects();
-//        } else {
-//            dictionary = Suite.set();
-//        }
-//        setNation("pl");
+        JorgReader reader = new JorgReader();
+        reader.getReformer().addConstructor(s -> s.size() == 0 ? new NativeString() : null);
+        if(reader.loadWell(getResource("/jorg/dictionary.jorg"))) {
+            dictionary = reader.getObjects();
+        } else {
+            dictionary = Suite.set();
+        }
+        setNation("pl");
         employ(primaryStage);
     }
 
@@ -104,7 +105,7 @@ public abstract class Aproot extends Application {
                 alert.setHeaderText("Błąd podczas otwierania pliku");
                 alert.setContentText("Zasób fxml '" + fxml + "' nie został znaleziony");
                 alert.showAndWait();
-                throw new ExceptionInInitializerError("Pane load fail");
+                throw new ExceptionInInitializerError("Pane perform fail");
             }
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent parent;
@@ -117,7 +118,7 @@ public abstract class Aproot extends Application {
                 alert.setContentText("Sprawdź plik: " + fxmlUrl.getFile());
                 alert.showAndWait();
                 e.printStackTrace();
-                throw new ExceptionInInitializerError("Pane load fail");
+                throw new ExceptionInInitializerError("Pane perform fail");
             }
             controller = loader.getController();
             if (controller == null) {
@@ -126,7 +127,7 @@ public abstract class Aproot extends Application {
                 alert.setHeaderText("Błąd podczas ładowania kontrolera");
                 alert.setContentText("Sprawdź plik: " + fxmlUrl.getFile());
                 alert.showAndWait();
-                throw new ExceptionInInitializerError("Pane load fail");
+                throw new ExceptionInInitializerError("Pane perform fail");
             }
             controller.setParent(parent);
         }
@@ -147,7 +148,8 @@ public abstract class Aproot extends Application {
     public final Subject showView(Broker broker, Subject subject) {
         Controller controller = subject.get(Controller.class).orGiven(null);
         if(controller == null || controller.parent() == null) {
-            subject.setAll(loadView(broker, subject).front());
+            Subject s = loadView(broker, subject);
+            subject.insetAll(s.front());
             controller = subject.get(Controller.class).asExpected();
         }
 
@@ -171,9 +173,11 @@ public abstract class Aproot extends Application {
         } else {
             throw new ClassCastException("Cannot show " + window);
         }
-        Subject dress = controller.internalDress(subject.get(Controller.dressStuff).set(Scene.class, scene).set(Stage.class, stage));
+        Subject dressStuff = subject.getDone(Controller.dressStuff, Suite::set).asExpected();
+        dressStuff.set(Scene.class, scene).set(Stage.class, stage);
+        dressStuff = controller.internalDress(dressStuff);
         stage.show();
-        return subject.set(Controller.dressStuff, dress);
+        return subject.set(Controller.dressStuff, dressStuff);
     }
 
     protected final Subject showView(Subject subject){

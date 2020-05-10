@@ -1,13 +1,14 @@
 package app.core;
 
+import app.core.jorg.Performable;
+import app.core.jorg.Reformable;
 import app.core.suite.Subject;
-import app.core.suite.Subjective;
 import app.core.suite.Suite;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 
-public class NativeString implements Subjective {
+public class NativeString implements Performable, Reformable {
 
     private Subject translations = Suite.set();
     private StringProperty value = new SimpleStringProperty();
@@ -15,13 +16,13 @@ public class NativeString implements Subjective {
     public NativeString() {}
 
     @Override
-    public Subject toSubject() {
+    public Subject perform() {
         return translations;
     }
 
     @Override
-    public void fromSubject(Subject sub) {
-        translations.setAll(sub.front());
+    public void reform(Subject sub) {
+        translations.insetAll(sub.front());
     }
 
     public String getValue() {

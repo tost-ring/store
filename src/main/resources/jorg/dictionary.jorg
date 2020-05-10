@@ -1,31 +1,31 @@
-@deleteConfirm
+@[ deleteConfirm ]
  [ pl ] "Potwierdź usunięcie klikając ENTER"
  [ en ] "Press ENTER to confirm deletion"
 
-@storeReadFail
+@[ storeReadFail ]
  [ pl ] "Błąd podczas odczytu wybranego magazynu."
  [ en ] "Store opening ends with error."
 
-@fileExistError
+@[ fileExistError ]
  [ pl ] "Podany plik już istnieje!"
  [ en ] "Given file already exists!"
 
-@emptyFileLocationError
+@[ emptyFileLocationError ]
  [ pl ] "Nie podano lokalizacji pliku"
  [ en ] "File location not given"
 
-@fileCreationError
+@[ fileCreationError ]
  [ pl ] "Błąd podczas tworzenia pliku"
  [ en ] "File creation exception"
 
-@open
+@[ open ]
  [ pl ] "Otwórz"
  [ en ] Open
 
-@delete
+@[ delete ]
  [ pl ] "Usuń"
  [ en ] Delete
 
-@create
+@[ create ]
  [ pl ] "Utwórz"
  [ en ] Create

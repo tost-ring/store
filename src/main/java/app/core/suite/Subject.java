@@ -1,11 +1,14 @@
 package app.core.suite;
 
 import app.core.fluid.FluidSubject;
+import app.core.jorg.Jorg;
+import app.core.jorg.Performable;
+import app.core.jorg.Reformable;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Subject extends Subjective {
+public interface Subject extends Performable, Reformable {
 
     Subject set(Object element);
     Subject set(Object key, Object value);
@@ -37,33 +40,33 @@ public interface Subject extends Subjective {
     boolean assigned(Class<?> type);
 
     default Subject getSaved(Object key, Object substitute) {
-        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+        throw new UnsupportedOperationException();
     }
     default Subject getDone(Object key, Supplier<?> supplier) {
-        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+        throw new UnsupportedOperationException();
     }
     default Subject getDone(Object key, Function<Subject, ?> function, Subject argument) {
-        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+        throw new UnsupportedOperationException();
     }
     default Subject take(Object key) {
-        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+        throw new UnsupportedOperationException();
     }
 
     boolean settled();
     int size();
 
     default FluidSubject front() {
-        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+        throw new UnsupportedOperationException();
     }
 
     default FluidSubject reverse() {
-        throw new UnsupportedOperationException("Not implemented in heterogeneous subject");
+        throw new UnsupportedOperationException();
     }
 
     Subject iterable();
 
 //    default<K, V> Sub<K, V> sub(Class<K> keyType, Class<V> valueType) {
-//        return new Sub<>(keyType, valueType).setAll(this.front());
+//        return new Sub<>(keyType, valueType).insetAll(this.front());
 //    }
 
     default boolean fused() {
@@ -74,7 +77,7 @@ public interface Subject extends Subjective {
         return false;
     }
 
-    default Subject setAll(Iterable<Subject> iterable) {
+    default Subject insetAll(Iterable<Subject> iterable) {
         Subject subject = this;
         for(Subject it : iterable) {
             subject = subject.set(it.key().direct(), it.direct());
@@ -82,7 +85,7 @@ public interface Subject extends Subjective {
         return subject;
     }
 
-    default Subject putAll(Iterable<Subject> iterable) {
+    default Subject inputAll(Iterable<Subject> iterable) {
         Subject subject = this;
         for(Subject it : iterable) {
             subject = subject.put(it.key().direct(), it.direct());
@@ -90,13 +93,37 @@ public interface Subject extends Subjective {
         return subject;
     }
 
-    @Override
-    default Subject toSubject() {
-        return this;
+    default Subject setAll(Iterable<Object> iterable) {
+        Subject subject = this;
+        for(Object it : iterable) {
+            subject = subject.set(it);
+        }
+        return subject;
+    }
+
+    default Subject putAll(Iterable<Object> iterable) {
+        Subject subject = this;
+        for(Object it : iterable) {
+            subject = subject.put(it);
+        }
+        return subject;
+    }
+
+    default Subject addAll(Iterable<Object> iterable) {
+        Subject subject = this;
+        for(Object it : iterable) {
+            subject = subject.add(it);
+        }
+        return subject;
     }
 
     @Override
-    default void fromSubject(Subject subject) {
-        putAll(subject.front());
+    default Subject perform() {
+        return key().assigned(Suite.Add.class) ? Suite.set(Jorg.terminator).insetAll(front()) : this;
+    }
+
+    @Override
+    default void reform(Subject subject) {
+        insetAll(subject.front());
     }
 }

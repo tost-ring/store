@@ -1,6 +1,5 @@
 package app.core.jorg;
 
-import app.core.suite.Graph;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 
@@ -9,14 +8,16 @@ import java.util.Objects;
 public class Xkey {
     private Object object;
     private Object label;
-    private Subject pre;
-    private Subject post;
+    private final Subject image;
+    private boolean constructed;
+    private boolean underConstruction;
 
-    public Xkey(Object object, Object label) {
+    public Xkey(Object object, Object label, boolean constructed) {
         this.object = object;
         this.label = label;
-        this.pre = Suite.set();
-        this.post = Suite.set();
+        this.image = Suite.set();
+        this.constructed = constructed;
+        this.underConstruction = false;
     }
 
     public Object getObject() {
@@ -35,24 +36,32 @@ public class Xkey {
         this.label = label;
     }
 
-    public Subject getPre() {
-        return pre;
+    public Subject getImage() {
+        return image;
     }
 
-    public Subject getPost() {
-        return post;
+    public boolean isConstructed() {
+        return constructed;
     }
 
-    public void addPre(Xkey xkey) {
-        pre.add(xkey);
+    public void setConstructed(boolean constructed) {
+        this.constructed = constructed;
     }
 
-    public void setPost(Xkey key, Xkey value) {
-        post.set(key, value);
+    public boolean isUnderConstruction() {
+        return underConstruction;
     }
 
-    public void addPost(Xkey xkey) {
-        post.add(xkey);
+    public void setUnderConstruction(boolean underConstruction) {
+        this.underConstruction = underConstruction;
+    }
+
+    public void set(Xkey key, Xkey value) {
+        image.set(key, value);
+    }
+
+    public void add(Xkey xkey) {
+        image.set(new Xkey(Suite.add(), null, true), xkey);
     }
 
     @Override
@@ -71,6 +80,6 @@ public class Xkey {
     }
 
     public String dataAsString() {
-        return " [ " + label + " ] " + pre.front().values().toString(" ] ") + "\n" + post.toString();
+        return " [ " + label + " ]\n" + image.toString();
     }
 }

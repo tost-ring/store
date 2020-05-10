@@ -67,7 +67,7 @@ public class Graph/* implements Subject */{
 //    }
 //
 //    @Override
-//    public Subject setAll(Iterable<Subject> iterable) {
+//    public Subject insetAll(Iterable<Subject> iterable) {
 //        for(Subject it : iterable) {
 //
 //            subject = subject.set(it.key().direct(), it.direct());
@@ -78,7 +78,7 @@ public class Graph/* implements Subject */{
 //    public Subject get(Object key) {
 //
 //        Subject s = sub.get(key);
-//        return new Graph().setAll(s.key().direct(), s.asExpected());
+//        return new Graph().insetAll(s.key().direct(), s.asExpected());
 //    }
 //
 //    @Override

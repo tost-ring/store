@@ -10,7 +10,7 @@ public interface IntProcessor {
     default Subject ready() {
         return Suite.set();
     }
-    Subject advance(int i)throws ProcessorException;
+    void advance(int i)throws ProcessorException;
     default Subject finish()throws ProcessorException {
         return Suite.set();
     }

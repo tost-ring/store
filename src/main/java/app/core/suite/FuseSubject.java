@@ -15,7 +15,7 @@ class FuseSubject implements Subject {
 
     private void safe() {
         if(active) {
-            subject = ZeroSubject.getInstance().setAll(subject.front());
+            subject = ZeroSubject.getInstance().insetAll(subject.front());
             active = false;
         }
     }
