@@ -1,14 +1,16 @@
 package app.core.jorg;
 
+import app.core.jorg.util.PortableList;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.Port;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+
+import static app.core.jorg.Jorg.terminator;
 
 public class JorgReformer {
 
@@ -17,13 +19,17 @@ public class JorgReformer {
     private final Subject adapters = Suite.set();
 
     public JorgReformer() {
-        this(true);
+        this(true, true);
     }
 
-    public JorgReformer(boolean enableStandardReformers) {
+    public JorgReformer(boolean enableStandardReformers, boolean enableDefaultAdapters) {
 
         if(enableStandardReformers) {
             reformers.insetAll(StandardReformer.getAllSupported().front());
+        }
+
+        if(enableDefaultAdapters) {
+            adapters.set("list", PortableList.class);
         }
     }
 
@@ -71,16 +77,15 @@ public class JorgReformer {
         // Parametry konstukcyjne to parametry do pierwszego oznaczonego lub do termiantora
         for(var s : image.front()) {
             Xkey key = s.key().asExpected();
-            if(!key.isConstructed())break;
             if(key.getObject() instanceof Suite.Add) {
                 Xkey value = s.asExpected();
                 if(value.isUnderConstruction()) throw new JorgReadException("Construction loop");
                 if(!value.isConstructed()) construct(value);
                 image.take(key);
-                if(value.getObject() == Jorg.terminator) break;
+                if(value.getObject() == terminator) break;
                 params.set(paramIndex++, value.getObject());
             } else {
-                if(key.getObject() == Jorg.terminator) {
+                if(key.getObject() == terminator) {
                     image.take(key);
                 }
                 break;

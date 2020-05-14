@@ -1,11 +1,5 @@
 package app.core.suite;
 
-import app.core.fluid.Fluid;
-import app.core.fluid.FluidIterator;
-
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 public class Graph/* implements Subject */{
 //
 //    private final Subject sub = Suite.set();

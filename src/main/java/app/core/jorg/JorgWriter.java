@@ -1,11 +1,8 @@
 package app.core.jorg;
 
-import app.core.fluid.Cascade;
+import app.core.suite.util.Cascade;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.processor.JorgProcessor;
-import app.modules.model.Port;
-import app.modules.model.TablePort;
 
 import java.io.*;
 import java.net.URL;
@@ -215,6 +212,8 @@ public class JorgWriter {
             return "" + object;
         } else if(object instanceof Double) {
             return "" + object;
+        } else if (object instanceof Boolean) {
+            return (Boolean) object ? "+" : "-";
         } else if(object instanceof Port) {
             return "#" + escapedHumble(((Port) object).getLabel(), false);
         } else if(object == null || object instanceof Suite.Add) {

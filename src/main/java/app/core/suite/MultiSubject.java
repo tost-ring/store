@@ -1,6 +1,6 @@
 package app.core.suite;
 
-import app.core.fluid.*;
+import app.core.suite.util.*;
 
 import java.util.function.Supplier;
 

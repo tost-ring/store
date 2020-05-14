@@ -56,11 +56,11 @@ public class StoreController extends Controller {
             }
         });
 
+        searchText.setOnKeyPressed(this::searchTextKeyAction);
+
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         tableView.setOnKeyPressed(this::tableKeyAction);
-
-
 
         return Suite.set();
     }
@@ -137,7 +137,7 @@ public class StoreController extends Controller {
                     switch(s.get("value").orGiven("")) {
                         case "delete":
                             tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
-                            deleteSelected();
+                            deleteSelected(store.isAdvancedMode());
                             break;
                     }
                 });
@@ -195,7 +195,7 @@ public class StoreController extends Controller {
     private void tableKeyAction(KeyEvent event) {
         switch (event.getCode()) {
             case DELETE:
-                deleteSelected();
+                deleteSelected(store.isAdvancedMode());
                 event.consume();
                 break;
             case INSERT:
@@ -207,16 +207,54 @@ public class StoreController extends Controller {
 
     private void deleteSelected() {
         ParentHelper.confirmation(stack, aproot().getString("deleteConfirm"), () -> {
+            deleteSelected(true);
+        });
+    }
+
+    private void deleteSelected(boolean confirmed) {
+        if(confirmed) {
             Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
             store.getStored().removeAll(selected);
             tableView.getItems().removeAll(selected);
-        });
+        } else deleteSelected();
     }
 
     private void insertBeforeSelected() {
         Subject sub = Suite.set();
         store.getStored().add(sub);
         tableView.getItems().add(tableView.getSelectionModel().getSelectedIndex(), sub);
+    }
+
+    private void searchTextKeyAction(KeyEvent event) {
+        switch (event.getCode()) {
+            case ESCAPE:
+                searchText.setText("");
+                event.consume();
+                break;
+            case ENTER:
+                if(searchString.startsWith("!")) {
+                    scriptAction();
+                } else {
+                    addAction(new ActionEvent());
+                }
+                event.consume();
+                break;
+        }
+    }
+
+    private void scriptAction() {
+        switch (searchString) {
+            case "!root":
+                store.setAdvancedMode(true);
+                resetTable();
+                searchText.setText("");
+                break;
+            case "!user":
+                store.setAdvancedMode(false);
+                resetTable();
+                searchText.setText("");
+                break;
+        }
     }
 
 

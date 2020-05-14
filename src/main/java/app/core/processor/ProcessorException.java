@@ -1,4 +1,4 @@
-package app.modules.model.processor;
+package app.core.processor;
 
 public class ProcessorException extends Exception {
 

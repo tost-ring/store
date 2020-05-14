@@ -7,7 +7,7 @@ import app.core.agent.Controller;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
 import app.modules.dealer.StoreDealer;
-import app.modules.model.GlyphProcessor;
+import app.controller.tool.GlyphProcessor;
 import app.modules.model.Store;
 import javafx.beans.binding.StringBinding;
 import javafx.event.ActionEvent;
@@ -121,36 +121,40 @@ public class SuperStoreController extends Controller {
             column.setEditable(true);
             list.add(column);
         }
-        list.get(2).setVisible(false);
-        list.get(3).setVisible(false);
-        TableColumn<Subject, String> publicActionColumn = ActionTableColumn.make("Akcja", Suite.
-                        set("open", aproot().getString("open")).
-                        set("delete", aproot().getString("delete")),
+        list.get(2).setVisible(store.isAdvancedMode());
+        list.get(3).setVisible(store.isAdvancedMode());
+        TableColumn<Subject, String> publicActionColumn = ActionTableColumn.make("", Suite.
+                        set("open", aproot().getString("open")),
                 s -> {
                     switch(s.get("value").orGiven("")) {
                         case "open":
                             tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             enterSelected();
                             break;
-                        case "delete":
-                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
-                            deleteSelected();
-                            break;
+
                     }
                 });
         list.add(publicActionColumn);
-        TableColumn<Subject, String> protectedActionColumn = ActionTableColumn.make("Akcja admin", Suite.
-                        set("create", aproot().getString("create")),
+
+        TableColumn<Subject, String> protectedActionColumn = ActionTableColumn.make("", Suite.
+                        set("create", aproot().getString("create")).
+                        set("delete", aproot().getString("delete")),
                 s -> {
                     switch(s.get("value").orGiven("")) {
                         case "create":
                             tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             createSelected();
                             break;
+                        case "delete":
+                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
+                            deleteSelected(store.isAdvancedMode());
+                            break;
                     }
                 });
-        protectedActionColumn.setVisible(false);
+        protectedActionColumn.setVisible(store.isAdvancedMode());
         list.add(protectedActionColumn);
+
+        tableView.getItems().clear();
         tableView.getColumns().setAll(list);
         resetTableItems();
     }
@@ -186,7 +190,7 @@ public class SuperStoreController extends Controller {
     private void tableKeyAction(KeyEvent event) {
         switch (event.getCode()) {
             case DELETE:
-                deleteSelected();
+                deleteSelected(store.isAdvancedMode());
                 event.consume();
                 break;
             case INSERT:
@@ -219,10 +223,16 @@ public class SuperStoreController extends Controller {
 
     private void deleteSelected() {
         ParentHelper.confirmation(stack, aproot().getString("deleteConfirm"), () -> {
+            deleteSelected(true);
+        });
+    }
+
+    private void deleteSelected(boolean confirmed) {
+        if(confirmed) {
             Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
             store.getStored().removeAll(selected);
             tableView.getItems().removeAll(selected);
-        });
+        } else deleteSelected();
     }
 
     private void insertBeforeSelected() {
@@ -269,6 +279,7 @@ public class SuperStoreController extends Controller {
                 try {
                     if(storeFile.createNewFile()) {
                         Store store = new Store(GlyphProcessor.process(subject.get("Kolumny").orGiven(""), false));
+                        store.setAdvancedMode(this.store.isAdvancedMode());
                         order(Suite.
                                 set(Aproot.Please.showView).
                                 set(Controller.fxml, "store").
@@ -290,8 +301,16 @@ public class SuperStoreController extends Controller {
 
     private void scriptAction() {
         switch (searchString) {
-            case "!all":
-                tableView.getColumns().forEach(col -> col.setVisible(true));
+            case "!root":
+                store.setAdvancedMode(true);
+                resetTable();
+                searchText.setText("");
+                break;
+            case "!user":
+                store.setAdvancedMode(false);
+                resetTable();
+                searchText.setText("");
+                break;
         }
     }
 }

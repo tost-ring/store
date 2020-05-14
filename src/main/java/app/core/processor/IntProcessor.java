@@ -1,8 +1,7 @@
-package app.modules.model.processor;
+package app.core.processor;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.processor.ProcessorException;
 
 @FunctionalInterface
 public interface IntProcessor {

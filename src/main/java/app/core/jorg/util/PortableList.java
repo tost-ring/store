@@ -1,9 +1,6 @@
 package app.core.jorg.util;
 
-import app.core.jorg.Performable;
-import app.core.jorg.Reformable;
-import app.core.jorg.StandardPerformer;
-import app.core.jorg.StandardReformer;
+import app.core.jorg.*;
 import app.core.suite.Subject;
 
 import java.util.*;
@@ -13,23 +10,23 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-public class MoldList<T> implements List<T>, Performable, Reformable {
+public class PortableList<T> implements List<T>, Performable, Reformable {
 
-    public static<T1> MoldList<T1> of(List<T1> list) {
-        return new MoldList<>(list);
+    public static<T1> PortableList<T1> of(List<T1> list) {
+        return new PortableList<>(list);
     }
 
-    public static<T1> MoldList<T1> of(T1[] array) {
-        return new MoldList<>(Arrays.asList(array));
+    public static<T1> PortableList<T1> of(T1[] array) {
+        return new PortableList<>(Arrays.asList(array));
     }
 
     private final List<T> list;
 
-    public MoldList() {
+    public PortableList() {
         list = new ArrayList<>();
     }
 
-    public MoldList(List<T> list) {
+    public PortableList(List<T> list) {
         this.list = list;
     }
 

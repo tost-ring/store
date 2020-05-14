@@ -1,10 +1,9 @@
-package app.modules.model.processor;
+package app.core.jorg;
 
-import app.core.jorg.Jorg;
-import app.core.jorg.Xkey;
+import app.core.processor.IntProcessor;
+import app.core.processor.ProcessorException;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.*;
 
 public class JorgProcessor implements IntProcessor {
 
@@ -17,7 +16,7 @@ public class JorgProcessor implements IntProcessor {
     }
 
     enum DataState {
-        PENDING, HUMBLE_STRING, STRING, REFERENCE, PORT, NUMBER, REAL_NUMBER
+        PENDING, HUMBLE_STRING, STRING, REFERENCE, PORT, NUMBER, REAL_NUMBER, MINUS, PLUS
     }
 
     private Subject keys;
@@ -25,7 +24,6 @@ public class JorgProcessor implements IntProcessor {
     private DataState dataState;
     private StringBuilder dataBuilder;
     private boolean lastEscapeCharacter;
-    private int tableSize;
     private Xkey from;
     private Xkey via;
     private Xkey to;
@@ -78,12 +76,16 @@ public class JorgProcessor implements IntProcessor {
             dataState = DataState.STRING;
         } else if(i == '#') {
             dataState = DataState.PORT;
-        } else if(Character.isDigit(i) || i == '-') {
+        } else if(Character.isDigit(i)) {
             dataState = DataState.NUMBER;
             dataBuilder.appendCodePoint(i);
         } else if(i == '.' || i == ',') {
             dataState = DataState.REAL_NUMBER;
             dataBuilder.append("0.");
+        } else if(i == '-') {
+            dataState = DataState.MINUS;
+        } else if(i == '+') {
+            dataState = DataState.PLUS;
         } else if(isEscapeCharacter(i)) {
             dataState = DataState.HUMBLE_STRING;
             lastEscapeCharacter = true;
@@ -163,12 +165,16 @@ public class JorgProcessor implements IntProcessor {
                             dataState = DataState.STRING;
                         } else if(i == '#') {
                             dataState = DataState.PORT;
-                        } else if(Character.isDigit(i) || i == '-') {
+                        } else if(Character.isDigit(i)) {
                             dataState = DataState.NUMBER;
                             dataBuilder.appendCodePoint(i);
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append("0.");
+                        } else if(i == '-') {
+                            dataState = DataState.MINUS;
+                        } else if(i == '+') {
+                            dataState = DataState.PLUS;
                         } else if(isEscapeCharacter(i)) {
                             dataState = DataState.HUMBLE_STRING;
                             lastEscapeCharacter = true;
@@ -206,7 +212,7 @@ public class JorgProcessor implements IntProcessor {
                                 if (i == '[') {
                                     state = State.FROM_NODE;
                                 } else if(i == ']') {
-                                    to = terminatorXkey;
+                                    to = nullXkey;
                                     directFinish(i);
                                 } else {
                                     throw new ProcessorException();
@@ -283,6 +289,36 @@ public class JorgProcessor implements IntProcessor {
                             throw new ProcessorException("Invalid input");
                         }
                         break;
+
+                    case MINUS:
+                        if(Character.isDigit(i)) {
+                            dataBuilder.append('-').appendCodePoint(i);
+                            dataState = DataState.NUMBER;
+                        } else if(i == '.' || i == ',') {
+                            dataState = DataState.REAL_NUMBER;
+                            dataBuilder.append("-0.");
+                        } else if(isControlCharacter(i)) {
+                            to = keys.getSaved(false, new Xkey(false, null, true)).asExpected();
+                            directFinish(i);
+                        } else if(!Character.isWhitespace(i)) {
+                            throw new ProcessorException("Invalid input");
+                        }
+                        break;
+
+                    case PLUS:
+                        if(Character.isDigit(i)) {
+                            dataBuilder.appendCodePoint(i);
+                            dataState = DataState.NUMBER;
+                        } else if(i == '.' || i == ',') {
+                            dataState = DataState.REAL_NUMBER;
+                            dataBuilder.append("0.");
+                        } else if(isControlCharacter(i)) {
+                            to = keys.getSaved(true, new Xkey(true, null, true)).asExpected();
+                            directFinish(i);
+                        } else if(!Character.isWhitespace(i)) {
+                            throw new ProcessorException("Invalid input");
+                        }
+                        break;
                 }
                 break;
 
@@ -312,12 +348,16 @@ public class JorgProcessor implements IntProcessor {
                             dataState = DataState.STRING;
                         } else if(i == '#') {
                             dataState = DataState.PORT;
-                        } else if(Character.isDigit(i) || i == '-') {
+                        } else if(Character.isDigit(i)) {
                             dataState = DataState.NUMBER;
                             dataBuilder.appendCodePoint(i);
                         } else if(i == '.' || i == ',') {
                             dataState = DataState.REAL_NUMBER;
                             dataBuilder.append("0.");
+                        } else if(i == '-') {
+                            dataState = DataState.MINUS;
+                        } else if(i == '+') {
+                            dataState = DataState.PLUS;
                         } else if(isEscapeCharacter(i)) {
                             dataState = DataState.HUMBLE_STRING;
                             lastEscapeCharacter = true;
@@ -418,6 +458,37 @@ public class JorgProcessor implements IntProcessor {
                         } else if(isControlCharacter(i)) {
                             double d = Double.parseDouble(dataBuilder.toString());
                             via = keys.getSaved(d, new Xkey(d, null, true)).asExpected();
+                            viaFinish(i);
+                        } else if(!Character.isWhitespace(i)) {
+                            throw new ProcessorException("Invalid input");
+                        }
+                        break;
+
+
+                    case MINUS:
+                        if(Character.isDigit(i)) {
+                            dataBuilder.append('-').appendCodePoint(i);
+                            dataState = DataState.NUMBER;
+                        } else if(i == '.' || i == ',') {
+                            dataState = DataState.REAL_NUMBER;
+                            dataBuilder.append("-0.");
+                        } else if(isControlCharacter(i)) {
+                            via = keys.getSaved(false, new Xkey(false, null, true)).asExpected();
+                            viaFinish(i);
+                        } else if(!Character.isWhitespace(i)) {
+                            throw new ProcessorException("Invalid input");
+                        }
+                        break;
+
+                    case PLUS:
+                        if(Character.isDigit(i)) {
+                            dataBuilder.appendCodePoint(i);
+                            dataState = DataState.NUMBER;
+                        } else if(i == '.' || i == ',') {
+                            dataState = DataState.REAL_NUMBER;
+                            dataBuilder.append("0.");
+                        } else if(isControlCharacter(i)) {
+                            via = keys.getSaved(true, new Xkey(true, null, true)).asExpected();
                             viaFinish(i);
                         } else if(!Character.isWhitespace(i)) {
                             throw new ProcessorException("Invalid input");
@@ -543,6 +614,36 @@ public class JorgProcessor implements IntProcessor {
                         }
                         break;
 
+                    case MINUS:
+                        if(Character.isDigit(i)) {
+                            dataBuilder.append('-').appendCodePoint(i);
+                            dataState = DataState.NUMBER;
+                        } else if(i == '.' || i == ',') {
+                            dataState = DataState.REAL_NUMBER;
+                            dataBuilder.append("-0.");
+                        } else if(isControlCharacter(i)) {
+                            to = keys.getSaved(false, new Xkey(false, null, true)).asExpected();
+                            toFinish(i);
+                        } else if(!Character.isWhitespace(i)) {
+                            throw new ProcessorException("Invalid input");
+                        }
+                        break;
+
+                    case PLUS:
+                        if(Character.isDigit(i)) {
+                            dataBuilder.appendCodePoint(i);
+                            dataState = DataState.NUMBER;
+                        } else if(i == '.' || i == ',') {
+                            dataState = DataState.REAL_NUMBER;
+                            dataBuilder.append("0.");
+                        } else if(isControlCharacter(i)) {
+                            to = keys.getSaved(true, new Xkey(true, null, true)).asExpected();
+                            toFinish(i);
+                        } else if(!Character.isWhitespace(i)) {
+                            throw new ProcessorException("Invalid input");
+                        }
+                        break;
+
                 }
                 break;
 
@@ -577,59 +678,13 @@ public class JorgProcessor implements IntProcessor {
                 break;
 
             case DIRECT:
-                switch (dataState) {
-                    case HUMBLE_STRING -> {
-                        str = dataBuilder.toString().trim();
-                        to = keys.getSaved(str, new Xkey(str, null, true)).asExpected();
-                        from.add(to);
-                    }
-                    case REFERENCE -> {
-                        str = dataBuilder.toString().trim();
-                        if (str.isEmpty()) {
-                            throw new ProcessorException();
-                        } else {
-                            Reference reference = new Reference(str);
-                            to = keys.getSaved(reference, new Xkey(null, reference, false)).asExpected();
-                            from.add(to);
-                        }
-                    }
-                    case STRING -> {
-                        str = dataBuilder.toString();
-                        to = keys.getSaved(str, new Xkey(str, null, true)).asExpected();
-                        from.add(to);
-                    }
-                    case PORT -> {
-                        str = dataBuilder.toString().trim();
-                        if (str.isEmpty()) {
-                            throw new ProcessorException();
-                        } else {
-                            Port port = new Port(str);
-                            to = keys.getSaved(port, new Xkey(null, port, false)).asExpected();
-                            from.add(to);
-                        }
-                    }
-                    case NUMBER -> {
-                        str = dataBuilder.toString();
-                        int integer = Integer.parseInt(str);
-                        to = keys.getSaved(integer, new Xkey(integer, null, true)).asExpected();
-                        from.add(to);
-                    }
-                    case REAL_NUMBER -> {
-                        str = dataBuilder.toString();
-                        double d = Double.parseDouble(str);
-                        to = keys.getSaved(d, new Xkey(d, null, true)).asExpected();
-                        from.add(to);
-                    }
-                }
-                break;
-
             case TO_NODE:
                 switch (dataState) {
                     case HUMBLE_STRING -> {
                         str = dataBuilder.toString().trim();
                         to = keys.getSaved(str, new Xkey(str, null, true)).asExpected();
-                        from.set(via, to);
                     }
+
                     case REFERENCE -> {
                         str = dataBuilder.toString().trim();
                         if (str.isEmpty()) {
@@ -637,14 +692,14 @@ public class JorgProcessor implements IntProcessor {
                         } else {
                             Reference reference = new Reference(str);
                             to = keys.getSaved(reference, new Xkey(null, reference, false)).asExpected();
-                            from.set(via, to);
                         }
                     }
+
                     case STRING -> {
                         str = dataBuilder.toString();
                         to = keys.getSaved(str, new Xkey(str, null, true)).asExpected();
-                        from.set(via, to);
                     }
+
                     case PORT -> {
                         str = dataBuilder.toString().trim();
                         if (str.isEmpty()) {
@@ -652,21 +707,29 @@ public class JorgProcessor implements IntProcessor {
                         } else {
                             Port port = new Port(str);
                             to = keys.getSaved(port, new Xkey(null, port, false)).asExpected();
-                            from.set(via, to);
                         }
                     }
+
                     case NUMBER -> {
                         str = dataBuilder.toString();
                         int integer = Integer.parseInt(str);
                         to = keys.getSaved(integer, new Xkey(integer, null, true)).asExpected();
-                        from.set(via, to);
                     }
+
                     case REAL_NUMBER -> {
                         str = dataBuilder.toString();
                         double d = Double.parseDouble(str);
                         to = keys.getSaved(d, new Xkey(d, null, true)).asExpected();
-                        from.set(via, to);
                     }
+
+                    case MINUS -> to = keys.getSaved(false, new Xkey(false, null, true)).asExpected();
+
+                    case PLUS -> to = keys.getSaved(true, new Xkey(true, null, true)).asExpected();
+
+                }
+                if(dataState != DataState.PENDING) {
+                    if (state == State.DIRECT) from.add(to);
+                    else from.set(via, to);
                 }
                 break;
 

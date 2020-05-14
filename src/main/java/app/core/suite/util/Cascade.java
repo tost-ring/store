@@ -1,4 +1,4 @@
-package app.core.fluid;
+package app.core.suite.util;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;

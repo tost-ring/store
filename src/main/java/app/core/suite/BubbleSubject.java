@@ -1,12 +1,11 @@
 package app.core.suite;
 
-import app.core.fluid.Fluid;
-import app.core.fluid.FluidIterator;
-import app.core.fluid.FluidSubject;
+import app.core.suite.util.FluidIterator;
+import app.core.suite.util.FluidSubject;
+import app.core.suite.util.Glass;
 
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 class BubbleSubject implements Subject {

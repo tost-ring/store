@@ -1,4 +1,4 @@
-package app.modules.model;
+package app.core.jorg;
 
 public class Reference {
 

@@ -1,9 +1,9 @@
-package app.modules.model;
+package app.controller.tool;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.processor.IntProcessor;
-import app.modules.model.processor.ProcessorException;
+import app.core.processor.IntProcessor;
+import app.core.processor.ProcessorException;
 
 import java.util.LinkedList;
 import java.util.Queue;

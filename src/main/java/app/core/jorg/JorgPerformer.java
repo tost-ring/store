@@ -1,9 +1,9 @@
 package app.core.jorg;
 
-import app.core.fluid.Cascade;
+import app.core.jorg.util.PortableList;
+import app.core.suite.util.Cascade;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.Port;
 
 import java.util.function.Function;
 
@@ -16,12 +16,16 @@ public class JorgPerformer {
     private int automaticIndex;
 
     public JorgPerformer() {
-        this(true);
+        this(true, true);
     }
 
-    public JorgPerformer(boolean enableStandardPerformers) {
+    public JorgPerformer(boolean enableStandardPerformers, boolean enableDefaultPorts) {
         if(enableStandardPerformers) {
             performers.insetAll(StandardPerformer.getAllSupported().front());
+        }
+
+        if(enableDefaultPorts) {
+            ports.set(PortableList.class, Xray.image(new Port("list")));
         }
     }
 

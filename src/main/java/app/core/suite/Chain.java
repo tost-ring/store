@@ -1,7 +1,7 @@
 package app.core.suite;
 
-import app.core.fluid.FluidIterator;
-import app.core.fluid.FluidSubject;
+import app.core.suite.util.FluidIterator;
+import app.core.suite.util.FluidSubject;
 
 import java.util.*;
 

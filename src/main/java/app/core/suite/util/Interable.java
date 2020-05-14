@@ -1,4 +1,4 @@
-package app.core.fluid;
+package app.core.suite.util;
 
 public class Interable {
 

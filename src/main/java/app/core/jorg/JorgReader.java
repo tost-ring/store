@@ -2,8 +2,6 @@ package app.core.jorg;
 
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.processor.JorgProcessor;
-import app.modules.model.Reference;
 
 import java.io.*;
 import java.net.URL;

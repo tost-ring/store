@@ -1,6 +1,6 @@
 package app.core.suite;
 
-import app.core.fluid.FluidSubject;
+import app.core.suite.util.Glass;
 
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;

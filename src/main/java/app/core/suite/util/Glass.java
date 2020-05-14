@@ -1,4 +1,4 @@
-package app.core.suite;
+package app.core.suite.util;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.TableColumn;

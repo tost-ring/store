@@ -1,9 +1,10 @@
 package app.core.suite;
 
-import app.core.fluid.FluidSubject;
+import app.core.suite.util.FluidSubject;
 import app.core.jorg.Jorg;
 import app.core.jorg.Performable;
 import app.core.jorg.Reformable;
+import app.core.suite.util.Glass;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -15,7 +16,6 @@ public interface Subject extends Performable, Reformable {
     Subject put(Object element);
     Subject put(Object key, Object value);
     Subject add(Object element);
-//    add(Object key, Object value) upgrade do grafu ?
 
     default Subject unset() {
         return ZeroSubject.getInstance();
@@ -28,6 +28,9 @@ public interface Subject extends Performable, Reformable {
     Subject prime();
     Subject recent();
     Subject get(Object key);
+    default Subject at(Object key) {
+        return get(key).asExpected();
+    }
 
     Object direct();
     <B> B asExpected();
@@ -64,10 +67,6 @@ public interface Subject extends Performable, Reformable {
     }
 
     Subject iterable();
-
-//    default<K, V> Sub<K, V> sub(Class<K> keyType, Class<V> valueType) {
-//        return new Sub<>(keyType, valueType).insetAll(this.front());
-//    }
 
     default boolean fused() {
         return false;

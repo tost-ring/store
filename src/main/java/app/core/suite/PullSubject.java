@@ -1,6 +1,7 @@
 package app.core.suite;
 
-import app.core.fluid.FluidSubject;
+import app.core.suite.util.FluidSubject;
+import app.core.suite.util.Glass;
 
 import java.util.Iterator;
 import java.util.function.Function;
