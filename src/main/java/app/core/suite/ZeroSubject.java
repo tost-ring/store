@@ -126,12 +126,37 @@ class ZeroSubject implements Subject {
     }
 
     @Override
-    public Subject iterable() {
+    public Subject upgradeToIterable() {
         return new MultiSubject();
     }
 
     @Override
     public String toString() {
         return "[]";
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        return set(element);
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object key, Object value) {
+        return set(key, value);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        return put(element);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        return put(key, value);
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        return add(element);
     }
 }

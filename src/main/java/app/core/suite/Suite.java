@@ -10,32 +10,32 @@ public final class Suite {
     public static final Object OK = new Object();
 
     public static Subject set() {
-        return new WrapSubject();
+        return new SolidSubject();
     }
     public static Subject set(Object element) {
-        return new WrapSubject(new BubbleSubject(element));
+        return new SolidSubject(new BubbleSubject(element));
     }
     public static Subject set(Object key, Object value) {
-        return new WrapSubject(new CoupleSubject(key, value));
+        return new SolidSubject(new CoupleSubject(key, value));
     }
     public static Add add() {
         return new Add();
     }
     public static Subject add(Object element) {
-        return new WrapSubject(new CoupleSubject(new Add(), element));
+        return new SolidSubject(new CoupleSubject(new Add(), element));
     }
     public static Subject insetAll(Iterable<Subject> source) {
-        return new WrapSubject(ZeroSubject.getInstance().insetAll(source));
+        return new SolidSubject(ZeroSubject.getInstance().insetAll(source));
     }
     public static Subject setAll(Iterable<Object> source) {
-        return new WrapSubject(ZeroSubject.getInstance().setAll(source));
+        return new SolidSubject(ZeroSubject.getInstance().setAll(source));
     }
     public static Subject addAll(Iterable<Object> source) {
-        return new WrapSubject(ZeroSubject.getInstance().addAll(source));
+        return new SolidSubject(ZeroSubject.getInstance().addAll(source));
     }
 
     public static Subject ok() {
-        return new WrapSubject(new BubbleSubject(OK));
+        return new SolidSubject(new BubbleSubject(OK));
     }
 
     public static boolean isOk(Subject subject) {
@@ -43,7 +43,7 @@ public final class Suite {
     }
 
     public static Subject error(Object cause) {
-        return new WrapSubject(new CoupleSubject("error", cause));
+        return new SolidSubject(new CoupleSubject("error", cause));
     }
 
     public static Subject fuse(Subject subject) {
@@ -52,7 +52,7 @@ public final class Suite {
         } else if(subject.fused()) {
             return subject;
         } else {
-            return new WrapSubject(new FuseSubject(subject));
+            return new SolidSubject(new FuseSubject(subject));
         }
     }
 

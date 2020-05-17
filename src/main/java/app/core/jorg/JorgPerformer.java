@@ -25,7 +25,7 @@ public class JorgPerformer {
         }
 
         if(enableDefaultPorts) {
-            ports.set(PortableList.class, Xray.image(new Port("list")));
+            ports.set(PortableList.class, Xray.image(new Reference("list")));
         }
     }
 
@@ -34,7 +34,7 @@ public class JorgPerformer {
     }
 
     public void setPort(Object object, String id) {
-        ports.set(object, Xray.image(new Port(id)));
+        ports.set(object, Xray.image(new Reference(id)));
     }
 
     public Cascade<Xray> perform(Subject solid) throws JorgWriteException {
@@ -90,7 +90,7 @@ public class JorgPerformer {
         Subject sub = ports.get(o);
         if(sub.settled()) return sub.asExpected();
         if(o == null) return Xray.image(null);
-        if(o instanceof Class) return Xray.image(new Port(((Class<?>) o).getName()));
+        if(o instanceof Class) return Xray.image(new Reference(((Class<?>) o).getName()));
         if(o instanceof Boolean || o instanceof Character || o instanceof Byte || o instanceof Short ||
                 o instanceof Integer || o instanceof Long || o instanceof Float || o instanceof Double ||
                 o instanceof String || o instanceof Suite.Add || o == Jorg.terminator) {

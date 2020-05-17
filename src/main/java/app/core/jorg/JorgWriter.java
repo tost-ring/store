@@ -146,7 +146,6 @@ public class JorgWriter {
     }
 
     public void save(OutputStream output) throws JorgWriteException, IOException {
-        System.out.println("saving" + objects);
 
         OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
 
@@ -155,7 +154,7 @@ public class JorgWriter {
 
         for(Xray c : crystals.toEnd()) {
             if(crystals.getFalls() > 1 || !"0".equals(c.getId()) || !rootMode) {
-                writer.write(compactMode ? "@[" : "@[ ");
+                writer.write(compactMode ? "#[" : "#[ ");
                 writer.write(c.getId());
                 writer.write(compactMode ? "]" : " ] ");
             }
@@ -166,12 +165,12 @@ public class JorgWriter {
                 Xray key = ref.key().asExpected();
                 Xray value = ref.asExpected();
                 if(key.getObject() == Jorg.terminator || value.getObject() == Jorg.terminator) {
-                    writer.write(compactMode ? "@]" : " @] ");
+                    writer.write(compactMode ? "#]" : " #\n ] ");
                     dartWritten = true;
                 } else {
                     if(key.getObject() instanceof Suite.Add) {
                         if(!dartWritten) {
-                            writer.write(compactMode ? "]" : " ] ");
+                            writer.write(compactMode ? "]" : "\n ] ");
                         }
                     } else {
                         if (!compactMode) {
@@ -185,7 +184,7 @@ public class JorgWriter {
                         if (key.getId() == null) {
                             writer.write(stringify(key.getObject()));
                         } else {
-                            writer.write("@");
+                            writer.write("#");
                             writer.write(escapedHumble(key.getId(), false));
                         }
                         writer.write(compactMode ? "]" : " ] ");
@@ -193,7 +192,7 @@ public class JorgWriter {
                     if (value.getId() == null) {
                         writer.write(stringify(value.getObject()));
                     } else {
-                        writer.write("@");
+                        writer.write("#");
                         writer.write(escapedHumble(value.getId(), false));
                     }
                     dartWritten = false;
@@ -214,8 +213,8 @@ public class JorgWriter {
             return "" + object;
         } else if (object instanceof Boolean) {
             return (Boolean) object ? "+" : "-";
-        } else if(object instanceof Port) {
-            return "#" + escapedHumble(((Port) object).getLabel(), false);
+        } else if(object instanceof Reference) {
+            return "#" + escapedHumble(((Reference) object).getId(), false);
         } else if(object == null || object instanceof Suite.Add) {
             return "";
         } else {

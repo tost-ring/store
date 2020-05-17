@@ -2,32 +2,46 @@ package app.core.jorg;
 
 public class Reference {
 
-    private Object label;
+    private String id;
+    private boolean declared;
 
-    public Reference(Object label) {
-        this.label = label;
+    public Reference(String id) {
+        this(id , false);
     }
 
-    public Object getLabel() {
-        return label;
+    public Reference(String id, boolean declared) {
+        this.id = id;
+        this.declared = declared;
     }
 
-    public void setLabel(Object label) {
-        this.label = label;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public boolean isDeclared() {
+        return declared;
+    }
+
+    public void setDeclared(boolean declared) {
+        this.declared = declared;
     }
 
     @Override
     public int hashCode() {
-        return label.hashCode();
+        return id.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Reference && label.equals(((Reference) obj).label);
+        return obj instanceof Reference && id.equals(((Reference) obj).id);
     }
 
     @Override
     public String toString() {
-        return "@" + label;
+        return "#" + id;
     }
 }

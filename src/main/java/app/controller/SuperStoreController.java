@@ -1,7 +1,6 @@
 package app.controller;
 
 import app.controller.tool.ActionTableColumn;
-import app.controller.tool.ParentHelper;
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
 import app.core.suite.Subject;
@@ -10,36 +9,18 @@ import app.modules.dealer.StoreDealer;
 import app.controller.tool.GlyphProcessor;
 import app.modules.model.Store;
 import javafx.beans.binding.StringBinding;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-public class SuperStoreController extends Controller {
-
-    @FXML
-    private StackPane stack;
-
-    @FXML
-    private TextField searchText;
-
-    @FXML
-    private TableView<Subject> tableView;
-
-    private String searchString = "";
-    private StoreDealer storeDealer;
-    private Store store;
-    private File storeFile;
+public class SuperStoreController extends StoreController {
 
     @Override
     protected Subject employ(Subject subject) {
@@ -72,33 +53,7 @@ public class SuperStoreController extends Controller {
     }
 
     @Override
-    protected void undress() {
-
-        store.getStored().removeIf(s -> s.size() == 0);
-        storeDealer.saveStore(store, storeFile);
-    }
-
-    @FXML
-    void addAction(ActionEvent event) {
-        tableView.requestFocus();
-        Subject sub = Suite.set();
-        if(searchString != null) {
-            String[] glyphs = GlyphProcessor.process(searchString, false);
-            for(int i = 0;i < glyphs.length && i < tableView.getVisibleLeafColumns().size(); ++i) {
-                sub.put(tableView.getVisibleLeafColumn(i).getText(), glyphs[i]);
-            }
-        }
-        store.getStored().add(sub);
-        tableView.getItems().add(0, sub);
-        tableView.getSelectionModel().clearAndSelect(0);
-    }
-
-    private void resetSearch() {
-        searchString = "";
-        searchText.setText("");
-    }
-
-    private void resetTable() {
+    void resetTable() {
         List<TableColumn<Subject, String>> list = new ArrayList<>();
         for(String it : store.getColumns()) {
             TableColumn<Subject, String> column = new TableColumn<>(it);
@@ -126,12 +81,9 @@ public class SuperStoreController extends Controller {
         TableColumn<Subject, String> publicActionColumn = ActionTableColumn.make("", Suite.
                         set("open", aproot().getString("open")),
                 s -> {
-                    switch(s.get("value").orGiven("")) {
-                        case "open":
-                            tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
-                            enterSelected();
-                            break;
-
+                    if ("open".equals(s.get("value").orGiven(""))) {
+                        tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
+                        enterSelected();
                     }
                 });
         list.add(publicActionColumn);
@@ -140,15 +92,15 @@ public class SuperStoreController extends Controller {
                         set("create", aproot().getString("create")).
                         set("delete", aproot().getString("delete")),
                 s -> {
-                    switch(s.get("value").orGiven("")) {
-                        case "create":
+                    switch (s.get("value").orGiven("")) {
+                        case "create" -> {
                             tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             createSelected();
-                            break;
-                        case "delete":
+                        }
+                        case "delete" -> {
                             tableView.getSelectionModel().clearAndSelect(s.get("row").asExpected());
                             deleteSelected(store.isAdvancedMode());
-                            break;
+                        }
                     }
                 });
         protectedActionColumn.setVisible(store.isAdvancedMode());
@@ -159,86 +111,21 @@ public class SuperStoreController extends Controller {
         resetTableItems();
     }
 
-    private void resetTableItems() {
-        List<Subject> items = new ArrayList<>();
-        boolean pass, halt;
-        String[] glyphs = GlyphProcessor.process(searchString, true);
-        for(Subject it : store.getStored()) {
-            pass = true;
-            for(String glyph : glyphs) {
-                halt = true;
-                for(TableColumn<Subject, ?> column : tableView.getVisibleLeafColumns()) {
-                    String str = it.get(column.getText()).orGiven("").toLowerCase();
-                    if(str.contains(glyph)) {
-                        halt = false;
-                        break;
-                    }
-                }
-                if(halt) {
-                    pass = false;
-                    break;
-                }
-            }
-            if(pass) {
-                items.add(it);
-            }
-        }
-
-        tableView.getItems().setAll(items);
-    }
-
     private void tableKeyAction(KeyEvent event) {
         switch (event.getCode()) {
-            case DELETE:
+            case DELETE -> {
                 deleteSelected(store.isAdvancedMode());
                 event.consume();
-                break;
-            case INSERT:
+            }
+            case INSERT -> {
                 insertBeforeSelected();
                 event.consume();
-                break;
-            case ENTER:
+            }
+            case ENTER -> {
                 enterSelected();
                 event.consume();
-                break;
+            }
         }
-    }
-
-    private void searchTextKeyAction(KeyEvent event) {
-        switch (event.getCode()) {
-            case ESCAPE:
-                searchText.setText("");
-                event.consume();
-                break;
-            case ENTER:
-                if(searchString.startsWith("!")) {
-                    scriptAction();
-                } else {
-                    addAction(new ActionEvent());
-                }
-                event.consume();
-                break;
-        }
-    }
-
-    private void deleteSelected() {
-        ParentHelper.confirmation(stack, aproot().getString("deleteConfirm"), () -> {
-            deleteSelected(true);
-        });
-    }
-
-    private void deleteSelected(boolean confirmed) {
-        if(confirmed) {
-            Collection<Subject> selected = tableView.getSelectionModel().getSelectedItems();
-            store.getStored().removeAll(selected);
-            tableView.getItems().removeAll(selected);
-        } else deleteSelected();
-    }
-
-    private void insertBeforeSelected() {
-        Subject sub = Suite.set();
-        store.getStored().add(sub);
-        tableView.getItems().add(tableView.getSelectionModel().getSelectedIndex(), sub);
     }
 
     private void enterSelected() {
@@ -296,21 +183,6 @@ public class SuperStoreController extends Controller {
                     new Alert(Alert.AlertType.ERROR, aproot().getString("fileCreationError")).show();
                 }
             }
-        }
-    }
-
-    private void scriptAction() {
-        switch (searchString) {
-            case "!root":
-                store.setAdvancedMode(true);
-                resetTable();
-                searchText.setText("");
-                break;
-            case "!user":
-                store.setAdvancedMode(false);
-                resetTable();
-                searchText.setText("");
-                break;
         }
     }
 }

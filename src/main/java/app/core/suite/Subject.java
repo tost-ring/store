@@ -9,7 +9,7 @@ import app.core.suite.util.Glass;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Subject extends Performable, Reformable {
+public interface Subject extends Slot, Performable, Reformable {
 
     Subject set(Object element);
     Subject set(Object key, Object value);
@@ -20,7 +20,6 @@ public interface Subject extends Performable, Reformable {
     default Subject unset() {
         return ZeroSubject.getInstance();
     }
-
     Subject unset(Object key); // Usuń wartości pod kluczem $key
     Subject unset(Object key, Object value); // Usuń wartość $value pod kluczem $key
 
@@ -66,7 +65,7 @@ public interface Subject extends Performable, Reformable {
         throw new UnsupportedOperationException();
     }
 
-    Subject iterable();
+    Subject upgradeToIterable();
 
     default boolean fused() {
         return false;
@@ -125,4 +124,10 @@ public interface Subject extends Performable, Reformable {
     default void reform(Subject subject) {
         insetAll(subject.front());
     }
+
+    Subject setAt(Slot slot, Object element);
+    Subject setAt(Slot slot, Object key, Object value);
+    Subject putAt(Slot slot, Object element);
+    Subject putAt(Slot slot, Object key, Object value);
+    Subject addAt(Slot slot, Object element);
 }

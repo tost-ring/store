@@ -34,8 +34,8 @@ public abstract class Agent extends Broker {
         return order(boss, object);
     }
 
-    protected final void order(Object object, Action callback) {
-        order(boss, object, callback);
+    protected final Thread order(Object object, Action callback) {
+        return order(boss, object, callback);
     }
 
     @Override

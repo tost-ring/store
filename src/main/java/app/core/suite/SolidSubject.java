@@ -7,15 +7,15 @@ import app.core.suite.util.Glass;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class WrapSubject implements Subject {
+public class SolidSubject implements Subject {
 
     private Subject subject;
 
-    WrapSubject() {
+    SolidSubject() {
         subject = ZeroSubject.getInstance();
     }
 
-    WrapSubject(Subject subject) {
+    SolidSubject(Subject subject) {
         this.subject = subject;
     }
 
@@ -69,22 +69,22 @@ public class WrapSubject implements Subject {
 
     @Override
     public Subject prime() {
-        return new WrapSubject(subject.prime());
+        return new SolidSubject(subject.prime());
     }
 
     @Override
     public Subject recent() {
-        return new WrapSubject(subject.recent());
+        return new SolidSubject(subject.recent());
     }
 
     @Override
     public Subject get(Object key) {
-        return new WrapSubject(subject.get(key));
+        return new SolidSubject(subject.get(key));
     }
 
     @Override
     public Subject key() {
-        return new WrapSubject(subject.key());
+        return new SolidSubject(subject.key());
     }
 
     @Override
@@ -135,7 +135,7 @@ public class WrapSubject implements Subject {
     @Override
     public Subject getSaved(Object key, Object reserve) {
         Subject saved = subject.get(key);
-        if(saved.settled())return new WrapSubject(saved);
+        if(saved.settled())return new SolidSubject(saved);
         subject = subject.set(key, reserve);
         return get(key);
     }
@@ -143,7 +143,7 @@ public class WrapSubject implements Subject {
     @Override
     public Subject getDone(Object key, Supplier<?> supplier) {
         Subject done = subject.get(key);
-        if(done.settled())return new WrapSubject(done);
+        if(done.settled())return new SolidSubject(done);
         subject = subject.set(key, supplier.get());
         return get(key);
     }
@@ -151,7 +151,7 @@ public class WrapSubject implements Subject {
     @Override
     public Subject getDone(Object key, Function<Subject, ?> function, Subject argument) {
         Subject done = subject.get(key);
-        if(done.settled())return new WrapSubject(done);
+        if(done.settled())return new SolidSubject(done);
         subject = subject.set(key, function.apply(argument));
         return get(key);
     }
@@ -175,7 +175,7 @@ public class WrapSubject implements Subject {
 
     @Override
     public FluidSubject front() {
-        subject = subject.iterable();
+        subject = subject.upgradeToIterable();
         return () -> new FluidIterator<>() {
             final FluidIterator<Subject> subIt = subject.front().iterator();
 
@@ -186,14 +186,14 @@ public class WrapSubject implements Subject {
 
             @Override
             public Subject next() {
-                return new WrapSubject(subIt.next());
+                return new SolidSubject(subIt.next());
             }
         };
     }
 
     @Override
     public FluidSubject reverse() {
-        subject = subject.iterable();
+        subject = subject.upgradeToIterable();
         return () -> new FluidIterator<>() {
             final FluidIterator<Subject> subIt = subject.reverse().iterator();
 
@@ -204,13 +204,13 @@ public class WrapSubject implements Subject {
 
             @Override
             public Subject next() {
-                return new WrapSubject(subIt.next());
+                return new SolidSubject(subIt.next());
             }
         };
     }
 
     @Override
-    public Subject iterable() {
+    public Subject upgradeToIterable() {
         return this;
     }
 
@@ -239,5 +239,35 @@ public class WrapSubject implements Subject {
     @Override
     public String toString() {
         return subject.toString();
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        subject = subject.setAt(slot, element);
+        return this;
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object key, Object value) {
+        subject = subject.setAt(slot, key, value);
+        return this;
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        subject = subject.putAt(slot, element);
+        return this;
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        subject = subject.putAt(slot, key, value);
+        return this;
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        subject = subject.addAt(slot, element);
+        return this;
     }
 }

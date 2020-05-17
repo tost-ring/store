@@ -154,12 +154,41 @@ class BubbleSubject implements Subject {
     }
 
     @Override
-    public Subject iterable() {
+    public Subject upgradeToIterable() {
         return new MultiSubject().set(bubbled);
     }
 
     @Override
     public String toString() {
         return "[" + bubbled + "]" + bubbled;
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        return Objects.equals(bubbled, element) ? new BubbleSubject(element) :
+                new MultiSubject().set(bubbled).setAt(slot, element, element);
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object key, Object value) {
+        return Objects.equals(bubbled, key) ? new CoupleSubject(key, value) :
+                new MultiSubject().set(bubbled).setAt(slot, key, value);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        return Objects.equals(bubbled, element) ? this :
+                new MultiSubject().set(bubbled).setAt(slot, element, element);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        return Objects.equals(bubbled, key) ? this :
+                new MultiSubject().set(bubbled).setAt(slot, key, value);
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        return new MultiSubject().set(bubbled).addAt(slot, element);
     }
 }

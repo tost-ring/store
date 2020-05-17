@@ -109,7 +109,7 @@ public class JorgReader {
             for (Xkey xkey : xkeys.front().values().filter(Xkey.class).filter(x -> x.getLabel() instanceof Reference)) {
                 reformer.reform(xkey);
                 Reference ref = (Reference) xkey.getLabel();
-                objects.set(ref.getLabel(), xkey.getObject());
+                objects.set(ref.getId(), xkey.getObject());
             }
         }catch(Exception e) {
             throw new JorgReadException(e);

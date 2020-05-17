@@ -50,91 +50,94 @@ public class JorgReformer {
         if(xkey.isConstructed())return xkey.getObject();
         Object o;
 
-        //  Podłączenie do portu
-        if(xkey.getLabel() instanceof Port) {
-            Port port = (Port)xkey.getLabel();
-            Subject sub = adapters.get(port.getLabel());
+        if(xkey.getLabel() instanceof Reference) {
+            Reference reference = (Reference) xkey.getLabel();
+            Subject sub = adapters.get(reference.getId());
             if(sub.settled()) {
-                o = sub.direct();
-            } else {
-                try {
-                    o = Class.forName(port.getLabel());
-                } catch (ClassNotFoundException e) {
-                    throw new JorgReadException("No adapter found for port " + port);
+                xkey.setObject(sub.direct());
+                xkey.setConstructed(true);
+                return sub.direct();
+
+            } else if(reference.isDeclared()) {
+                //  Konstrukcja obiektu
+                xkey.setUnderConstruction(true);
+
+                Subject image = xkey.getImage();
+                Subject params = Suite.set();
+                int paramIndex = 0;
+                // Parametry konstukcyjne to parametry do pierwszego oznaczonego lub do termiantora
+                for(var s : image.front()) {
+                    Xkey key = s.key().asExpected();
+                    if(key.getObject() instanceof Suite.Add) {
+                        Xkey value = s.asExpected();
+                        if(value.isUnderConstruction()) throw new JorgReadException("Construction loop");
+                        if(!value.isConstructed()) construct(value);
+                        image.take(key);
+                        if(value.getObject() == terminator) break;
+                        params.set(paramIndex++, value.getObject());
+                    } else {
+                        if(key.getObject() == terminator) {
+                            image.take(key);
+                        }
+                        break;
+                    }
                 }
-            }
-            xkey.setObject(o);
-            xkey.setConstructed(true);
-            return o;
-        }
 
-        //  Konstrukcja obiektu
-        xkey.setUnderConstruction(true);
+                xkey.setUnderConstruction(false);
 
-        Subject image = xkey.getImage();
-        Subject params = Suite.set();
-        int paramIndex = 0;
-        // Parametry konstukcyjne to parametry do pierwszego oznaczonego lub do termiantora
-        for(var s : image.front()) {
-            Xkey key = s.key().asExpected();
-            if(key.getObject() instanceof Suite.Add) {
-                Xkey value = s.asExpected();
-                if(value.isUnderConstruction()) throw new JorgReadException("Construction loop");
-                if(!value.isConstructed()) construct(value);
-                image.take(key);
-                if(value.getObject() == terminator) break;
-                params.set(paramIndex++, value.getObject());
-            } else {
-                if(key.getObject() == terminator) {
-                    image.take(key);
+                for(var s : constructors.reverse()) {
+                    Function<Subject, Object> constructor = s.asExpected();
+                    o = constructor.apply(params);
+                    if(o != null) {
+                        xkey.setObject(o);
+                        xkey.setConstructed(true);
+                        return o;
+                    }
                 }
-                break;
-            }
-        }
 
-        xkey.setUnderConstruction(false);
+                if(params.size() == 1) {
+                    if (params.assigned(Class.class)) {
+                        Class<?> type = params.asExpected();
+                        Constructor<?> c = type.getDeclaredConstructor();
+                        o = c.newInstance();
+                    } else if (image.size() == 0) {
+                        o = params.direct();
+                    } else {
+                        o = Suite.addAll(params.front().values());
+                    }
+                } else if(params.size() == 2) {
+                    if(params.get(0).assigned(Class.class) && params.get(1).assigned(Integer.class)) {
+                        o = Array.newInstance(params.get(0).asExpected(), params.get(1).asExpected());
+                    } else {
+                        o = Suite.addAll(params.front().values());
+                    }
+                } else {
+                    o = Suite.addAll(params.front().values());
+                }
 
-        for(var s : constructors.reverse()) {
-            Function<Subject, Object> constructor = s.asExpected();
-            o = constructor.apply(params);
-            if(o != null) {
                 xkey.setObject(o);
                 xkey.setConstructed(true);
                 return o;
+            } else try {
+                xkey.setObject(Class.forName(reference.getId()));
+                xkey.setConstructed(true);
+                xkey.setReformed(true);
+                return xkey.getObject();
+            } catch (ClassNotFoundException e) {
+                throw new JorgReadException("Cant create object for reference " + reference);
             }
         }
 
-        if(params.size() == 1) {
-            if (params.assigned(Class.class)) {
-                Class<?> type = params.asExpected();
-                Constructor<?> c = type.getDeclaredConstructor();
-                o = c.newInstance();
-            } else if (image.size() == 0) {
-                o = params.direct();
-            } else {
-                o = Suite.addAll(params.front().values());
-            }
-        } else if(params.size() == 2) {
-            if(params.get(0).assigned(Class.class) && params.get(1).assigned(Integer.class)) {
-                o = Array.newInstance(params.get(0).asExpected(), params.get(1).asExpected());
-            } else {
-                o = Suite.addAll(params.front().values());
-            }
-        } else {
-            o = Suite.addAll(params.front().values());
-        }
-        xkey.setObject(o);
-        xkey.setConstructed(true);
-
-        return o;
+        throw new JorgReadException("Cant create object for " + xkey.getLabel());
     }
 
     protected void reform(Xkey xkey) throws JorgReadException {
 
+        if(xkey.isReformed())return;
         Object o = xkey.getObject();
         if(o == null || o instanceof Boolean || o instanceof Character || o instanceof Byte || o instanceof Short ||
                 o instanceof Integer || o instanceof Long || o instanceof Float || o instanceof Double ||
-                o instanceof String) return;
+                o instanceof String || o instanceof Class) return;
 
         Subject params = Suite.insetAll(xkey.getImage().front().
                 map(s -> Suite.set(s.key().asGiven(Xkey.class).getObject(), s.asGiven(Xkey.class).getObject())));

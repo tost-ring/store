@@ -4,10 +4,11 @@ import app.core.suite.util.FluidSubject;
 import app.core.suite.util.Glass;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class PullSubject implements Subject{
+public abstract class PullSubject implements Subject {
 
     @Override
     public Subject set(Object element) {
@@ -31,7 +32,7 @@ public abstract class PullSubject implements Subject{
 
     @Override
     public Subject unset(Object key, Object value) {
-        return get(key).direct().equals(value) ? unset(key) : this;
+        return Objects.equals(get(key).direct(), value) ? unset(key) : this;
     }
 
     @Override
@@ -102,7 +103,7 @@ public abstract class PullSubject implements Subject{
     }
 
     @Override
-    public Subject iterable() {
+    public Subject upgradeToIterable() {
         return this;
     }
 
@@ -150,4 +151,24 @@ public abstract class PullSubject implements Subject{
 
     @Override
     public abstract FluidSubject reverse();
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        return setAt(slot, element, element);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        return putAt(slot, element, element);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        return get(key).settled() ? this : setAt(slot, key, value);
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        return setAt(slot, new Suite.Add(), element);
+    }
 }

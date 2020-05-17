@@ -11,6 +11,7 @@ public class Xkey {
     private final Subject image;
     private boolean constructed;
     private boolean underConstruction;
+    private boolean reformed;
 
     public Xkey(Object object, Object label, boolean constructed) {
         this.object = object;
@@ -18,6 +19,7 @@ public class Xkey {
         this.image = Suite.set();
         this.constructed = constructed;
         this.underConstruction = false;
+        this.reformed = false;
     }
 
     public Object getObject() {
@@ -54,6 +56,14 @@ public class Xkey {
 
     public void setUnderConstruction(boolean underConstruction) {
         this.underConstruction = underConstruction;
+    }
+
+    public boolean isReformed() {
+        return reformed;
+    }
+
+    public void setReformed(boolean reformed) {
+        this.reformed = reformed;
     }
 
     public void set(Xkey key, Xkey value) {

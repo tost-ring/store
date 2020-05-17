@@ -32,4 +32,12 @@ class Link {
     void setValue(Object value) {
         subject = subject.set(subject.key().direct(), value);
     }
+
+    Link front() {
+        return subject != null ? front : back.front();
+    }
+
+    Link back() {
+        return subject != null ? back : front.back();
+    }
 }

@@ -111,7 +111,7 @@ class ThreadySubject implements Subject {
     public Subject prime() {
         Subject prime;
         try(var ignored = readLock.lock()) {
-            prime = new WrapSubject(subject.prime());
+            prime = new SolidSubject(subject.prime());
         }
         return prime;
     }
@@ -120,7 +120,7 @@ class ThreadySubject implements Subject {
     public Subject recent() {
         Subject recent;
         try(var ignored = readLock.lock()) {
-            recent = new WrapSubject(subject.recent());
+            recent = new SolidSubject(subject.recent());
         }
         return recent;
     }
@@ -129,7 +129,7 @@ class ThreadySubject implements Subject {
     public Subject get(Object key) {
         Subject get;
         try(var ignored = readLock.lock()) {
-            get = new WrapSubject(subject.get(key));
+            get = new SolidSubject(subject.get(key));
         }
         return get;
     }
@@ -138,7 +138,7 @@ class ThreadySubject implements Subject {
     public Subject key() {
         Subject key;
         try(var ignored = readLock.lock()) {
-            key = new WrapSubject(subject.key());
+            key = new SolidSubject(subject.key());
         }
         return key;
     }
@@ -234,7 +234,7 @@ class ThreadySubject implements Subject {
                 spared = subject.get(key);
             }
         }
-        return new WrapSubject(spared);
+        return new SolidSubject(spared);
     }
 
     @Override
@@ -247,7 +247,7 @@ class ThreadySubject implements Subject {
                 spared = subject.get(key);
             }
         }
-        return new WrapSubject(spared);
+        return new SolidSubject(spared);
     }
 
     @Override
@@ -260,7 +260,7 @@ class ThreadySubject implements Subject {
                 spared = subject.get(key);
             }
         }
-        return new WrapSubject(spared);
+        return new SolidSubject(spared);
     }
 
     @Override
@@ -270,7 +270,7 @@ class ThreadySubject implements Subject {
             taken = subject.get(key);
             subject = subject.unset(key);
         }
-        return new WrapSubject(taken);
+        return new SolidSubject(taken);
     }
 
     @Override
@@ -295,7 +295,7 @@ class ThreadySubject implements Subject {
     public FluidSubject front() { // TODO przerobic na wielokrotne hasnext
         FluidSubject fluid;
         try(var ignored = writeLock.lock()) {
-            subject = subject.iterable();
+            subject = subject.upgradeToIterable();
             fluid = () -> new FluidIterator<>() {
                 final FluidIterator<Subject> subIt = subject.front().iterator();
                 Subject next;
@@ -325,7 +325,7 @@ class ThreadySubject implements Subject {
     public FluidSubject reverse() { // TODO przerobic na wielokrotne hasnext
         FluidSubject fluid;
         try(var ignored = writeLock.lock()) {
-            subject = subject.iterable();
+            subject = subject.upgradeToIterable();
             fluid = () -> new FluidIterator<>() {
                 final FluidIterator<Subject> subIt = subject.reverse().iterator();
                 Subject next;
@@ -344,7 +344,7 @@ class ThreadySubject implements Subject {
 
                 @Override
                 public Subject next() {
-                    return new WrapSubject(next);
+                    return new SolidSubject(next);
                 }
             };
         }
@@ -352,7 +352,7 @@ class ThreadySubject implements Subject {
     }
 
     @Override
-    public Subject iterable() {
+    public Subject upgradeToIterable() {
         return this;
     }
 
@@ -393,5 +393,45 @@ class ThreadySubject implements Subject {
             string = subject.toString();
         }
         return string;
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        try(var ignored = writeLock.lock()) {
+            subject = subject.setAt(slot, element);
+        }
+        return this;
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object key, Object value) {
+        try(var ignored = writeLock.lock()) {
+            subject = subject.setAt(slot, key, value);
+        }
+        return this;
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        try(var ignored = writeLock.lock()) {
+            subject = subject.putAt(slot, element);
+        }
+        return this;
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        try(var ignored = writeLock.lock()) {
+            subject = subject.putAt(slot, key, value);
+        }
+        return this;
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        try(var ignored = writeLock.lock()) {
+            subject = subject.addAt(slot, element);
+        }
+        return this;
     }
 }

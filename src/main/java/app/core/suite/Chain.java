@@ -5,7 +5,7 @@ import app.core.suite.util.FluidSubject;
 
 import java.util.*;
 
-public class Chain implements FluidSubject {
+class Chain implements FluidSubject {
 
     class ChainIterator implements FluidIterator<Subject> {
 
@@ -21,33 +21,33 @@ public class Chain implements FluidSubject {
         }
 
         public boolean hasNext() {
-            return (reverse ? current.front : current.back) != ward;
+            return (reverse ? current.front() : current.back()) != ward;
         }
 
         public Subject next() {
-            current = reverse ? current.front : current.back;
+            current = reverse ? current.front() : current.back();
             return current.subject;
         }
     }
 
     private final Map<Object, Link> data = new HashMap<>();
-    private final Link ward;
+    final Link ward;
 
     public Chain() {
         this.ward = new Link(null, null, ZeroSubject.getInstance());
         this.ward.front = this.ward.back = ward;
     }
 
-    public Subject get(Object key) {
-        return data.getOrDefault(key, ward).subject;
+    Link get(Object key) {
+        return data.getOrDefault(key, ward);
     }
 
-    public Subject getFirst() {
-        return ward.back.subject;
+    Link getFirst() {
+        return ward.back;
     }
 
-    public Subject getLast() {
-        return ward.front.subject;
+    Link getLast() {
+        return ward.front;
     }
 
     public int size() {
@@ -58,7 +58,7 @@ public class Chain implements FluidSubject {
         return data.size() == 0;
     }
 
-    public Object put(Object key, Object value) {
+    Object put(Link before, Object key, Object value) {
 
         Link linkJunior = new Link(null, null, key, value);
         Link linkSenior = data.putIfAbsent(key, linkJunior);
@@ -66,29 +66,61 @@ public class Chain implements FluidSubject {
 
         if(linkSenior == null) {
 
-            ward.front.back = linkJunior;
-            linkJunior.front = ward.front;
-            linkJunior.back = ward;
-            ward.front = linkJunior;
+            before.front.back = linkJunior;
+            linkJunior.front = before.front;
+            linkJunior.back = before;
+            before.front = linkJunior;
 
         } else {
 
             seniorValue = linkSenior.subject.direct();
             linkSenior.setValue(value);
-            if(linkSenior != ward.front) {
+            if(linkSenior != before.front) {
 
                 linkSenior.front.back = linkSenior.back;
                 linkSenior.back.front = linkSenior.front;
-                ward.front.back = linkSenior;
-                linkSenior.front = ward.front;
-                linkSenior.back = ward;
-                ward.front = linkSenior;
+                before.front.back = linkSenior;
+                linkSenior.front = before.front;
+                linkSenior.back = before;
+                before.front = linkSenior;
 
             }
 
         }
 
         return seniorValue;
+    }
+
+    void putIfAbsent(Link before, Object key, Object value) {
+
+        Link linkJunior = new Link(null, null, key, value);
+        Link linkSenior = data.putIfAbsent(key, linkJunior);
+
+        if(linkSenior == null) {
+
+            before.front.back = linkJunior;
+            linkJunior.front = before.front;
+            linkJunior.back = before;
+            before.front = linkJunior;
+
+        }
+
+    }
+
+    public Object putLast(Object key, Object value) {
+        return put(ward, key, value);
+    }
+
+    public void putLastIfAbsent(Object key, Object value) {
+        putIfAbsent(ward, key, value);
+    }
+
+    public Object putFirst(Object key, Object value) {
+        return put(ward.back, key, value);
+    }
+
+    public void putFirstIfAbsent(Object key, Object value) {
+        putIfAbsent(ward.back, key, value);
     }
 
     public void remove(Object key) {
@@ -99,23 +131,7 @@ public class Chain implements FluidSubject {
 
             linkSenior.front.back = linkSenior.back;
             linkSenior.back.front = linkSenior.front;
-
-        }
-
-    }
-
-    public void putIfAbsent(Object key, Object value) {
-
-        Link linkJunior = new Link(null, null, key, value);
-        Link linkSenior = data.putIfAbsent(key, linkJunior);
-
-        if(linkSenior == null) {
-
-            ward.front.back = linkJunior;
-            linkJunior.front = ward.front;
-            ward.front = linkJunior;
-            linkJunior.back = ward;
-
+            linkSenior.subject = null;
         }
 
     }
@@ -124,8 +140,15 @@ public class Chain implements FluidSubject {
 
         Link link = data.get(key);
         if (link != null && link.equals(value)) {
-            data.remove(key);
+            remove(key);
         }
+    }
+
+    public void clear() {
+        for(Link link : data.values()) {
+            link.front = link.back = ward;
+        }
+        data.clear();
     }
 
     @Override

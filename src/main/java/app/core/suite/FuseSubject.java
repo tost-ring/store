@@ -149,13 +149,43 @@ class FuseSubject implements Subject {
     }
 
     @Override
-    public Subject iterable() {
-        subject =  subject.iterable();
+    public Subject upgradeToIterable() {
+        subject =  subject.upgradeToIterable();
         return this;
     }
 
     @Override
     public boolean fused() {
         return true;
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        safe();
+        return subject.setAt(slot, element);
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object key, Object value) {
+        safe();
+        return subject.setAt(slot, key, value);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        safe();
+        return subject.putAt(slot, element);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        safe();
+        return subject.putAt(slot, key, value);
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        safe();
+        return subject.addAt(slot, element);
     }
 }

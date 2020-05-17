@@ -1,7 +1,6 @@
 package app.controller.tool;
 
 import app.core.suite.Subject;
-import app.core.suite.Suite;
 import app.core.suite.action.Impression;
 import javafx.scene.control.TableColumn;
 

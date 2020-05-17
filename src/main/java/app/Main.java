@@ -2,13 +2,9 @@ package app;
 
 import app.core.agent.Aproot;
 import app.core.agent.Controller;
-import app.core.jorg.JorgReader;
-import app.core.jorg.JorgWriter;
-import app.core.jorg.Performable;
-import app.core.suite.Chain;
+import app.core.suite.Slot;
 import app.core.suite.Subject;
 import app.core.suite.Suite;
-import app.modules.model.Store;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;

@@ -12,15 +12,15 @@ public abstract class Client {
         return Order.fulfil(service, subject.put(source, this));
     }
 
-    final void order(Service service, Subject subject, Action callback) {
-        Order.fulfil(service, subject.put(source, this), callback);
+    final Thread order(Service service, Subject subject, Action callback) {
+        return Order.fulfil(service, subject.put(source, this), callback);
     }
 
     final Subject order(Service service, Object object) {
         return Order.fulfil(service, Suite.set(source, this).set(object));
     }
 
-    final void order(Service service, Object object, Action callback) {
-        Order.fulfil(service, Suite.set(source, this).set(object), callback);
+    final Thread order(Service service, Object object, Action callback) {
+        return Order.fulfil(service, Suite.set(source, this).set(object), callback);
     }
 }

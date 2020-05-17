@@ -13,10 +13,6 @@ class CoupleSubject implements Subject {
     private final Object primeKey;
     private final Object primeValue;
 
-    CoupleSubject(Object prime) {
-        this(prime, prime);
-    }
-
     CoupleSubject(Object primeKey, Object primeValue) {
         this.primeKey = primeKey;
         this.primeValue = primeValue;
@@ -159,12 +155,41 @@ class CoupleSubject implements Subject {
     }
 
     @Override
-    public Subject iterable() {
+    public Subject upgradeToIterable() {
         return new MultiSubject().set(primeKey, primeValue);
     }
 
     @Override
     public String toString() {
         return "[" + primeKey + "]" + primeValue;
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object element) {
+        return Objects.equals(primeKey, element) ? new BubbleSubject(element) :
+                new MultiSubject().set(primeKey, primeValue).setAt(slot, element, element);
+    }
+
+    @Override
+    public Subject setAt(Slot slot, Object key, Object value) {
+        return Objects.equals(primeKey, key) ? new CoupleSubject(key, value) :
+                new MultiSubject().set(primeKey, primeValue).setAt(slot, key, value);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object element) {
+        return Objects.equals(primeKey, element) ? this :
+                new MultiSubject().set(primeKey, primeValue).setAt(slot, element, element);
+    }
+
+    @Override
+    public Subject putAt(Slot slot, Object key, Object value) {
+        return Objects.equals(primeKey, key) ? this :
+                new MultiSubject().set(primeKey, primeValue).setAt(slot, key, value);
+    }
+
+    @Override
+    public Subject addAt(Slot slot, Object element) {
+        return new MultiSubject().set(primeKey, primeValue).addAt(slot, element);
     }
 }
